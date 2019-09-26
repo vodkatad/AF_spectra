@@ -5,8 +5,28 @@ rule all_vcf:
 
 rule get_vcf:
     output: "{depth}.vcf.gz"
-    params: url=BASEURL+"/SPP_GT_"+GT+"_{depth}.bwa."+CALLPIPE+"vcf.gz"
+    params: url=BASEURL+"/SPP_GT_"+GT+"_{depth}.bwa."+CALLPIPE+".vcf.gz"
     shell:
         """
-            wget -O {output} {params.url}
+            wget {params.url} -O {output}
         """
+
+rule af_table:
+    input: "{depth}.vcf.gz"
+    output: "{depth}.af.tsv.gz"
+    params: nsamples="2"
+    shell:
+        """
+            zcat {input} | grep -v "^##" | bawk '$7=="PASS" ||  /^#/' | perl -ane '@gt=splice(@F,9,{params.nsamples}); $gt=""; foreach $g (@gt) {{ if ($.==1) {{$gt.=$g."\\t";}} else {{ @afs = split(":",$g); if ($afs[2] eq ".") {{$afs[2]=0;}} $gt.=$afs[2]."\\t";}} }} chop($gt); print $F[0]."\\t".$F[1]."\\t".$F[3]."\\t".$F[4]."\\t".$gt."\\n";' | grep -v "," | gzip > {output}
+        """
+
+
+#rule af_table_sSNV:
+
+#rule af_table_sINDEL TBD
+
+# histogram for all
+
+# rule that selects from 100x muts at 0.5 +- 0.05
+
+# rule that forall says how many of selected we lose and their summary (min, max, mean, sd, quartiles)

@@ -21,4 +21,4 @@ KIND="SNV"
 GS=DATA+"/s"+KIND+".MSDUKT.highConf.v1.0rc.vcf.gz"
 
 BASEURL="ftp://ftp-trace.ncbi.nlm.nih.gov/seqc/ftp/release/Somatic_Mutation_WG/vcfs/SPP"
-DEPTHS=["10x", "30x","50x", "80x","100x", "200x", "300x"]
+DEPTHS=["10X", "30X","50X", "80X","100X", "200X", "300X"]
