@@ -1,0 +1,12 @@
+include: "./conf.sk"
+
+rule all_vcf:
+    input: expand("{depth}.vcf.gz", depth=DEPTHS)
+
+rule get_vcf:
+    output: "{depth}.vcf.gz"
+    params: url=BASEURL+"/SPP_GT_"+GT+"_{depth}.bwa."+CALLPIPE+"vcf.gz"
+    shell:
+        """
+            wget -O {output} {params.url}
+        """
