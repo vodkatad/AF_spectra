@@ -13,7 +13,7 @@ rule get_vcf:
 
 rule af_table:
     input: "{depth}.vcf.gz"
-    output: "{depth}.af.tsv.gz"
+    output: "{depth}.af.gz"
     params: nsamples="2"
     shell:
         """
@@ -21,12 +21,48 @@ rule af_table:
         """
 
 
-#rule af_table_sSNV:
+rule af_table_sSNV:
+    output: "{depth}.af.snv.gz"
+    input: "{depth}.af.gz"
+    shell:
+        """
+            zcat {input} | sed 1d | bawk 'length($3)==1 && length($4)==1{{print $1"_"$2"_"$3"_"$4, $5}}' | gzip > {output}
+        """
 
 #rule af_table_sINDEL TBD
 
+def lowerupper(wildcards, input):
+    if wildcards.AF == '0.5':
+        print("ma")
+        return {'depths': DEPTHS, 'lower':0.25, 'upper':0.75 }
+    elif wildcards.AF == '1':
+        print("pp")
+        return {'depths': DEPTHS, 'lower':0.75, 'upper':1 }
+    else:
+        return {'depths': DEPTHS, 'lower':0.25, 'upper':0.75 }
+        
+
 # histogram for all
+rule histo:
+    input: "{AF}_300X.selection.tsv", expand("{depth}.af.snv.gz", depth=DEPTHS)
+    output: table="{AF}.stats.tsv", selected="{AF}_sel.pdf", all="{AF}_all.pdf"
+    params: lowerupper
+    script: SRC_DIR+"/hist.R"
+
+def input(wildcards):
+    if KIND == "SNV":
+        return(wildcards.depth+".af.snv.gz")
+    else:
+        print("TBD")
+        return(wildcards.depth+".af.indel.gz")
 
 # rule that selects from 100x muts at 0.5 +- 0.05
-
+rule selection:
+    input: "{depth}.af.snv.gz"
+    output: "{AF}_{depth}.selection.tsv"
+    params: padding="0.05"
+    shell:
+        """
+            zcat {input} | bawk '$2 < {wildcards.AF} + {params.padding} && $2 > {wildcards.AF} - {params.padding} {{print $1}}' > {output}
+        """
 # rule that forall says how many of selected we lose and their summary (min, max, mean, sd, quartiles)

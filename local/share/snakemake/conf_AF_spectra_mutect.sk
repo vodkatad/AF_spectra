@@ -13,6 +13,7 @@ PRJ_ROOT=find_prj_root()
 
 DATA=PRJ_ROOT+"/local/share/data"
 BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
 
 CALLPIPE="muTect2"
 GT="1-0"
@@ -22,3 +23,5 @@ GS=DATA+"/s"+KIND+".MSDUKT.highConf.v1.0rc.vcf.gz"
 
 BASEURL="ftp://ftp-trace.ncbi.nlm.nih.gov/seqc/ftp/release/Somatic_Mutation_WG/vcfs/SPP"
 DEPTHS=["10X", "30X","50X", "80X","100X", "200X", "300X"]
+
+TOLERANCE=0.05
