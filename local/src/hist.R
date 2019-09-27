@@ -35,7 +35,13 @@ for (i in seq(1, length(afs))) {
 colnames(all) <- c("ID", "AF", "depth")
 # reorder depths
 all$depth <- as.factor(all$depth)
-all$depth <- factor(all$depth, levels=c("10X","30X","50X","80X","100X","200X","300X"))
+if (length(levels(all$depth)) == 7) {
+    all$depth <- factor(all$depth, levels=c("10X","30X","50X","80X","100X","200X","300X"))
+} else if (length(levels(all$depth)) == 8) {
+    all$depth <- factor(all$depth, levels=c("10X","30X","50X","80X","100X","200X","300X","gs"))
+} else {
+    stop("unknown depths")
+}
 
 ggplot(all, aes(x=AF, color=depth))+geom_freqpoly(bins=50)
 ggsave(outall)

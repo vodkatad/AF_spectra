@@ -66,3 +66,27 @@ rule selection:
             zcat {input} | bawk '$2 < {wildcards.AF} + {params.padding} && $2 > {wildcards.AF} - {params.padding} {{print $1}}' > {output}
         """
 # rule that forall says how many of selected we lose and their summary (min, max, mean, sd, quartiles)
+
+
+rule strong:
+    input: GS
+    output: "gs.af.snv.gz"
+    shell:
+        """
+            zcat {input} | grep -v "^#" | grep StrongEvidence | perl -ane 'if ($F[7] =~ /TVAF=(\d\.\d*)/) {{print "$F[0]_$F[1]_$F[3]_$F[4]\\t$1\\n"}}' | gzip > {output}
+        """
+
+def lowerupper_gs(wildcards, input):
+    if wildcards.AF == '0.5':
+        return {'depths': ['gs']+DEPTHS, 'lower':0.25, 'upper':0.75 }
+    elif wildcards.AF == '1':
+        return {'depths': ['gs']+DEPTHS, 'lower':0.75, 'upper':1 }
+    else:
+        return {'depths': ['gs']+DEPTHS, 'lower':0.25, 'upper':0.75 }
+        
+rule histo_gs:
+    input: "{AF}_gs.selection.tsv", "gs.af.snv.gz", expand("{depth}.af.snv.gz", depth=DEPTHS)
+    output: table="{AF}.gsstats.tsv", selected="{AF}_gssel.pdf", all="{AF}_gsall.pdf"
+    params: lowerupper_gs
+    script: SRC_DIR+"/hist.R"
+
