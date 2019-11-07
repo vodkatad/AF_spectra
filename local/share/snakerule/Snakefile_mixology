@@ -1,0 +1,12 @@
+include: "./conf.sk"
+
+rule all_tsv:
+    input: expand("{sample}.tsv.gz", depth=DEPTHS, sample=SAMPLES)
+
+rule process_vcf:
+    input: VCF_DIR+"/{sample}.pass.vcf.gz"
+    output: "{sample}.tsv.gz"
+    params: 
+    shell:
+        """
+        """
