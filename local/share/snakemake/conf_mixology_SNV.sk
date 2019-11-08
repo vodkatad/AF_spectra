@@ -15,12 +15,14 @@ DATA=PRJ_ROOT+"/local/share/data"
 BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
 
-KIND="SNV"
+KIND="snv"
+MULTI="nomulti"
 
 VCF_DIR=""
 
 DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
 
 SAMPLES=["n1","n2","mixed"]
-DEPTHS=["30X"]
-#DEPTHS=["30X","60X", "90X","120X"]
+
+wildcard_constraints:
+    sample="[a-zA-Z0-9]+"

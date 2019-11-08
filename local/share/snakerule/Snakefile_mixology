@@ -3,10 +3,29 @@ include: "./conf.sk"
 rule all_tsv:
     input: expand("{sample}.tsv.gz", depth=DEPTHS, sample=SAMPLES)
 
+# investigate the past need for tee >(bawk 'NR==1' > {output.table}) | sed 1d | sort | uniq
 rule process_vcf:
     input: VCF_DIR+"/{sample}.pass.vcf.gz"
     output: "{sample}.tsv.gz"
-    params: 
+    params: tool=BIN_DIR+"/vcf_to_table", multi=MULTI, kind=KIND
     shell:
         """
+            bcftools view -s {wildcards.sample} {input} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
+            | grep -v "^##" | {params.tool} {params.kind} {params.multi} | gzip > {output}
+        """
+
+rule dbsnp:
+    input: DBSNP
+    output: "dbsnp_ids.tsv.gz"
+    shell:
+        """
+            bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' $< | grep -v "^##"  | cut -f 3 | gzip > {output}   
+        """
+
+rule filter:
+    input: tf="{sample}.tsv.gz", dbsnp="dbsnp_ids.tsv.gz"
+    output: "{sample}.filtered.tsv.gz"
+    shell:
+        """
+            zcat {input.tf} | filter_1col 1 {input.dbsnp} | gzip > {output}
         """
