@@ -6,7 +6,7 @@ rule all_tsv:
 # investigate the past need for tee >(bawk 'NR==1' > {output.table}) | sed 1d | sort | uniq
 rule process_vcf:
     input: VCF_DIR+"/{sample}.pass.vcf.gz"
-    output: "{sample}.tsv.gz"
+    output: "{sample}.nofilter.tsv.gz"
     params: tool=BIN_DIR+"/vcf_to_table", multi=MULTI, kind=KIND
     shell:
         """
@@ -23,9 +23,26 @@ rule dbsnp:
         """
 
 rule filter:
-    input: tf="{sample}.tsv.gz", dbsnp="dbsnp_ids.tsv.gz"
-    output: "{sample}.filtered.tsv.gz"
+    input: tf="{sample}.nofilter.tsv.gz", dbsnp="dbsnp_ids.tsv.gz"
+    output: "{sample}.dbsnp.tsv.gz"
     shell:
         """
             zcat {input.tf} | filter_1col 1 {input.dbsnp} | gzip > {output}
+        """
+
+rule get_hom:
+    input: n1="{s1}.{filter}.tsv.gz", n2="{s2}.{filter}.tsv.gz"
+    output: "hom_{s1}-{s2}.{filter}.tsv.gz"
+    shell:
+        """
+            zcat {input.n1} | bawk '$2 == "1/1"' | filter_1col -v 1 <(zcat {input.n2} | cut -f 1) | gzip > {output}
+        """
+
+rule expected_het:
+    input: d1="hom_"+SAMPLES[0]+"-"+SAMPLES[1]+".{filter}.tsv.gz", d2="hom_"+SAMPLES[1]+"-"+SAMPLES[0]+".{filter}.tsv.gz"
+    output: "expected.het.{filter}.tsv.gz"
+    shell: 
+        """
+            zcat {input.d1} | bawk '{{print $0,"{input.d1}"}}' | gzip > {output}
+            zcat {input.d2} | bawk '{{print $0,"{input.d2}"}}' | gzip >> {output}
         """
