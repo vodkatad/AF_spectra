@@ -1,7 +1,7 @@
 include: "./conf.sk"
 
 rule all_tsv:
-    input: expand("{sample}.tsv.gz", depth=DEPTHS, sample=SAMPLES)
+    input: expand("{sample}.tsv.gz", sample=SAMPLES)
 
 # investigate the past need for tee >(bawk 'NR==1' > {output.table}) | sed 1d | sort | uniq
 rule process_vcf:
@@ -11,7 +11,7 @@ rule process_vcf:
     shell:
         """
             bcftools view -s {wildcards.sample} {input} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
-            | grep -v "^##" | {params.tool} {params.kind} {params.multi} | gzip > {output}
+            | grep -v "^#" | {params.tool} {params.kind} {params.multi} | gzip > {output}
         """
 
 rule dbsnp:

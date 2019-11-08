@@ -15,14 +15,15 @@ DATA=PRJ_ROOT+"/local/share/data"
 BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
 
-KIND="snv"
+KIND="SNV" # | indel
 MULTI="nomulti"
 
-VCF_DIR=""
+VCF_DIR=PRJ_ROOT+"/local/share/data/tests"
 
 DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
 
-SAMPLES=["n1","n2","mixed"]
+# first second mix
+SAMPLES=["CRC1331LMX0A02002TUMD04000","CRC1331LMX0A02002TUMD04000","CRC2083PRX0A02001TUMD01000"]
 
 wildcard_constraints:
     sample="[a-zA-Z0-9]+"
