@@ -11,19 +11,19 @@ def find_prj_root(path=os.getcwd()):
 PRJ_ROOT=find_prj_root()
 BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
 
-DATA=PRJ_ROOT+"/local/share/data"
+DATA=PRJ_ROOT+"/local/share/data/mixology_120x"
 BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
 
 KIND="SNV" # | indel
 MULTI="nomulti"
 
-VCF_DIR=PRJ_ROOT+"/local/share/data/tests"
+VCF_DIR=PRJ_ROOT+"/local/share/data/mixology_120x"
 
 DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
 
 # first second mix
-SAMPLES=["CRC1331LMX0A02002TUMD04000","CRC0277LMX0A03202TUMD02000","CRC2083PRX0A02001TUMD01000"]
+SAMPLES=["1740D-109-01","1740D-109-02","1740D-109-03"]
 
 wildcard_constraints:
-    sample="[a-zA-Z0-9]+"
+    sample="[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]+"

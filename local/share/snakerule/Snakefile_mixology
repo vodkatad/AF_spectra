@@ -5,16 +5,17 @@ rule all_tsv:
 
 # investigate the past need for tee >(bawk 'NR==1' > {output.table}) | sed 1d | sort | uniq
 rule process_vcf:
-    input: VCF_DIR+"/{sample}.pass.vcf.gz"
+    input: VCF_DIR+"/{sample}.hard-filtered.vcf.gz"
     output: "{sample}.nofilter.tsv.gz"
     params: tool=BIN_DIR+"/vcf_to_table", multi=MULTI, kind=KIND
     log: "{sample}.multiallelic"
     shell:
         """
             bcftools view -s {wildcards.sample} {input} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
-            | grep -v "^#" | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
+            | grep -v "^#" | bawk '$7=="PASS"' | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
         """
 
+# we need an hg19 dbsnp :(
 rule dbsnp:
     input: DBSNP
     output: "dbsnp_ids.tsv.gz"
@@ -33,14 +34,14 @@ rule filter:
 
 rule get_hom:
     input: n1="{s1}.{filter}.tsv.gz", n2="{s2}.{filter}.tsv.gz"
-    output: "hom_{s1}-{s2}.{filter}.tsv.gz"
+    output: "hom_{s1}+{s2}.{filter}.tsv.gz"
     shell:
         """
             zcat {input.n1} | bawk '$2 == "1/1"' | filter_1col -v 1 <(zcat {input.n2} | cut -f 1) | gzip > {output}
         """
 
 rule expected_het:
-    input: d1="hom_"+SAMPLES[0]+"-"+SAMPLES[1]+".{filter}.tsv.gz", d2="hom_"+SAMPLES[1]+"-"+SAMPLES[0]+".{filter}.tsv.gz"
+    input: d1="hom_"+SAMPLES[0]+"+"+SAMPLES[1]+".{filter}.tsv.gz", d2="hom_"+SAMPLES[1]+"+"+SAMPLES[0]+".{filter}.tsv.gz"
     output: "expected.het.{filter}.tsv.gz"
     shell: 
         """

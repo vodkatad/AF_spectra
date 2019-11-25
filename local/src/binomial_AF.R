@@ -43,6 +43,7 @@ rbinom <- function(mut) {
   return(any(pvals > pthr))
 }
 
+save.image("pippo.RData")
 consideredhet <- apply(muts[, c(3,4,5,6)], 1, rbinom)
 
 hets <- muts[consideredhet,]
