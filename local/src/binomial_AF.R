@@ -28,6 +28,9 @@ rbinom <- function(mut) {
   refreads <- mut[1]
   mutreads <- mut[2]
   cn <- mut[4]
+  if (mutreads == 0) { # a bunch of calls for biod..
+    return(FALSE)
+  }
   tot <- refreads+mutreads
   pvals <- c()
   #pbinom(q, size, prob, lower.tail = TRUE, log.p = FALSE)
