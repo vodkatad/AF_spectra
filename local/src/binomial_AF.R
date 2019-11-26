@@ -46,18 +46,20 @@ rbinom <- function(mut) {
   return(any(pvals > pthr))
 }
 
-save.image("pippo.RData")
 consideredhet <- apply(muts[, c(3,4,5,6)], 1, rbinom)
 
+save.image("pippo.RData")
 hets <- muts[consideredhet,]
 total_found_het <- nrow(hets)
 
 common <- intersect(hets$id, lookfor$id)
 lost <- setdiff(lookfor$id, hets$id)
-fromnowhere <- setdiff(hets$is, lookfor$id)
+fromnowhere <- setdiff(hets$id, lookfor$id)
 
 info <- data.frame(what=c("total_gs_het","het_found","common","not_found","appeared"), n=c(total_gs_het, total_found_het, length(common), length(lost), length(fromnowhere)))
 
-res <- hets[common,]
+res$common <- "no"
+res[common,]$common <- "yes"
+#res <- hets[common,]
 write.table(res, gzfile(output), sep="\t", quote=FALSE, col.names=FALSE, row.names=FALSE)
 write.table(info, log, sep="\t", quote=FALSE, col.names=FALSE, row.names=FALSE)
