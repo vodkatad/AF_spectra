@@ -58,8 +58,12 @@ fromnowhere <- setdiff(hets$id, lookfor$id)
 
 info <- data.frame(what=c("total_gs_het","het_found","common","not_found","appeared"), n=c(total_gs_het, total_found_het, length(common), length(lost), length(fromnowhere)))
 
-res$common <- "no"
-res[common,]$common <- "yes"
-#res <- hets[common,]
-write.table(res, gzfile(output), sep="\t", quote=FALSE, col.names=FALSE, row.names=FALSE)
+
+muts$het <- "no"
+muts[consideredhet,]$het <- "yes"
+
+muts$gs_het <- "no"
+muts[muts$id %in% lookfor$id,]$gs_het <- "yes"
+
+write.table(muts, gzfile(output), sep="\t", quote=FALSE, col.names=FALSE, row.names=FALSE)
 write.table(info, log, sep="\t", quote=FALSE, col.names=FALSE, row.names=FALSE)
