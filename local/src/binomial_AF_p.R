@@ -7,9 +7,10 @@ hascn <- as.logical(args[3])
 output <- args[4]
 pthr <- as.numeric(args[5])
 log <- args[6]
+p <- as.numeric(args[7])
 
 lookfor <- read.table(gzfile(hetmuts), header=FALSE, stringsAsFactors=FALSE)
-colnames(lookfor) <- c("id","homet","refreads","mutreads","af", "where")
+colnames(lookfor) <- c("id","homet","refreads","mutreads","af")
 muts <- read.table(gzfile(mutfile), header=FALSE, stringsAsFactors=FALSE)
 
 total_gs_het <- nrow(lookfor)
@@ -24,7 +25,7 @@ if (!hascn) {
   colnames(muts) <- c("id","homet","refreads","mutreads","af","cn")
 }
 
-rbinom <- function(mut) {
+rbinom <- function(mut, p) {
   refreads <- mut[1]
   mutreads <- mut[2]
   cn <- mut[4]
@@ -35,7 +36,6 @@ rbinom <- function(mut) {
   pvals <- c()
   #pbinom(q, size, prob, lower.tail = TRUE, log.p = FALSE)
   if (cn == 1) {
-    p <- 0.5
     bin <- binom.test(mutreads, tot, p=p, alternative="two.sided")
     pvals <- bin$p.value
   } else {
@@ -45,7 +45,7 @@ rbinom <- function(mut) {
   return(any(pvals > pthr))
 }
 
-consideredhet <- apply(muts[, c(3,4,5,6)], 1, rbinom)
+consideredhet <- apply(muts[, c(3,4,5,6)], 1, rbinom, p)
 
 save.image("pippo.RData")
 hets <- muts[consideredhet,]
