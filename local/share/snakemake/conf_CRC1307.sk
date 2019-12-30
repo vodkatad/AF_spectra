@@ -1,0 +1,28 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+
+DATA=PRJ_ROOT+"/local/share/data/CRC1307_simul"
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+
+KIND="SNV" # | indel
+MULTI="nomulti"
+
+DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
+CALLABLE=BIOINFO_ROOT+'task/anntations/dataset/gnomad/wgs_calling_regions.hg38.bed'
+
+# first second mix
+SAMPLES=["1740D-109-01","1740D-109-02","1740D-109-03"]
+
+wildcard_constraints:
+    sample="[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]+"
