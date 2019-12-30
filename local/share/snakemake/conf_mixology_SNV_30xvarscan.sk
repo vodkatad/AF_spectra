@@ -23,7 +23,7 @@ VCF_DIR=PRJ_ROOT+"/local/share/data/mixology_120x/new_mix_varscan"
 DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
 
 # first second mix
-SAMPLES=["markedDup_CRC0327", "markedDup_CRC1502", "merged_0.5"]
+SAMPLES=["markedDup_CRC0327", "markedDup_CRC1502", "manual_30Xmixed"]
 
 wildcard_constraints:
     sample="[a-zA-Z0-9]+_[a-zA-Z0-9.]+"

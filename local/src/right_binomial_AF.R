@@ -35,14 +35,14 @@ rbinom <- function(mut) {
   pvals <- c()
   #pbinom(q, size, prob, lower.tail = TRUE, log.p = FALSE)
   if (cn == 1) {
-    p <- 0.5
+    p <- 0.25
     bin <- binom.test(mutreads, tot, p=p, alternative="two.sided")
     pvals <- bin$p.value
   } else {
     # if cn == 3 we can be "het" being 1/3 or 2/3, if cn == 4 ...
     stop("CN != 1 still not implemented")
   }
-  return(any(pvals > pthr))
+  return(any(pvals < pthr))
 }
 
 consideredhet <- apply(muts[, c(3,4,5,6)], 1, rbinom)
