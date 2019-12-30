@@ -22,7 +22,9 @@ DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
 CALLABLE=BIOINFO_ROOT+'task/anntations/dataset/gnomad/wgs_calling_regions.hg38.bed'
 
 # first second mix
-SAMPLES=["1740D-109-01","1740D-109-02","1740D-109-03"]
+SAMPLES=["CRC1307_02_0","CRC1307_02_1_0"]
+SAMPLE = "{wildcards.sample}" # "TUMOR" for varscan
+WANTED_CN = "1,2,3"
 
 wildcard_constraints:
     sample="[a-zA-Z0-9]+-[a-zA-Z0-9]+-[a-zA-Z0-9]+"

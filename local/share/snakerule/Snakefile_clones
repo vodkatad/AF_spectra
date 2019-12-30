@@ -1,80 +1,40 @@
 include: "./conf.sk"
 
 rule all_tsv:
-    input: expand("{sample}.nofilter.tsv.gz", sample=SAMPLES)
+    input: expand("{sample}.tsv.gz", sample=SAMPLES)
 
-# investigate the past need for tee >(bawk 'NR==1' > {output.table}) | sed 1d | sort | uniq
+# why decoy are in callable interval list?? let's start with chr1-22 only, sequenza is on 1-22-X-Y only right now
 rule process_vcf:
-    input: vcf=VCF_DIR+"/{sample}.hard-filtered.vcf.gz", chrs=DATA+"/chrs"
-    output: "{sample}.nofilter.tsv.gz"
-    params: tool=BIN_DIR+"/vcf_to_table", multi=MULTI, kind=KIND
+    input: vcf=DATA+"/{sample}.pass.vcf.gz", chrs=DATA+"/chrs"
+    output: "{sample}.tsv.gz"
+    params: tool=BIN_DIR+"/vcf_to_bed", multi=MULTI, kind=KIND, sample=SAMPLE
     log: "{sample}.multiallelic"
     shell:
         """
             bcftools view -s {wildcards.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
-            | grep -v "^#" | filter_1col 1 {input.chrs} | bawk '$7=="PASS"' | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
+            | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
         """
 
-# we need an hg19 dbsnp :(
-rule dbsnp:
-    input: DBSNP
-    output: "dbsnp_ids.tsv.gz"
-    shell:
-        """
-            bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' $< | grep -v "^##"  | cut -f 3 | gzip > {output}   
-        """
+#rule plot_cnv:
+#    input: sequenza=DATA+"/{sample}_segments.txt", callable=CALLABLE
+#    output: "{sample}.coverage.cn.png"
 
-rule filter:
-    input: tf="{sample}.nofilter.tsv.gz", dbsnp="dbsnp_ids.tsv.gz"
-    output: "{sample}.dbsnp.tsv.gz"
-    shell:
-        """
-            zcat {input.tf} | filter_1col 1 {input.dbsnp} | gzip > {output}
-        """
+rule intersect_cnv:
+    input: var="{sample}.tsv.gz", sequenza=DATA+"/{sample}_segments.txt", callable=CALLABLE, chrs=DATA+"/chrs"
+    output: var="{sample}.var_cnv.tsv.gz", callable="{sample}.callable.bed.gz"
 
-rule get_hom:
-    input: n1="{s1}.{filter}.tsv.gz", n2="{s2}.{filter}.tsv.gz"
-    output: "hom_{s1}+{s2}.{filter}.tsv.gz"
-    shell:
-        """
-            zcat {input.n1} | bawk '$2 == "1/1"' | filter_1col -v 1 <(zcat {input.n2} | cut -f 1) | gzip > {output}
-        """
-
-rule expected_het:
-    input: d1="hom_"+SAMPLES[0]+"+"+SAMPLES[1]+".{filter}.tsv.gz", d2="hom_"+SAMPLES[1]+"+"+SAMPLES[0]+".{filter}.tsv.gz"
-    output: "expected.het.{filter}.tsv.gz"
-    shell: 
-        """
-            zcat {input.d1} | bawk '{{print $0,"{input.d1}"}}' | gzip > {output}
-            zcat {input.d2} | bawk '{{print $0,"{input.d2}"}}' | gzip >> {output}
-        """
+rule AF_spectra_cn:
+    input: "{sample}.var_cnv.tsv.gz"
+    output: "{sample}.AF.png"
 
 rule binomial:
-    input: gs="expected.het.{filter}.tsv.gz", target=SAMPLES[2]+".nofilter.tsv.gz"
-    params: hascn="FALSE", pthr=0.05, tool=BIN_DIR+"/binomial_AF"
-    log: SAMPLES[2]+".{filter}.foundhet.tsv.gz.log"
-    output: SAMPLES[2]+".{filter}.foundhet.tsv.gz" # probably we could generalize here the != depths
-    shell:
-        """
-            {params.tool} {input.target} {input.gs} {params.hascn} {output} {params.pthr} {log}
-        """
+    input: "{sample}.var_cnv.tsv.gz"
+    output: "{sample}.calls.tsv.gz"
+    params: WANTED_CN
 
-rule binomial_1:
-    input: gs="hom_1740D-109-01+1740D-109-02.nofilter.tsv.gz", target=SAMPLES[2]+".nofilter.tsv.gz"
-    params: hascn="FALSE", pthr=0.05, tool=BIN_DIR+"/binomial_AF_p", p=0.98
-    log: SAMPLES[2]+".{filter}.foundhet1.tsv.gz.log"
-    output: SAMPLES[2]+".{filter}.foundhet1.tsv.gz" # probably we could generalize here the != depths
-    shell:
-        """
-            {params.tool} {input.target} {input.gs} {params.hascn} {output} {params.pthr} {log} {params.p}
-        """
+rule pair:
+    input: a="{asample}.calls.tsv.gz", b="{bsample}.calls.tsv.gz"
 
-rule binomial_2:
-    input: gs="hom_1740D-109-02+1740D-109-01.nofilter.tsv.gz", target=SAMPLES[2]+".nofilter.tsv.gz"
-    params: hascn="FALSE", pthr=0.05, tool=BIN_DIR+"/binomial_AF_p", p=0.02
-    log: SAMPLES[2]+".{filter}.foundhet2.tsv.gz.log"
-    output: SAMPLES[2]+".{filter}.foundhet2.tsv.gz" # probably we could generalize here the != depths
-    shell:
-        """
-            {params.tool} {input.target} {input.gs} {params.hascn} {output} {params.pthr} {log} {params.p}
-        """
+rule pair_length:
+    input: a="{asample}.callable.bed.gz", b="{bsample}.callable.bed.gz"
+    params: WANTED_CN
