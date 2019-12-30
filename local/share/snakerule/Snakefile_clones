@@ -7,11 +7,11 @@ rule all_tsv:
 rule process_vcf:
     input: vcf=DATA+"/{sample}.pass.vcf.gz", chrs=DATA+"/chrs"
     output: "{sample}.tsv.gz"
-    params: tool=BIN_DIR+"/vcf_to_bed", multi=MULTI, kind=KIND, sample=SAMPLE
+    params: tool=BIN_DIR+"/vcf_to_bed", multi=MULTI, kind=KIND, sample="CRC1307LMO" #=SAMPLE TODO put me back for end of tests
     log: "{sample}.multiallelic"
     shell:
         """
-            bcftools view -s {wildcards.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
+            bcftools view -s {params.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
             | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
         """
 

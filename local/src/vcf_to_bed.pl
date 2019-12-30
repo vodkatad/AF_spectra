@@ -35,7 +35,7 @@ sub manage_entry {
     my $chr = shift;
     my $b = shift;
     $b = $b-1; #switch to zero based
-    my $e = $b + length($ref) + 1; # end escluded
+    my $e = $b + length($ref); # end escluded considering length of ref, TODO FIXME for long indels
     #mutect:
     #GT:AD:AF:DP:F1R2:F2R1   0/1:14,4:0.235:18:7,2:7,2 
     ##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
