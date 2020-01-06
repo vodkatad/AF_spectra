@@ -15,10 +15,14 @@ rule process_vcf:
             | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
         """
 
-#rule plot_cnv_len:
-#    input: sequenza=DATA+"/{sample}_segments.txt", callable=CALLABLE
-#    output: plot="{sample}.coverage.cn.png", len="{sample}.length.txt"
-#    params: cns=WANTED_CN, tool=CNLEN
+rule plot_cnv_len:
+    input: "{sample}.callable.bed.gz"
+    output: barplot="{sample}.cn.png", len="{sample}.length.txt", cumplot="{sample}.cumcn.png"
+    params: cns=WANTED_CN, tool=CNLEN
+    shell:
+        """
+            {params.tool} {input} {params.cns} {output.barplot} {output.cumplot} {output.len}
+        """
 
 # we guess sequenza is 1 based cause it starts from pileups...end...included? Looked around in code, sic, going with "assumptions".
 rule intersect_cnv:
@@ -72,12 +76,13 @@ rule pair:
 
 rule pair_length:
     input: t0="{t0sample}.callable.bed.gz", t1="{t1sample}.callable.bed.gz"
-    output: plot="{t1sample}-{t0sample}.cn.png", len="{t1sample}-{t0sample}.callable.txt"
+    output: barplot="{t1sample}-{t0sample}.cn.png", len="{t1sample}-{t0sample}.length.txt", cumplot="{t1sample}-{t0sample}.cumcn.png"
     params: cns=WANTED_CN, tool=CNLEN
     shell:
         """ 
-            bedtools intersect -b {input.t0} -a {input.t1} > {output.tmp};
-            rm {output.tmp}
+            bedtools intersect -b {input.t0} -a {input.t1} > {output.len}.tmp;
+            {params.tool} {output.len}.tmp {params.cns} {output.barplot} {output.cumplot} {output.len};
+            rm {output.len}.tmp;
         """ 
 
 
