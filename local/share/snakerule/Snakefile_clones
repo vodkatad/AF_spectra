@@ -34,10 +34,14 @@ rule intersect_cnv:
             bedtools intersect -wo -a {input.var} -b {output.callable} | bawk '{{print $1, $2, $3, $4":"$8}}' |  gzip > {output.var}
         """
 
-#rule AF_spectra_cn:
-#    input: "{sample}.var_cnv.tsv.gz"
-#    output: "{sample}.AF.png"
-#    params: maxcn=5
+rule AF_spectra_cn:
+    input: "{sample}.var_cnv.tsv.gz"
+    output: "{sample}.AF.png"
+    params: maxcn=5, tool=BIN_DIR+"/af_cn"
+    shell:
+        """
+            {params.tool} {input} {params.maxcn} {output}
+        """
 
 rule binomial:
     input: "{sample}.var_cnv.tsv.gz"
