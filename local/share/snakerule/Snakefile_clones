@@ -7,7 +7,7 @@ rule all_tsv:
 rule process_vcf:
     input: vcf=DATA+"/{sample}.pass.vcf.gz", chrs=DATA+"/chrs"
     output: "{sample}.tsv.gz"
-    params: tool=BIN_DIR+"/vcf_to_bed", multi=MULTI, kind=KIND, sample="CRC1307LMO" #=SAMPLE TODO put me back for end of tests
+    params: tool=VCFTOBED, multi=MULTI, kind=KIND, sample="CRC1307LMO" #=SAMPLE TODO put me back for end of tests
     log: "{sample}.multiallelic"
     shell:
         """
@@ -20,7 +20,6 @@ rule process_vcf:
 #    output: "{sample}.coverage.cn.png"
 
 # we guess sequenza is 1 based cause it starts from pileups...end...included? Looked around in code, sic, going with "assumptions".
-#bedtools intersect -b ~/bit/task/annotations/dataset/gnomad/wgs_calling_regions.hg38.bed.gz -a  <(sed 1d sequenza/CRC1307LMO/CRC1307LMO_segments.txt )  > callable_seqz
 rule intersect_cnv:
     input: var="{sample}.tsv.gz", sequenza=DATA+"/{sample}.segments.txt", callable=CALLABLE, chrs=DATA+"/chrs"
     output: var="{sample}.var_cnv.tsv.gz", callable="{sample}.callable.bed.gz"
@@ -30,14 +29,23 @@ rule intersect_cnv:
             bedtools intersect -wo -a {input.var} -b {output.callable} | bawk '{{print $1, $2, $3, $4":"$8}}' |  gzip > {output.var}
         """
 
-rule AF_spectra_cn:
-    input: "{sample}.var_cnv.tsv.gz"
-    output: "{sample}.AF.png"
+#rule AF_spectra_cn:
+#    input: "{sample}.var_cnv.tsv.gz"
+#    output: "{sample}.AF.png"
+#    params: maxcn=5
 
 rule binomial:
     input: "{sample}.var_cnv.tsv.gz"
     output: "{sample}.calls.tsv.gz"
-    params: WANTED_CN
+    params: hascn="true", cn=WANTED_CN, pthr=0.05, tool=BIN_DIR+"/binomial_AF_single_bed"
+    output: "{sample}.founder.tsv.gz"
+    shell:
+        """
+            zcat {input} | tr ":" "\\t" > {output}.tmp
+            {params.tool} {output}.tmp {params.hascn} {params.cn} {params.pthr} {output} {log}
+            rm {output}.tmp
+        """
+
 
 rule pair:
     input: a="{asample}.calls.tsv.gz", b="{bsample}.calls.tsv.gz"
