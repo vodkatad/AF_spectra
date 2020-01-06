@@ -19,6 +19,7 @@ KIND="SNV" # | indel
 MULTI="nomulti"
 
 VCFTOBED=BIN_DIR+"/vcf_to_bed"
+CNLEN=BIN_DIR+"/cn_len_plot"
 
 DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
 CALLABLE=BIOINFO_ROOT+'/task/annotations/dataset/gnomad/wgs_calling_regions.hg38.bed.gz'
