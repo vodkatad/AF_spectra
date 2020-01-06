@@ -6,6 +6,7 @@ hascn <- as.logical(args[2])
 cns <- args[3]
 pthr <- as.numeric(args[4])
 output <- args[5]
+log <- args[6]
 
 if (cns != "1,2,3") {
     stop("accepted_cn right now are hard-coded for 1,2,3")
@@ -54,5 +55,22 @@ save.image("pippo.RData")
 muts$founder <- 0
 muts[muts$binomp < pthr,]$founder <- 1
 
+#TODO LOG with some stats
+nmut <- nrow(muts)
+n_cnok <- sum(muts$targetcn)
+n_cnko <- nrow(muts) - n_cnok
+n_binomialok <- sum(muts$founder)
+n_binomialko <- nrow(muts) - n_binomialok
+x <- muts[muts$founder == 0 & muts$targetcn==1,]
+n_cnok_binomialko <- nrow(x)
+x <- muts[muts$founder == 1 & muts$targetcn==1,]
+n_cnok_binomialok <- nrow(x)
+x <- muts[muts$founder == 0 & muts$targetcn==0,]
+n_cnko_binomialko <- nrow(x)
+x <- muts[muts$founder == 1 & muts$targetcn==0,]
+n_cnko_binomialok <- nrow(x)
+
+info <- data.frame(what=c("nmut","n_cnok","n_cnko","n_binomialok","n_binomialko","n_cnok_binomialko","n_cnok_binomialok","n_cnko_binomialko","n_cnko_binomialok"), n=c(nmut,n_cnok,n_cnko,n_binomialok,n_binomialko,n_cnok_binomialko,n_cnok_binomialok,n_cnko_binomialko,n_cnko_binomialok))
+write.table(info, log, sep="\t", quote=FALSE, col.names=FALSE, row.names=FALSE)
 
 write.table(muts, gzfile(output), sep="\t", quote=FALSE, col.names=TRUE, row.names=TRUE)
