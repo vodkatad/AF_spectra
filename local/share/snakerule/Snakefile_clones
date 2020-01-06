@@ -38,7 +38,6 @@ rule binomial:
     input: "{sample}.var_cnv.tsv.gz"
     output: "{sample}.calls.tsv.gz"
     params: hascn="true", cn=WANTED_CN, pthr=0.05, tool=BIN_DIR+"/binomial_AF_single_bed"
-    output: "{sample}.founder.tsv.gz"
     shell:
         """
             zcat {input} | tr ":" "\\t" > {output}.tmp

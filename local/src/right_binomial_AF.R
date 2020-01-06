@@ -36,7 +36,7 @@ rbinom <- function(mut) {
   #pbinom(q, size, prob, lower.tail = TRUE, log.p = FALSE)
   if (cn == 1) {
     p <- 0.25
-    bin <- binom.test(mutreads, tot, p=p, alternative="two.sided")
+    bin <- binom.test(mutreads, tot, p=p, alternative="greater")
     pvals <- bin$p.value
   } else {
     # if cn == 3 we can be "het" being 1/3 or 2/3, if cn == 4 ...
