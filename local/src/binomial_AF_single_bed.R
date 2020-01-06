@@ -16,7 +16,9 @@ accepted_cn <- as.numeric(unlist(strsplit(cns, ',', fixed=TRUE)))
 muts <- read.table(mutfile, header=FALSE, stringsAsFactors=FALSE)
 #chr1    181112  181113  chr1:181113:A:G:12:25:3
 colnames(muts) <- c("chr","b","e","chrbis","b_1based", "ref", "alt", "refreads", "altreads", "af", "cn")
-rownames(muts) <- apply(muts, 1, function(x) {paste(x[1], x[5], x[6], x[7], sep=":")})
+#R is an eternal source of misteries and painful data transformations
+#https://stackoverflow.com/questions/15618527/why-does-as-matrix-add-extra-spaces-when-converting-numeric-to-character
+rownames(muts) <- apply(sapply(muts, format, trim = TRUE, justify="none"), 1, function(x) {paste(x[1], x[5], x[6], x[7], sep=":")})
 
 rbinom <- function(mut) {
   refreads <- mut[1]
