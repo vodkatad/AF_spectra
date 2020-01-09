@@ -14,7 +14,7 @@ while (<STDIN>) {
     my @l = split(':', $line[8]);
     #die "Wrong vcf FORMAT" if ($line[8] ne 'GT:AD:AF:DP:F1R2:F2R1:SB' && $line[8] ne 'GT:AD:DP:GQ:PL' && $line[8] ne 'GT:AD:AF:F1R2:F2R1:DP:SB:MB');
     #   TODO inefficient split only here...
-    die "Wrong vcf FORMAT" if ($l[1] ne 'AD');
+    die "Wrong vcf FORMAT" if ($l[1] ne 'AD' || $l[2] ne 'AF');
     if ($line[4] =~ /,/) {
         if ($multi eq 'multi') {
             die "Sorry still to be implemented"; # probably will need to use a library for this

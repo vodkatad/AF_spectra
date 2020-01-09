@@ -1,0 +1,33 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+
+DATA=PRJ_ROOT+"/local/share/data/CRC1307_simul"
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+
+KIND="SNV" # | indel
+MULTI="nomulti"
+
+VCFTOBED=BIN_DIR+"/vcf_to_bed_varscan"
+CNLEN=BIN_DIR+"/cn_len_plot"
+
+DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
+CALLABLE=BIOINFO_ROOT+'/task/annotations/dataset/gnomad/wgs_calling_regions.hg38.bed.gz'
+
+# first second mix
+SAMPLES=["CRC1307_02_0","CRC1307_02_1_0"]
+SAMPLE = "{wildcards.sample}" # "TUMOR" for varscan
+WANTED_CN = "1,2,3"
+
+wildcard_constraints:
+    sample="[a-zA-Z0-9]+_[0-9]{2}_[0-9]_?[0-9]?"
