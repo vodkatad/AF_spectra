@@ -7,7 +7,7 @@ rule all_tsv:
 rule process_vcf:
     input: vcf=DATA+"/{sample}.pass.vcf.gz", chrs=DATA+"/chrs"
     output: "{sample}.tsv.gz"
-    params: tool=VCFTOBED, multi=MULTI, kind=KIND, sample="CRC1307LMO" #=SAMPLE TODO put me back for end of tests
+    params: tool=VCFTOBED, multi=MULTI, kind=KIND, sample=SAMPLE
     log: "{sample}.multiallelic"
     shell:
         """

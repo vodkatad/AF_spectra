@@ -11,7 +11,7 @@ def find_prj_root(path=os.getcwd()):
 PRJ_ROOT=find_prj_root()
 BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
 
-DATA=PRJ_ROOT+"/local/share/data/CRC1307_simul"
+DATA=PRJ_ROOT+"/local/share/data/CRC1307_simul_varscan"
 BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
 
@@ -26,7 +26,7 @@ CALLABLE=BIOINFO_ROOT+'/task/annotations/dataset/gnomad/wgs_calling_regions.hg38
 
 # first second mix
 SAMPLES=["CRC1307_02_0","CRC1307_02_1_0"]
-SAMPLE = "{wildcards.sample}" # "TUMOR" for varscan
+SAMPLE = "TUMOR" # "TUMOR" for varscan
 WANTED_CN = "1,2,3"
 
 wildcard_constraints:
