@@ -1,0 +1,23 @@
+SAMPLES_ORIG=['1740D-84-01_S48_L004','BD0005', 'BD0006', 'BD0007', 'BD0003', 'BD0004', 'BD0018', 'BD0016', 'BD0017', 'BD0008', 'BD0020', 'BD0019', 'BD0021']
+SAMPLES=['CRC1307_02_0', 'CRC1307_08_0', 'CRC1307_09_0', 'CRC1307_02_1_A', 'CRC1307_02_1_B', 'CRC1307_02_1_E', 'CRC1307_08_1_B', 'CRC1307_08_1_D', 'CRC1307_08_1_E', 'CRC1307_09_1_B', 'CRC1307_09_1_C', 'CRC1307_09_1_E']
+
+def find_ln(wildcards):
+    import os
+    i = SAMPLES.index(wildcards.sample)
+    w = SAMPLES_ORIG[i]+"hard-filtered.vcf.gz"
+    if os.path.isfile(w):
+        return w
+    else:
+        raise ValueError("Check you SAMPLES_ORIG and SAMPLES in conf.sk!")
+            
+
+rule all_ln:
+    input: expand("{sample}.pass.vcf.gz", sample=SAMPLES)
+
+rule ln:
+    input: find_ln
+    output: "{sample}.pass.vcf.gz"
+    shell:
+        """
+            ln -s {input} {output}
+        """
