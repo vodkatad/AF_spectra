@@ -24,9 +24,9 @@ CNLEN=BIN_DIR+"/cn_len_plot"
 DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
 CALLABLE=BIOINFO_ROOT+'/task/annotations/dataset/gnomad/wgs_calling_regions.hg38.bed.gz'
 
-SAMPLES=['CRC1307_02_0', 'CRC1307_08_0', 'CRC1307_09_0', 'CRC1307_02_1_A', 'CRC1307_02_1_B', 'CRC1307_02_1_E', 'CRC1307_08_1_B', 'CRC1307_08_1_D', 'CRC1307_08_1_E', 'CRC1307_09_1_B', 'CRC1307_09_1_C', 'CRC1307_09_1_E']
+SAMPLES=['CRC1307-02-0', 'CRC1307-08-0', 'CRC1307-09-0', 'CRC1307-02-1-A', 'CRC1307-02-1-B', 'CRC1307-02-1-E', 'CRC1307-08-1-B', 'CRC1307-08-1-D', 'CRC1307-08-1-E', 'CRC1307-09-1-B', 'CRC1307-09-1-C', 'CRC1307-09-1-E', 'CRC1307-08-MA-A', 'CRC1307-08-MA-C', 'CRC1307-08-MA-F', 'CRC1307-08-MC-D', 'CRC1307-08-MC-E', 'CRC1307-08-MC-F', 'CRC1307-08-MI-B', 'CRC1307-08-MI-F']
 SAMPLE =  "^1740D" #"{wildcards.sample}" # "TUMOR" for varscan
 WANTED_CN = "1,2,3"
 
 wildcard_constraints:
-    sample="[a-zA-Z0-9]+_[0-9]{2}_[0-9]_?[0-9]?"
+    sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"

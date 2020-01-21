@@ -57,7 +57,7 @@ rule binomial:
 
 rule pair:
     input: t0="{t0sample}.calls.tsv.gz", t1="{t1sample}.calls.tsv.gz"
-    output: binom="{t1sample}-{t0sample}.bdelta.tsv.gz", nobinom="{t1sample}-{t0sample}.nobdelta.tsv.gz"
+    output: binom="{t1sample}_{t0sample}.bdelta.tsv.gz", nobinom="{t1sample}_{t0sample}.nobdelta.tsv.gz"
     shell:
         """
             zcat {input.t1} | sed 1d | bawk '$15==1' > {input.t1}.tmp
@@ -80,7 +80,7 @@ rule pair:
 
 rule pair_length:
     input: t0="{t0sample}.callable.bed.gz", t1="{t1sample}.callable.bed.gz"
-    output: barplot="{t1sample}-{t0sample}.cn.png", len="{t1sample}-{t0sample}.length.txt", cumplot="{t1sample}-{t0sample}.cumcn.png"
+    output: barplot="{t1sample}_{t0sample}.cn.png", len="{t1sample}_{t0sample}.length.txt", cumplot="{t1sample}-{t0sample}.cumcn.png"
     params: cns=WANTED_CN, tool=CNLEN
     shell:
         """ 
@@ -89,6 +89,16 @@ rule pair_length:
             rm {output.len}.tmp;
         """ 
 
+
+rule all_recal:
+    input: expand("{sample}.var_cnv.tsv.gz", sample=SAMPLES)
+
+
+rule all_R:
+    input: expand("{sample}.calls.tsv.gz", sample=SAMPLES), expand("{sample}.AF.png", sample=SAMPLES), expand("{sample}.cn.png", sample=SAMPLES)
+
+#rule all_pairs:
+#    input: expand("{t0sample}-{t1sample}.bdelta.tsv.gz", sample=SAMPLES), expand("{t0sample}-{t1sample}.cn.png", sample=SAMPLES)
 
 #rule make_filter_cn:
 #    params=WANTED_CN
