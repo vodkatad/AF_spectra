@@ -97,8 +97,19 @@ rule all_recal:
 rule all_R:
     input: expand("{sample}.calls.tsv.gz", sample=SAMPLES), expand("{sample}.AF.png", sample=SAMPLES), expand("{sample}.cn.png", sample=SAMPLES)
 
-#rule all_pairs:
-#    input: expand("{t0sample}-{t1sample}.bdelta.tsv.gz", sample=SAMPLES), expand("{t0sample}-{t1sample}.cn.png", sample=SAMPLES)
+#CRC1307-02-1-B_CRC1307-02-0.bdelta.tsv.gz
+def find_pairs(wildcards):
+    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
+    regex = r"^" + re.escape(wildcards.bsample) + r"-"
+    idxs = get_indexes(regex, SAMPLES)
+    els = [SAMPLES[i] for i in idxs]
+    els.remove(wildcards.bsample+'-0')
+    return [ x+'_'+wildcards.bsample+'-0.bdelta.tsv.gz' for x in els]
+
+rule all_pairs:
+    input: find_pairs
+    output: "{bsample}.delta"
+    shell: "touch {output}"
 
 #rule make_filter_cn:
 #    params=WANTED_CN
