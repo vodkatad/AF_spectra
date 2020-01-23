@@ -78,6 +78,22 @@ rule pair:
             rm {output.nobinom}.tmp
         """
 
+rule pairnobcnok:
+    input: t0="{t0sample}.calls.tsv.gz", t1="{t1sample}.calls.tsv.gz"
+    output: binom="{t1sample}_{t0sample}.cnokdelta.tsv.gz"
+    shell:
+        """
+            zcat {input.t1} | sed 1d | bawk '$13==1' > {input.t1}.tmp
+            zcat {input.t0} | sed 1d | bawk '$13==1' > {input.t0}.tmp
+            cat {input.t1}.tmp | filter_1col 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"common"}}' > {output.binom}.tmp
+            cat {input.t1}.tmp | filter_1col -v 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"gain"}}' >> {output.binom}.tmp
+            cat {input.t0}.tmp | filter_1col -v 1 <(cut -f 1 {input.t1}.tmp) | bawk '{{print $0,"loss"}}' >> {output.binom}.tmp
+            gzip -c {output.binom}.tmp > {output.binom}
+            rm {input.t0}.*tmp
+            rm {input.t1}.*tmp
+            rm {output.binom}.tmp
+        """
+
 rule pair_length:
     input: t0="{t0sample}.callable.bed.gz", t1="{t1sample}.callable.bed.gz"
     output: barplot="{t1sample}_{t0sample}.cn.png", len="{t1sample}_{t0sample}.length.txt", cumplot="{t1sample}-{t0sample}.cumcn.png"
