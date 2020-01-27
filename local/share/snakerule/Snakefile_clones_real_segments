@@ -1,0 +1,164 @@
+include: "./conf.sk"
+
+rule all_tsv:
+    input: expand("{sample}.tsv.gz", sample=SAMPLES)
+
+# why decoy are in callable interval list?? let's start with chr1-22 only, sequenza is on 1-22-X-Y only right now
+rule process_vcf:
+    input: vcf=DATA+"/{sample}.pass.vcf.gz", chrs=DATA+"/chrs"
+    output: "{sample}.tsv.gz"
+    params: tool=VCFTOBED, multi=MULTI, kind=KIND, sample= lambda wildcards: SAMPLE if SAMPLE!="wildcards" else wildcards.sample
+    log: "{sample}.multiallelic"
+    shell:
+        """
+            bcftools view -s {params.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
+            | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
+        """
+
+rule plot_cnv_len:
+    input: "{sample}.callable.bed.gz"
+    output: barplot="{sample}.cn.png", len="{sample}.length.txt", cumplot="{sample}.cumcn.png"
+    params: cns=WANTED_CN, tool=CNLEN
+    shell:
+        """
+            {params.tool} {input} {params.cns} {output.barplot} {output.cumplot} {output.len}
+        """
+
+# we guess sequenza is 1 based cause it starts from pileups...end...included? Looked around in code, sic, going with "assumptions".
+rule intersect_cnv:
+    input: var="{sample}.tsv.gz", sequenza=DATA+"/{sample}_segments.txt", callable=CALLABLE, chrs=DATA+"/chrs"
+    output: var="{sample}.var_cnv.tsv.gz", callable="{sample}.callable.bed.gz"
+    shell:
+        """
+            bedtools intersect -b {input.callable} -a <(sed 1d {input.sequenza} | bawk '{{print $1, $2-1, $3, $10}}') | filter_1col 1 {input.chrs} | gzip > {output.callable};
+            bedtools intersect -wo -a {input.var} -b {output.callable} | bawk '{{print $1, $2, $3, $4":"$8}}' |  gzip > {output.var}
+        """
+
+rule AF_spectra_cn:
+    input: "{sample}.var_cnv.tsv.gz"
+    output: "{sample}.AF.png"
+    params: maxcn=5, tool=BIN_DIR+"/af_cn"
+    shell:
+        """
+            {params.tool} {input} {params.maxcn} {output}
+        """
+
+rule binomial:
+    input: "{sample}.var_cnv.tsv.gz"
+    output: "{sample}.calls.tsv.gz"
+    log: "{sample}.calls.tsv.log"
+    params: hascn="true", cn=WANTED_CN, pthr=0.05, tool=BIN_DIR+"/binomial_AF_single_bed"
+    shell:
+        """
+            zcat {input} | tr ":" "\\t" > {output}.tmp
+            {params.tool} {output}.tmp {params.hascn} {params.cn} {params.pthr} {output} {log}
+            rm {output}.tmp
+        """
+
+rule pair:
+    input: t0="{t0sample}.calls.tsv.gz", t1="{t1sample}.calls.tsv.gz"
+    output: binom="{t1sample}_{t0sample}.bdelta.tsv.gz", nobinom="{t1sample}_{t0sample}.nobdelta.tsv.gz"
+    shell:
+        """
+            zcat {input.t1} | sed 1d | bawk '$15==1' > {input.t1}.tmp
+            zcat {input.t0} | sed 1d | bawk '$15==1' > {input.t0}.tmp
+            zcat {input.t1} | sed 1d | bawk '$15==0' > {input.t1}.no.tmp
+            zcat {input.t0} | sed 1d | bawk '$15==0' > {input.t0}.no.tmp
+            cat {input.t1}.tmp | filter_1col 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"common"}}' > {output.binom}.tmp
+            cat {input.t1}.tmp | filter_1col -v 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"gain"}}' >> {output.binom}.tmp
+            cat {input.t0}.tmp | filter_1col -v 1 <(cut -f 1 {input.t1}.tmp) | bawk '{{print $0,"loss"}}' >> {output.binom}.tmp
+            cat {input.t1}.no.tmp | filter_1col 1 <(cut -f 1 {input.t0}.no.tmp) | bawk '{{print $0,"common"}}' > {output.nobinom}.tmp
+            cat {input.t1}.no.tmp | filter_1col -v 1 <(cut -f 1 {input.t0}.no.tmp) | bawk '{{print $0,"gain"}}' >> {output.nobinom}.tmp
+            cat {input.t0}.no.tmp | filter_1col -v 1 <(cut -f 1 {input.t1}.no.tmp) | bawk '{{print $0,"loss"}}' >> {output.nobinom}.tmp
+            gzip -c {output.binom}.tmp > {output.binom}
+            gzip -c {output.nobinom}.tmp > {output.nobinom}
+            rm {input.t0}.*tmp
+            rm {input.t1}.*tmp
+            rm {output.binom}.tmp
+            rm {output.nobinom}.tmp
+        """
+
+rule pairnobcnok:
+    input: t0="{t0sample}.calls.tsv.gz", t1="{t1sample}.calls.tsv.gz"
+    output: binom="{t1sample}_{t0sample}.cnokdelta.tsv.gz"
+    shell:
+        """
+            zcat {input.t1} | sed 1d | bawk '$13==1' > {input.t1}.tmp
+            zcat {input.t0} | sed 1d | bawk '$13==1' > {input.t0}.tmp
+            cat {input.t1}.tmp | filter_1col 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"common"}}' > {output.binom}.tmp
+            cat {input.t1}.tmp | filter_1col -v 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"gain"}}' >> {output.binom}.tmp
+            cat {input.t0}.tmp | filter_1col -v 1 <(cut -f 1 {input.t1}.tmp) | bawk '{{print $0,"loss"}}' >> {output.binom}.tmp
+            gzip -c {output.binom}.tmp > {output.binom}
+            rm {input.t0}.*tmp
+            rm {input.t1}.*tmp
+            rm {output.binom}.tmp
+        """
+
+rule pair_length:
+    input: t0="{t0sample}.callable.bed.gz", t1="{t1sample}.callable.bed.gz"
+    output: barplot="{t1sample}_{t0sample}.cn.png", len="{t1sample}_{t0sample}.length.txt", cumplot="{t1sample}-{t0sample}.cumcn.png"
+    params: cns=WANTED_CN, tool=CNLEN
+    shell:
+        """ 
+            bedtools intersect -b {input.t0} -a {input.t1} > {output.len}.tmp;
+            {params.tool} {output.len}.tmp {params.cns} {output.barplot} {output.cumplot} {output.len};
+            rm {output.len}.tmp;
+        """ 
+
+
+rule all_recal:
+    input: expand("{sample}.var_cnv.tsv.gz", sample=SAMPLES)
+
+
+rule all_R:
+    input: expand("{sample}.calls.tsv.gz", sample=SAMPLES), expand("{sample}.AF.png", sample=SAMPLES), expand("{sample}.cn.png", sample=SAMPLES)
+
+#CRC1307-02-1-B_CRC1307-02-0.bdelta.tsv.gz
+def find_pairs(wildcards):
+    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
+    regex = r"^" + re.escape(wildcards.bsample) + r"-"
+    idxs = get_indexes(regex, SAMPLES)
+    els = [SAMPLES[i] for i in idxs]
+    els.remove(wildcards.bsample+'-0')
+    return [ x+'_'+wildcards.bsample+'-0.bdelta.tsv.gz' for x in els]
+
+rule all_pairs:
+    input: find_pairs
+    output: "{bsample}.delta"
+    shell: 
+        """
+        for f in  {input}; do echo -e "$f\\n$f\\n$f"; done > {output}.tmp
+        for f in  {input}; do zcat $f | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | sed 's/^\\t//1' ;done  > {output}.1tmp
+        paste {output}.tmp {output}.1tmp > {output}
+        rm {output}.tmp {output}.1tmp
+        """
+
+def find_pairs2(wildcards):
+    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
+    regex = r"^" + re.escape(wildcards.bsample) + r"-"
+    idxs = get_indexes(regex, SAMPLES)
+    els = [SAMPLES[i] for i in idxs]
+    els.remove(wildcards.bsample+'-0')
+    return [ x+'_'+wildcards.bsample+'-0.cnokdelta.tsv.gz' for x in els]
+
+rule all_pairs2:
+    input: find_pairs2
+    output: "{bsample}.cnokdelta"
+    shell: 
+        """
+        for f in  {input}; do echo -e "$f\\n$f\\n$f"; done > {output}.tmp
+        for f in  {input}; do zcat $f | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | sed 's/^\\t//1' ;done  > {output}.1tmp
+        paste {output}.tmp {output}.1tmp > {output}
+        rm {output}.tmp {output}.1tmp
+        """
+
+#rule make_filter_cn:
+#    params=WANTED_CN
+#    output: "cn_filter.txt"
+#    run:
+#        #TODO
+#rule make_filter_cn:
+#    params=WANTED_CN
+#    output: "cn_filter.txt"
+#    run:
+#        #TODO
