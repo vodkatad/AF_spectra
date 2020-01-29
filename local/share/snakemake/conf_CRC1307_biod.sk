@@ -20,6 +20,7 @@ MULTI="nomulti"
 
 VCFTOBED=BIN_DIR+"/vcf_to_bed_biod"
 CNLEN=BIN_DIR+"/cn_len_plot"
+CNLEN2=BIN_DIR+"/cn_len_plot2"
 
 DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
 CALLABLE=BIOINFO_ROOT+'/task/annotations/dataset/gnomad/wgs_calling_regions.hg38.bed.gz'
@@ -32,4 +33,15 @@ SAMPLES_HIGH=["CRC1307-09","CRC1307-08","CRC1307-02"] # list comprehens TODO
 wildcard_constraints:
     sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
 
-#bcftools view -s CRC1307LMO /home/egrassi/WGS/local/share/data/CRC1307_clones_biod/CRC1307LMO-0-B.pass.vcf.gz | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - | grep -v "^#" |  filter_1col 1 /home/egrassi/WGS/local/share/data/CRC1307_clones_biod/chrs | /home/egrassi/WGS/local/bin/vcf_to_bed_biod SNV nomulti 2> CRC1307LMO-0-B.multiallelic | gzip > CRC1307LMO-0-B.tsv.gz
+rule process_vcf_special:
+    input: vcf=DATA+"/"+SAMPLES[0]+".pass.vcf.gz", chrs=DATA+"/chrs"  
+    output: SAMPLES[0]+".tsv.gz"
+    params: tool=VCFTOBED, multi=MULTI, kind=KIND, sample="CRC1307LMO"
+    log: SAMPLES[0]+".multiallelic"
+    shell:
+        """
+            bcftools view -s {params.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
+            | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
+        """
+
+ruleorder: process_vcf_special > process_vcf

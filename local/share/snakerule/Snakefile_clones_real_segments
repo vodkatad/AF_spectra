@@ -54,12 +54,62 @@ rule binomial:
             {params.tool} {output}.tmp {params.hascn} {params.cn} {params.pthr} {output} {log}
             rm {output}.tmp
         """
+#################################
+rule pair_ov:
+    input: t0="{t0sample}.calls.tsv.gz", t1="{t1sample}.calls.tsv.gz", ovbed="{t1sample}_{t0sample}.callable.bed.gz"
+    output: t0="{t0sample}_{t1sample}.callsov.tsv.gz", t1="{t1sample}_{t0sample}.callsov.tsv.gz"
+    shell:
+        """
+            bedtools intersect -a <(zcat {input.t0} | sed 1d | cut -f1 --complement) -b {input.ovbed} | bawk '{{print $4":"$5":"$6":"$7, $0}}' |  gzip > {output.t0}
+            bedtools intersect -a <(zcat {input.t1} | sed 1d | cut -f1 --complement) -b {input.ovbed} | bawk '{{print $4":"$5":"$6":"$7, $0}}' |  gzip > {output.t1}
+        """
 
+rule pair_ov_binom:
+    input: t0="{t0sample}_{t1sample}.callsov.tsv.gz", t1="{t1sample}_{t0sample}.callsov.tsv.gz"
+    output: binom="{t1sample}_{t0sample}.ovbdelta.tsv.gz", nobinom="{t1sample}_{t0sample}.ovnobdelta.tsv.gz"
+    shell:
+        """ 
+            zcat {input.t1} | bawk '$15==1' > {input.t1}.tmp
+            zcat {input.t0} | bawk '$15==1' > {input.t0}.tmp
+            zcat {input.t1} | bawk '$15==0' > {input.t1}.no.tmp
+            zcat {input.t0} | bawk '$15==0' > {input.t0}.no.tmp
+            cat {input.t1}.tmp | filter_1col 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"common"}}' > {output.binom}.tmp
+            cat {input.t1}.tmp | filter_1col -v 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"gain"}}' >> {output.binom}.tmp
+            cat {input.t0}.tmp | filter_1col -v 1 <(cut -f 1 {input.t1}.tmp) | bawk '{{print $0,"loss"}}' >> {output.binom}.tmp
+            cat {input.t1}.no.tmp | filter_1col 1 <(cut -f 1 {input.t0}.no.tmp) | bawk '{{print $0,"common"}}' > {output.nobinom}.tmp
+            cat {input.t1}.no.tmp | filter_1col -v 1 <(cut -f 1 {input.t0}.no.tmp) | bawk '{{print $0,"gain"}}' >> {output.nobinom}.tmp
+            cat {input.t0}.no.tmp | filter_1col -v 1 <(cut -f 1 {input.t1}.no.tmp) | bawk '{{print $0,"loss"}}' >> {output.nobinom}.tmp
+            gzip -c {output.binom}.tmp > {output.binom}
+            gzip -c {output.nobinom}.tmp > {output.nobinom}
+            rm {input.t0}.*tmp
+            rm {input.t1}.*tmp
+            rm {output.binom}.tmp
+            rm {output.nobinom}.tmp
+        """
+
+rule pair_ov_nobcnok:
+    input: t0="{t0sample}_{t1sample}.callsov.tsv.gz", t1="{t1sample}_{t0sample}.callsov.tsv.gz"
+    output: binom="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz"
+    shell:
+        """
+            zcat {input.t1} | bawk '$13==1' > {input.t1}.tmp
+            zcat {input.t0} | bawk '$13==1' > {input.t0}.tmp
+            cat {input.t1}.tmp | filter_1col 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"common"}}' > {output.binom}.tmp
+            cat {input.t1}.tmp | filter_1col -v 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"gain"}}' >> {output.binom}.tmp
+            cat {input.t0}.tmp | filter_1col -v 1 <(cut -f 1 {input.t1}.tmp) | bawk '{{print $0,"loss"}}' >> {output.binom}.tmp
+            gzip -c {output.binom}.tmp > {output.binom}
+            rm {input.t0}.*tmp
+            rm {input.t1}.*tmp
+            rm {output.binom}.tmp
+        """
+
+
+###############################
 rule pair:
     input: t0="{t0sample}.calls.tsv.gz", t1="{t1sample}.calls.tsv.gz"
     output: binom="{t1sample}_{t0sample}.bdelta.tsv.gz", nobinom="{t1sample}_{t0sample}.nobdelta.tsv.gz"
     shell:
-        """
+        """ 
             zcat {input.t1} | sed 1d | bawk '$15==1' > {input.t1}.tmp
             zcat {input.t0} | sed 1d | bawk '$15==1' > {input.t0}.tmp
             zcat {input.t1} | sed 1d | bawk '$15==0' > {input.t1}.no.tmp
@@ -94,9 +144,28 @@ rule pairnobcnok:
             rm {output.binom}.tmp
         """
 
+# casino per avere overlap misto tra i due campioni
+# 1tmp e` t1, 2tmp e` t0 -> l'R usa la prima colonna per il calcolo della lunghezza ma filtra per cn giuste in tutte e due
+rule pair_length_ov:
+    input: t0="{t0sample}.callable.bed.gz", t1="{t1sample}.callable.bed.gz"
+    output: barplot="{t1sample}_{t0sample}.ovcn.png", len="{t1sample}_{t0sample}.ovlength.txt", cumplot="{t1sample}-{t0sample}.ovcumcn.png", ovbed="{t1sample}_{t0sample}.callable.bed.gz"
+    params: cns=WANTED_CN, tool=CNLEN2
+    shell:
+        """ 
+            bedtools intersect -b {input.t0} -a {input.t1} | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.1tmp
+            bedtools intersect -b {input.t1} -a {input.t0} | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.2tmp
+            join -t$'\\t' {output.ovbed}.1tmp {output.ovbed}.2tmp | tr "_" "\\t" > {output.ovbed}.tmp 
+            {params.tool} {output.ovbed}.tmp {params.cns} {output.barplot} {output.cumplot} {output.len} {output.ovbed};
+            rm {output.ovbed}.*tmp 
+        """
+
+# bedtools merge -i <(zcat {output.ovbed}.1tmp {output.ovbed}.2tmp | sort -k1,1 -k2,2n) -c 4,4 -o distinct,collapse > {output.ovbed}.tmp
+# ma non si puo` fare perche` non posso tenere t1 e t0 ordinati nel merge..
+
+# La lunghezza delle regioni di t1 con cn accettabili che si intersecano con le chiamabili di t0...
 rule pair_length:
     input: t0="{t0sample}.callable.bed.gz", t1="{t1sample}.callable.bed.gz"
-    output: barplot="{t1sample}_{t0sample}.cn.png", len="{t1sample}_{t0sample}.length.txt", cumplot="{t1sample}-{t0sample}.cumcn.png"
+    output: barplot="{t1sample}-{t0sample}.cn.png", len="{t1sample}_{t0sample}.length.txt", cumplot="{t1sample}-{t0sample}.cumcn.png"
     params: cns=WANTED_CN, tool=CNLEN
     shell:
         """ 
@@ -105,6 +174,7 @@ rule pair_length:
             rm {output.len}.tmp;
         """ 
 
+##################### CN only sample end (1 here)
 def find_pairs_raw(wildcards):
     get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
     regex = r"^" + re.escape(wildcards.bsample) + r"-"
@@ -124,8 +194,6 @@ rule all_all_raw:
     output: "all.MR"
     shell: "head -n 1 {input[0]} > {output}; grep -h -v conte {input} >> {output}"
     
-#rule make_filter_cn:
-#    params=WANTED_CN
 rule raw:
     input: len="{t1sample}_{t0sample}.length.txt", calls="{t1sample}_{t0sample}.cnokdelta.tsv.gz", gens=DATA+"/generations.txt"
     output: "{t1sample}_{t0sample}.MR.tsv"
@@ -134,7 +202,36 @@ rule raw:
         """
             {params.tool} {input.len} {input.calls} {input.gens} {output}
         """
+################ CN match
+def find_pairs_raw_ov(wildcards):
+    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
+    regex = r"^" + re.escape(wildcards.bsample) + r"-"
+    idxs = get_indexes(regex, SAMPLES)
+    els = [SAMPLES[i] for i in idxs]
+    els.remove(wildcards.bsample+'-0')
+    return [ x+'_'+wildcards.bsample+'-0.MR_ov.tsv' for x in els]
 
+rule all_pairs_raw_ov:
+    input: find_pairs_raw_ov
+    output: "{bsample}.MR_ov"
+    shell: "head -n 1 {input[0]} > {output}; grep -h -v conte {input} >> {output}"
+
+
+rule all_all_raw_ov:
+    input: expand("{hsample}.MR_ov", hsample=SAMPLES_HIGH)
+    output: "all.MR_ov"
+    shell: "head -n 1 {input[0]} > {output}; grep -h -v conte {input} >> {output}"
+    
+rule raw_ov:
+    input: len="{t1sample}_{t0sample}.ovlength.txt", calls="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", gens=DATA+"/generations.txt"
+    output: "{t1sample}_{t0sample}.MR_ov.tsv"
+    params: tool=BIN_DIR+"/gain_MA"
+    shell:
+        """
+            {params.tool} {input.len} {input.calls} {input.gens} {output}
+        """
+
+################
 rule all_recal:
     input: expand("{sample}.var_cnv.tsv.gz", sample=SAMPLES)
 
@@ -149,7 +246,7 @@ def find_pairs(wildcards):
     idxs = get_indexes(regex, SAMPLES)
     els = [SAMPLES[i] for i in idxs]
     els.remove(wildcards.bsample+'-0')
-    return [ x+'_'+wildcards.bsample+'-0.bdelta.tsv.gz' for x in els]
+    return [ x+'_'+wildcards.bsample+'-0.ovbdelta.tsv.gz' for x in els]
 
 rule all_pairs:
     input: find_pairs
@@ -168,7 +265,7 @@ def find_pairs2(wildcards):
     idxs = get_indexes(regex, SAMPLES)
     els = [SAMPLES[i] for i in idxs]
     els.remove(wildcards.bsample+'-0')
-    return [ x+'_'+wildcards.bsample+'-0.cnokdelta.tsv.gz' for x in els]
+    return [ x+'_'+wildcards.bsample+'-0.ovcnokdelta.tsv.gz' for x in els]
 
 rule all_pairs2:
     input: find_pairs2
@@ -181,13 +278,3 @@ rule all_pairs2:
         rm {output}.tmp {output}.1tmp
         """
 
-#rule make_filter_cn:
-#    params=WANTED_CN
-#    output: "cn_filter.txt"
-#    run:
-#        #TODO
-#rule make_filter_cn:
-#    params=WANTED_CN
-#    output: "cn_filter.txt"
-#    run:
-#        #TODO
