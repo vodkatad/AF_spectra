@@ -105,6 +105,35 @@ rule pair_length:
             rm {output.len}.tmp;
         """ 
 
+def find_pairs_raw(wildcards):
+    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
+    regex = r"^" + re.escape(wildcards.bsample) + r"-"
+    idxs = get_indexes(regex, SAMPLES)
+    els = [SAMPLES[i] for i in idxs]
+    els.remove(wildcards.bsample+'-0')
+    return [ x+'_'+wildcards.bsample+'-0.MR.tsv' for x in els]
+
+rule all_pairs_raw:
+    input: find_pairs_raw
+    output: "{bsample}.MR"
+    shell: "head -n 1 {input[0]} > {output}; grep -h -v conte {input} >> {output}"
+
+
+rule all_all_raw:
+    input: expand("{hsample}.MR", hsample=SAMPLES_HIGH)
+    output: "all.MR"
+    shell: "head -n 1 {input[0]} > {output}; grep -h -v conte {input} >> {output}"
+    
+#rule make_filter_cn:
+#    params=WANTED_CN
+rule raw:
+    input: len="{t1sample}_{t0sample}.length.txt", calls="{t1sample}_{t0sample}.cnokdelta.tsv.gz", gens=DATA+"/generations.txt"
+    output: "{t1sample}_{t0sample}.MR.tsv"
+    params: tool=BIN_DIR+"/gain_MA"
+    shell:
+        """
+            {params.tool} {input.len} {input.calls} {input.gens} {output}
+        """
 
 rule all_recal:
     input: expand("{sample}.var_cnv.tsv.gz", sample=SAMPLES)

@@ -7,7 +7,7 @@ rule all_tsv:
 rule process_vcf:
     input: vcf=DATA+"/{sample}.pass.vcf.gz", chrs=DATA+"/chrs"
     output: "{sample}.tsv.gz"
-    params: tool=VCFTOBED, multi=MULTI, kind=KIND, sample=SAMPLE
+    params: tool=VCFTOBED, multi=MULTI, kind=KIND, sample=lambda wildcards: SAMPLE if SAMPLE!="wildcards" else wildcards.sample
     log: "{sample}.multiallelic"
     shell:
         """
@@ -125,8 +125,38 @@ def find_pairs(wildcards):
 rule all_pairs:
     input: find_pairs
     output: "{bsample}.delta"
-    shell: "touch {output}"
+    shell: 
+        """
+        for f in  {input}; do echo -e "$f\\n$f\\n$f"; done > {output}.tmp
+        for f in  {input}; do zcat $f | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | sed 's/^\\t//1' ;done  > {output}.1tmp
+        paste {output}.tmp {output}.1tmp > {output}
+        rm {output}.tmp {output}.1tmp
+        """
 
+def find_pairs2(wildcards):
+    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
+    regex = r"^" + re.escape(wildcards.bsample) + r"-"
+    idxs = get_indexes(regex, SAMPLES)
+    els = [SAMPLES[i] for i in idxs]
+    els.remove(wildcards.bsample+'-0')
+    return [ x+'_'+wildcards.bsample+'-0.cnokdelta.tsv.gz' for x in els]
+
+rule all_pairs2:
+    input: find_pairs2
+    output: "{bsample}.cnokdelta"
+    shell: 
+        """
+        for f in  {input}; do echo -e "$f\\n$f\\n$f"; done > {output}.tmp
+        for f in  {input}; do zcat $f | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | sed 's/^\\t//1' ;done  > {output}.1tmp
+        paste {output}.tmp {output}.1tmp > {output}
+        rm {output}.tmp {output}.1tmp
+        """
+
+#rule make_filter_cn:
+#    params=WANTED_CN
+#    output: "cn_filter.txt"
+#    run:
+#        #TODO
 #rule make_filter_cn:
 #    params=WANTED_CN
 #    output: "cn_filter.txt"

@@ -27,6 +27,9 @@ CALLABLE=BIOINFO_ROOT+'/task/annotations/dataset/gnomad/wgs_calling_regions.hg38
 SAMPLES=['CRC1307LMO-0-B', 'CRC1307-02-0', 'CRC1307-08-0', 'CRC1307-09-0', 'CRC1307-02-1-A', 'CRC1307-02-1-B', 'CRC1307-02-1-E', 'CRC1307-08-1-B', 'CRC1307-08-1-D', 'CRC1307-08-1-E', 'CRC1307-09-1-B', 'CRC1307-09-1-C', 'CRC1307-09-1-E', 'CRC1307-08-MA-A', 'CRC1307-08-MA-C', 'CRC1307-08-MA-F', 'CRC1307-08-MC-D', 'CRC1307-08-MC-E', 'CRC1307-08-MC-F', 'CRC1307-08-MI-B', 'CRC1307-08-MI-F']
 SAMPLE =  "^1740D" #"{wildcards.sample}" # "TUMOR" for varscan
 WANTED_CN = "1,2,3"
+SAMPLES_HIGH=["CRC1307-09","CRC1307-08","CRC1307-02"] # list comprehens TODO
 
 wildcard_constraints:
     sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+
+#bcftools view -s CRC1307LMO /home/egrassi/WGS/local/share/data/CRC1307_clones_biod/CRC1307LMO-0-B.pass.vcf.gz | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - | grep -v "^#" |  filter_1col 1 /home/egrassi/WGS/local/share/data/CRC1307_clones_biod/chrs | /home/egrassi/WGS/local/bin/vcf_to_bed_biod SNV nomulti 2> CRC1307LMO-0-B.multiallelic | gzip > CRC1307LMO-0-B.tsv.gz
