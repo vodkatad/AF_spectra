@@ -278,3 +278,54 @@ rule all_pairs2:
         rm {output}.tmp {output}.1tmp
         """
 
+
+############## heatmaps for CNV
+# do not support hg38 out of the box
+rule acnviewer:
+    input: expand(DATA+"/{sample}_segments.txt", sample=ALL_SAMPLES)
+    output: dir("acnviewer")   
+    params: seqdir=DATA
+    singularity: "/home/bioeda/bio/singularity/acnviewer.img"
+    shell:
+        """ 
+            bh -f {params.seqdir} --fileType Sequenza -t {output} --refBuild REF_BUILD -b BIN_DIR [GENERAL_PLOT_OPTIONS] [HISTOGRAM_OPTIONS] [GISTIC_OPTIONS] [HEATMAP_DENDRO_OPTIONS]
+        """
+
+rule intersect_cnv_temp:
+    input: sequenza=DATA+"/{sample}_segments.txt", callable=CALLABLE, chrs=DATA+"/chrs"
+    output: callable="{sample}.callable.tempbed.gz"
+    shell:
+        """
+            bedtools intersect -b {input.callable} -a <(sed 1d {input.sequenza} | bawk '{{print $1, $2-1, $3, $10}}') | filter_1col 1 {input.chrs} | gzip > {output.callable};
+        """
+               
+#bedtools intersect -b {input.callable} -a <(sed 1d {input.sequenza} | bawk '{{print $1, $2-1, $3, $10}}') | filter_1col 1 {input.chrs} | gzip > {output.callable};
+rule intersect:
+    input: expand("{sample}.callable.tempbed.gz", sample=ALL_SAMPLES)
+    output: "all_callable.bed.gz"
+    params: all=lambda wildcards, input: len(input), bbed=lambda wildcards, input: ' '.join(input[1:])
+    shell:
+        """
+            bedtools intersect -a {input[0]} -b {params.bbed} -c | bawk '$5=={params.all}' | gzip > {output}
+        """
+
+####
+rule seqtocns:
+    input: sequenza=DATA+"/{sample}_segments.txt", chrs=DATA+"/chrs"
+    output: "cns/{sample}.cns"
+    shell: 
+        """    
+            echo -e "chromosome\\tstart\\tend\\tgene\\tlog2" > {output}
+            sed 1d {input.sequenza} | bawk '{{print $1, $2, $3, "geneplh", log($10/2)/log(2)}}' | filter_1col 1 {input.chrs} >> {output}
+        """
+
+rule cnvkitheat:
+    input: expand("cns/{sample}.cns", sample=ALL_SAMPLES)
+    singularity: HROOT+"/cnvkit/cnvkit.img"
+    output: "cnvkit_heatmap.pdf"
+    shell:
+        """
+            cnvkit.py heatmap {input} -d -o {output}
+        """
+
+

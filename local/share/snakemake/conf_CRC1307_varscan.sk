@@ -20,6 +20,7 @@ MULTI="nomulti"
 
 VCFTOBED=BIN_DIR+"/vcf_to_bed_varscan"
 CNLEN=BIN_DIR+"/cn_len_plot"
+CNLEN2=BIN_DIR+"/cn_len_plot2"
 
 DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
 CALLABLE=BIOINFO_ROOT+'/task/annotations/dataset/gnomad/wgs_calling_regions.hg38.bed.gz'
@@ -27,6 +28,43 @@ CALLABLE=BIOINFO_ROOT+'/task/annotations/dataset/gnomad/wgs_calling_regions.hg38
 SAMPLES=['CRC1307LMO-0-B', 'CRC1307-02-0', 'CRC1307-08-0', 'CRC1307-09-0', 'CRC1307-02-1-A', 'CRC1307-02-1-B', 'CRC1307-02-1-E', 'CRC1307-08-1-B', 'CRC1307-08-1-D', 'CRC1307-08-1-E', 'CRC1307-09-1-B', 'CRC1307-09-1-C', 'CRC1307-09-1-E']
 SAMPLE =  "TUMOR" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
 WANTED_CN = "1,2,3"
+SAMPLES_HIGH=["CRC1307-09","CRC1307-08","CRC1307-02"] # list comprehens TODO
 
 wildcard_constraints:
     sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+
+
+#rule process_vcf_special:
+#    input: vcf=DATA+"/"+SAMPLES[0]+".pass.vcf.gz", chrs=DATA+"/chrs"  
+#    output: SAMPLES[0]+".tsv.gz"
+#    params: tool=VCFTOBED, multi=MULTI, kind=KIND, sample="CRC1307LMO"
+#    log: SAMPLES[0]+".multiallelic"
+#    shell:
+#        """
+#            bcftools view -s {params.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
+#            | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
+#        """
+
+
+def find_pairs3(wildcards):
+    l = wildcards.t1sample.split('-')
+    base = l[0] + '-' + l[1]
+    res = [ wildcards.t1sample+'_'+base+'-0.ovcnokdelta.tsv.gz']
+    res = res * 3
+    res[1] = "../CRC1307_biod/"+res[1]
+    res[2] = "../CRC1307_mutect/"+res[2]
+    print(res)
+    return res
+
+#ruleorder: process_vcf_special > process_vcf
+#input: "{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", "../CRC1307_biod/{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", "../CRC1307_mutect/{t1sample}_{t0sample}.ovcnokdelta.tsv.gz"
+rule overlap3:
+    input: find_pairs3
+    output: "{t1sample}.cgain"
+    shell:
+        """
+        zcat {input[0]} | bawk '$16=="gain"' | filter_1col 1 <(zcat {input[1]} | bawk '$16=="gain" {{print $1}}') | filter_1col 1 <(zcat {input[2]} | bawk '$16=="gain" {{print $1}}') | wc -l > {output}
+        zcat {input[1]} | bawk '$16=="gain" {{print $1}}' | wc -l >> {output}
+        zcat {input[2]} | bawk '$16=="gain" {{print $1}}' | wc -l >> {output}
+        zcat {input[0]} | bawk '$16=="gain"' | wc -l >> {output}
+        """
