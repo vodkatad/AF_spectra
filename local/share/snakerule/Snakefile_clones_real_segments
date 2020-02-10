@@ -204,12 +204,16 @@ rule raw:
         """
 ################ CN match
 def find_pairs_raw_ov(wildcards):
+    # if per distinguere topi da non topi _ov or _ovTOPI
     get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
     regex = r"^" + re.escape(wildcards.bsample) + r"-"
     idxs = get_indexes(regex, SAMPLES)
     els = [SAMPLES[i] for i in idxs]
     els.remove(wildcards.bsample+'-0')
-    return [ x+'_'+wildcards.bsample+'-0.MR_ov.tsv' for x in els]
+    r1 = re.compile(r'-M')
+    els_topi = filter(r1.search, els) 
+    els_notopi = filter(lambda x: not r1.search(x), els) 
+    return [ x+'_'+wildcards.bsample+'-0.MR_ov.tsv' for x in els_notopi] + [ x+'_'+wildcards.bsample+'-0.MR_ovtopi.tsv' for x in els_topi]
 
 rule all_pairs_raw_ov:
     input: find_pairs_raw_ov
@@ -231,6 +235,14 @@ rule raw_ov:
             {params.tool} {input.len} {input.calls} {input.gens} {output}
         """
 
+rule raw_ov_TOPI:
+    input: len="{t1sample}_{t0sample}.ovlength.txt", calls="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", gens=DATA+"/generations_TOPI.txt"
+    output: "{t1sample}_{t0sample}.MR_ovtopi.tsv"
+    params: tool=BIN_DIR+"/gain_MA_topi"
+    shell:
+        """
+            {params.tool} {input.len} {input.calls} {input.gens} {output}
+        """
 ################
 rule all_recal:
     input: expand("{sample}.var_cnv.tsv.gz", sample=SAMPLES)
