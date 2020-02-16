@@ -328,13 +328,13 @@ rule seqtocns:
     shell: 
         """    
             echo -e "chromosome\\tstart\\tend\\tgene\\tlog2" > {output}
-            sed 1d {input.sequenza} | bawk '{{print $1, $2, $3, "geneplh", log($10/2)/log(2)}}' | filter_1col 1 {input.chrs} >> {output}
+            sed 1d {input.sequenza} | bawk '{{print $1, $2, $3, "geneplh", log($10/3)/log(2)}}' | filter_1col 1 {input.chrs} >> {output}
         """
 
 rule cnvkitheat:
-    input: expand("cns/{sample}.cns", sample=ALL_SAMPLES)
+    input: lambda wildcards: expand("cns/{sample}.cns", sample=eval(wildcards.which))
     singularity: HROOT+"/cnvkit/cnvkit.img"
-    output: "cnvkit_heatmap.pdf"
+    output: "{which}_cnvkit_heatmap.pdf"
     shell:
         """
             cnvkit.py heatmap {input} -d -o {output}
