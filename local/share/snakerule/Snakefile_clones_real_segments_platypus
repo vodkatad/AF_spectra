@@ -5,14 +5,14 @@ rule all_tsv:
 
 # why decoy are in callable interval list?? let's start with chr1-22 only, sequenza is on 1-22-X-Y only right now
 rule process_vcf:
-    input: vcf=DATA+"/{sample}.pass.vcf.gz", chrs=DATA+"/chrs"
+    input: vcf=DATA+"/platypus_filtered.vcf.gz", chrs=DATA+"/chrs"
     output: "{sample}.tsv.gz"
     params: tool=VCFTOBED, multi=MULTI, kind=KIND, sample= lambda wildcards: SAMPLE if SAMPLE!="wildcards" else wildcards.sample
     log: "{sample}.multiallelic"
     shell:
         """
             bcftools view -s {params.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
-            | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
+            | bawk '$7=="PASS"' | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
         """
 
 rule plot_cnv_len:
@@ -128,6 +128,7 @@ rule pair:
             rm {output.nobinom}.tmp
         """
 
+# here a logic of coverage could be implemented, but...
 rule pairnobcnok:
     input: t0="{t0sample}.calls.tsv.gz", t1="{t1sample}.calls.tsv.gz"
     output: binom="{t1sample}_{t0sample}.cnokdelta.tsv.gz"
@@ -290,7 +291,6 @@ rule all_pairs2:
         rm {output}.tmp {output}.1tmp
         """
 
-
 ############## heatmaps for CNV
 # do not support hg38 out of the box
 rule acnviewer:
@@ -340,48 +340,26 @@ rule cnvkitheat:
             cnvkit.py heatmap {input} -d -o {output}
         """
 
-####
-def find_pair_bulk(wildcards):
-    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
-    regex = r"^" + re.escape(wildcards.bsample) + r"-"
-    idxs = get_indexes(regex, SAMPLES)
-    els = [SAMPLES[i] for i in idxs]
-    #els.remove(wildcards.bsample+'-0')
-    return [ x+'_CRC1307LMO-0-B.ovcnokdelta.tsv.gz' for x in els]
-
-
-rule all_pairs_bulk:
-    input: find_pair_bulk
-    output: "{bsample}.bulkcnokdelta"
-    shell: 
-        """
-        for f in  {input}; do echo -e "$f\\n$f\\n$f"; done > {output}.tmp
-        for f in  {input}; do zcat $f | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | sed 's/^\\t//1' ;done  > {output}.1tmp
-        paste {output}.tmp {output}.1tmp > {output}
-        rm {output}.tmp {output}.1tmp
-        """
-
-################ binomial to get only those produced in the expansion
-rule all_binomialexp:
-    input: [expand("{sample}.bexpcalls.tsv.gz", sample=SAMPLES), expand("{sample}.cn2.png", sample=SAMPLES)]
-
-rule binomialexp:
-    input: "{sample}.var_cnv.tsv.gz"
-    output: "{sample}.bexpcalls.tsv.gz"
-    log: "{sample}.bexpcalls.tsv.log"
-    params: hascn="true", cn=WANTED_CN, pthr=0.05, tool=BIN_DIR+"/binomial_AF_single_bed_exp"
+######### annotations for dn/ds
+### annovar
+rule merged_bed:
+    input: MUTECT_DIR+"/merged.table_nomultiallele"
+    output: MUTECT_DIR+"/merged.bed"
     shell:
         """
-            zcat {input} | tr ":" "\\t" > {output}.tmp
-            {params.tool} {output}.tmp {params.hascn} {params.cn} {params.pthr} {output} {log}
-            rm {output}.tmp
+            sed 1d {input} | tr ":" "\\t" | bawk '{{print $1,$2-1,$2,$3"-"$4}}' > {output}
         """
 
-rule plot_cn2_len:
-    input: "{sample}.callable.bed.gz"
-    output: barplot="{sample}.cn2.png", len="{sample}.length2.txt", cumplot="{sample}.cumcn2.png"
-    params: cns=2, tool=CNLEN
+rule annovar:
+    input: MUTECT_DIR+"/merged.bed", ANNOVAR
+    output: MUTECT_DIR+"/merged.hg38_multianno.txt"
+    log: MUTECT_DIR+"/merged.hg38_multianno.log"
+    params: ver="hg38"
     shell:
         """
-            {params.tool} {input} {params.cns} {output.barplot} {output.cumplot} {output.len}
+        sed 's/chr//1;' < {input[0]} | tr "-" "\\t" | bawk '{{if($5=="") {{$5="-"}} if ($4==""){{$4="-"}} b=$2+1; e=b+length($4)-1; print $1,b,e,$4,$5,$6}}' > {output}.tmp
+        table_annovar.pl {output}.tmp {input[1]} --otherinfo -buildver {params.ver} -out merged -remove -protocol refGene,avsnp150,cosmic87_coding,nci60,dbnsfp35c,clinvar_20180603 -operation g,f,f,f,f,f -nastring . -polish &> {log}
+        rm {output}.tmp
+        mv merged.hg38_multianno.txt {output}
         """
+
