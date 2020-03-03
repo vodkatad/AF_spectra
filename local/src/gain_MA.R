@@ -4,7 +4,6 @@ args <- commandArgs(trailingOnly = T)
 len <- args[1]
 calls <- args[2]
 gens <- args[3]
-save.image("p.RData")
 
 dcalls <- read.table(gzfile(calls), header=FALSE, stringsAsFactors=FALSE, sep="\t")
 dlen <- read.table(len, header=FALSE)

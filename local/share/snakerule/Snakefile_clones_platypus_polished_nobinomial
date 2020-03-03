@@ -1,0 +1,228 @@
+include: "./conf.sk"
+
+rule all_tsv:
+    input: expand("{sample}.tsv.gz", sample=SAMPLES)
+
+# why decoy are in callable interval list?? let's start with chr1-22 only, sequenza is on 1-22-X-Y only right now
+rule process_vcf:
+    input: vcf=DATA+"/platypus_filtered.vcf.gz", chrs=DATA+"/chrs"
+    output: "{sample}.tsv.gz"
+    params: tool=VCFTOBED, multi=MULTI, kind=KIND, sample= lambda wildcards: SAMPLE if SAMPLE!="wildcards" else wildcards.sample
+    log: "{sample}.multiallelic"
+    shell:
+        """
+            bcftools view -s {params.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
+            | bawk '$7=="PASS"' | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
+        """
+
+rule plot_cnv_len:
+    input: "{sample}.callable.bed.gz"
+    output: barplot="{sample}.cn.png", len="{sample}.length.txt", cumplot="{sample}.cumcn.png"
+    params: cns=WANTED_CN, tool=CNLEN
+    shell:
+        """
+            {params.tool} {input} {params.cns} {output.barplot} {output.cumplot} {output.len}
+        """
+
+# we guess sequenza is 1 based cause it starts from pileups...end...included? Looked around in code, sic, going with "assumptions".
+rule intersect_cnv:
+    input: var="{sample}.tsv.gz", sequenza=DATA+"/{sample}_segments.txt", callable=CALLABLE, chrs=DATA+"/chrs"
+    output: var="{sample}.var_cnv.tsv.gz", callable="{sample}.callable.bed.gz"
+    shell:
+        """
+            bedtools intersect -b {input.callable} -a <(sed 1d {input.sequenza} | bawk '{{print $1, $2-1, $3, $10}}') | filter_1col 1 {input.chrs} | gzip > {output.callable};
+            bedtools intersect -wo -a {input.var} -b {output.callable} | bawk '{{print $1, $2, $3, $4":"$8}}' |  gzip > {output.var}
+        """
+
+rule AF_spectra_cn:
+    input: "{sample}.var_cnv.tsv.gz"
+    output: "{sample}.AF.png"
+    params: maxcn=5, tool=BIN_DIR+"/af_cn"
+    shell:
+        """
+            {params.tool} {input} {params.maxcn} {output}
+        """
+
+rule AF_spectra_cn_normalized:
+    input: "{sample}.var_cnv.tsv.gz"
+    output: "{sample}.AFnormalized.png"
+    params: maxcn=3, tool=BIN_DIR+"/af_cn_normalize"
+    shell:
+        """
+            {params.tool} {input} {params.maxcn} {output}
+        """
+
+
+# we put all 1/0 to founder/binomialpvalue to avoid having to rewrite all the other rules
+# caution: putting binomial back in this context is difficult, we will need to consider binomial
+# calling only for the _from_ sample and not the other one
+rule fake_binomial:
+    input: vars="{sample}.var_cnv.tsv.gz", header=SRC_DIR+"/binomeader.tsv"
+    output: "{sample}.calls.tsv.gz"
+    log: "{sample}.calls.tsv.log"
+    params: cn=WANTED_CN
+    shell:
+        """
+            zcat {input.vars} | tr ":" "\\t" > {output}.tmp
+            cat {input.header} > {output}
+            echo {params.cn} | tr "," "\\n" > {output}.2tmp
+            cat {output}.tmp | filter_1col 12 {output}.2tmp | bawk '{print $0, 1, 0, 1}' >> {output}
+            cat {output}.tmp | filter_1col -v 12 {output}.2tmp | bawk '{print $0, 0, 0, 1}' >> {output}
+            rm {output}.*tmp
+        """
+
+rule pair_ov:
+    input: t0="{t0sample}.calls.tsv.gz", t1="{t1sample}.calls.tsv.gz", ovbed="{t1sample}_{t0sample}.callable.bed.gz"
+    output: t0="{t0sample}_{t1sample}.callsov.tsv.gz", t1="{t1sample}_{t0sample}.callsov.tsv.gz"
+    shell:
+        """
+            bedtools intersect -a <(zcat {input.t0} | sed 1d | cut -f1 --complement) -b {input.ovbed} | bawk '{{print $4":"$5":"$6":"$7, $0}}' |  gzip > {output.t0}
+            bedtools intersect -a <(zcat {input.t1} | sed 1d | cut -f1 --complement) -b {input.ovbed} | bawk '{{print $4":"$5":"$6":"$7, $0}}' |  gzip > {output.t1}
+        """
+
+rule pair_ov_nobcnok:
+    input: t0="{t0sample}_{t1sample}.callsov.tsv.gz", t1="{t1sample}_{t0sample}.callsov.tsv.gz"
+    output: binom="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz"
+    shell:
+        """
+            zcat {input.t1} | bawk '$13==1' > {input.t1}.tmp
+            zcat {input.t0} | bawk '$13==1' > {input.t0}.tmp
+            cat {input.t1}.tmp | filter_1col 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"common"}}' > {output.binom}.tmp
+            cat {input.t1}.tmp | filter_1col -v 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"gain"}}' >> {output.binom}.tmp
+            cat {input.t0}.tmp | filter_1col -v 1 <(cut -f 1 {input.t1}.tmp) | bawk '{{print $0,"loss"}}' >> {output.binom}.tmp
+            gzip -c {output.binom}.tmp > {output.binom}
+            rm {input.t0}.*tmp
+            rm {input.t1}.*tmp
+            rm {output.binom}.tmp
+        """
+
+# casino per avere overlap misto tra i due campioni
+# 1tmp e` t1, 2tmp e` t0 -> l'R usa la prima colonna per il calcolo della lunghezza ma filtra per cn giuste in tutte e due
+rule pair_length_ov:
+    input: t0="{t0sample}.callable.bed.gz", t1="{t1sample}.callable.bed.gz"
+    output: barplot="{t1sample}_{t0sample}.ovcn.png", len="{t1sample}_{t0sample}.ovlength.txt", cumplot="{t1sample}-{t0sample}.ovcumcn.png", ovbed="{t1sample}_{t0sample}.callable.bed.gz"
+    params: cns=WANTED_CN, tool=CNLEN2
+    shell:
+        """ 
+            bedtools intersect -b {input.t0} -a {input.t1} | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.1tmp
+            bedtools intersect -b {input.t1} -a {input.t0} | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.2tmp
+            join -t$'\\t' {output.ovbed}.1tmp {output.ovbed}.2tmp | tr "_" "\\t" > {output.ovbed}.tmp 
+            {params.tool} {output.ovbed}.tmp {params.cns} {output.barplot} {output.cumplot} {output.len} {output.ovbed};
+            rm {output.ovbed}.*tmp 
+        """
+
+################ CN match
+def find_pairs_raw_ov(wildcards):
+    # if per distinguere topi da non topi _ov or _ovTOPI
+    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
+    regex = r"^" + re.escape(wildcards.bsample) + r"-"
+    idxs = get_indexes(regex, SAMPLES)
+    els = [SAMPLES[i] for i in idxs]
+    els.remove(wildcards.bsample+'-0')
+    r1 = re.compile(r'-M')
+    els_topi = filter(r1.search, els) 
+    els_notopi = filter(lambda x: not r1.search(x), els) 
+    return [ x+'_'+wildcards.bsample+'-0.MR_ov.tsv' for x in els_notopi] + [ x+'_'+wildcards.bsample+'-0.MR_ovtopi.tsv' for x in els_topi]
+
+rule all_pairs_raw_ov:
+    input: find_pairs_raw_ov
+    output: "{bsample}.MR_ov"
+    shell: "head -n 1 {input[0]} > {output}; grep -h -v conte {input} >> {output}"
+
+rule all_all_raw_ov:
+    input: expand("{hsample}.MR_ov", hsample=SAMPLES_HIGH)
+    output: "all.MR_ov"
+    shell: "head -n 1 {input[0]} > {output}; grep -h -v conte {input} >> {output}"
+    
+rule raw_ov:
+    input: len="{t1sample}_{t0sample}.ovlength.txt", calls="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", gens=DATA+"/generations.txt"
+    output: "{t1sample}_{t0sample}.MR_ov.tsv"
+    params: tool=BIN_DIR+"/gain_MA"
+    shell:
+        """
+            {params.tool} {input.len} {input.calls} {input.gens} {output}
+        """
+
+rule raw_ov_TOPI:
+    input: len="{t1sample}_{t0sample}.ovlength.txt", calls="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", gens=DATA+"/generations_TOPI.txt"
+    output: "{t1sample}_{t0sample}.MR_ovtopi.tsv"
+    params: tool=BIN_DIR+"/gain_MA_topi"
+    shell:
+        """
+            {params.tool} {input.len} {input.calls} {input.gens} {output}
+        """
+
+################
+rule all_recal:
+    input: expand("{sample}.var_cnv.tsv.gz", sample=SAMPLES)
+
+
+rule all_R:
+    input: expand("{sample}.calls.tsv.gz", sample=SAMPLES), expand("{sample}.AF.png", sample=SAMPLES), expand("{sample}.cn.png", sample=SAMPLES)
+
+##### Suspended work on CNV overlaps
+rule intersect_cnv_temp:
+    input: sequenza=DATA+"/{sample}_segments.txt", callable=CALLABLE, chrs=DATA+"/chrs"
+    output: callable="{sample}.callable.tempbed.gz"
+    shell:
+        """
+            bedtools intersect -b {input.callable} -a <(sed 1d {input.sequenza} | bawk '{{print $1, $2-1, $3, $10}}') | filter_1col 1 {input.chrs} | gzip > {output.callable};
+        """
+               
+rule intersect:
+    input: expand("{sample}.callable.tempbed.gz", sample=ALL_SAMPLES)
+    output: "all_callable.bed.gz"
+    params: all=lambda wildcards, input: len(input), bbed=lambda wildcards, input: ' '.join(input[1:])
+    shell:
+        """
+            bedtools intersect -a {input[0]} -b {params.bbed} -c | bawk '$5=={params.all}' | gzip > {output}
+        """
+
+#### heatmap sequenza -> cnvkit
+rule seqtocns:
+    input: sequenza=DATA+"/{sample}_segments.txt", chrs=DATA+"/chrs"
+    output: "cns/{sample}.cns"
+    shell: 
+        """    
+            echo -e "chromosome\\tstart\\tend\\tgene\\tlog2" > {output}
+            sed 1d {input.sequenza} | bawk '{{print $1, $2, $3, "geneplh", log($10/3)/log(2)}}' | filter_1col 1 {input.chrs} >> {output}
+        """
+
+rule cnvkitheat:
+    input: lambda wildcards: expand("cns/{sample}.cns", sample=eval(wildcards.which))
+    singularity: HROOT+"/cnvkit/cnvkit.img"
+    output: "{which}_cnvkit_heatmap.pdf"
+    shell:
+        """
+            cnvkit.py heatmap {input} -d -o {output}
+        """
+
+######### maybeTODO annotations: not required for dn/ds...
+### annovar
+rule merged_bed:
+    input: MUTECT_DIR+"/merged.table_nomultiallele"
+    output: MUTECT_DIR+"/merged.bed"
+    shell:
+        """
+            sed 1d {input} | tr ":" "\\t" | bawk '{{print $1,$2-1,$2,$3"-"$4}}' > {output}
+        """
+
+rule annovar:
+    input: MUTECT_DIR+"/merged.bed", ANNOVAR
+    output: MUTECT_DIR+"/merged.hg38_multianno.txt"
+    log: MUTECT_DIR+"/merged.hg38_multianno.log"
+    params: ver="hg38"
+    shell:
+        """
+        sed 's/chr//1;' < {input[0]} | tr "-" "\\t" | bawk '{{if($5=="") {{$5="-"}} if ($4==""){{$4="-"}} b=$2+1; e=b+length($4)-1; print $1,b,e,$4,$5,$6}}' > {output}.tmp
+        table_annovar.pl {output}.tmp {input[1]} --otherinfo -buildver {params.ver} -out merged -remove -protocol refGene,avsnp150,cosmic87_coding,nci60,dbnsfp35c,clinvar_20180603 -operation g,f,f,f,f,f -nastring . -polish &> {log}
+        rm {output}.tmp
+        mv merged.hg38_multianno.txt {output}
+        """
+
+
+
+#### TODO dn/ds
+
+
+#### TODO signatures
