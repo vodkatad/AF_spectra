@@ -10,8 +10,8 @@ muts$af <- as.numeric(sapply(muts$id, function(x) { strsplit(x, ":")[[1]][7]}))
 muts$cn <- sapply(muts$id, function(x) { strsplit(x, ":")[[1]][8]})
 muts$cn <- as.numeric(muts$cn)
 muts <- muts[muts$cn <= maxcn,]
-muts$cn <- factor(muts$cn, levels=seq(1, maxcn))
 muts$naf <- muts$af * muts$cn
+muts$cn <- factor(muts$cn, levels=seq(1, maxcn))
 cat(dim(muts))
 cat("\n")
 muts <- muts[muts$naf <=1,]

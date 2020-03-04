@@ -57,17 +57,18 @@ rule AF_spectra_cn_normalized:
 # caution: putting binomial back in this context is difficult, we will need to consider binomial
 # calling only for the _from_ sample and not the other one
 rule fake_binomial:
-    input: vars="{sample}.var_cnv.tsv.gz", header=SRC_DIR+"/binomeader.tsv"
+    input: vars="{sample}.var_cnv.tsv.gz", header=SRC_DIR+"/binomheader.tsv"
     output: "{sample}.calls.tsv.gz"
     log: "{sample}.calls.tsv.log"
     params: cn=WANTED_CN
     shell:
         """
             zcat {input.vars} | tr ":" "\\t" > {output}.tmp
-            cat {input.header} > {output}
+            cat {input.header} > {output}.3tmp
             echo {params.cn} | tr "," "\\n" > {output}.2tmp
-            cat {output}.tmp | filter_1col 12 {output}.2tmp | bawk '{print $0, 1, 0, 1}' >> {output}
-            cat {output}.tmp | filter_1col -v 12 {output}.2tmp | bawk '{print $0, 0, 0, 1}' >> {output}
+            cat {output}.tmp | filter_1col 11 {output}.2tmp | bawk '{{print $4":"$5":"$6":"$7,$0, 1, 0, 1}}' >> {output}.3tmp
+            cat {output}.tmp | filter_1col -v 11 {output}.2tmp | bawk '{{print $4":"$5":"$6":"$7,$0, 0, 0, 1}}' >> {output}.3tmp
+            gzip -c {output}.3tmp > {output}
             rm {output}.*tmp
         """
 
@@ -158,7 +159,7 @@ rule all_recal:
 
 
 rule all_R:
-    input: expand("{sample}.calls.tsv.gz", sample=SAMPLES), expand("{sample}.AF.png", sample=SAMPLES), expand("{sample}.cn.png", sample=SAMPLES)
+    input: expand("{sample}.calls.tsv.gz", sample=SAMPLES), expand("{sample}.AFnormalized.png", sample=SAMPLES), expand("{sample}.cn.png", sample=SAMPLES)
 
 ##### Suspended work on CNV overlaps
 rule intersect_cnv_temp:
@@ -199,27 +200,27 @@ rule cnvkitheat:
 
 ######### maybeTODO annotations: not required for dn/ds...
 ### annovar
-rule merged_bed:
-    input: MUTECT_DIR+"/merged.table_nomultiallele"
-    output: MUTECT_DIR+"/merged.bed"
-    shell:
-        """
-            sed 1d {input} | tr ":" "\\t" | bawk '{{print $1,$2-1,$2,$3"-"$4}}' > {output}
-        """
-
-rule annovar:
-    input: MUTECT_DIR+"/merged.bed", ANNOVAR
-    output: MUTECT_DIR+"/merged.hg38_multianno.txt"
-    log: MUTECT_DIR+"/merged.hg38_multianno.log"
-    params: ver="hg38"
-    shell:
-        """
-        sed 's/chr//1;' < {input[0]} | tr "-" "\\t" | bawk '{{if($5=="") {{$5="-"}} if ($4==""){{$4="-"}} b=$2+1; e=b+length($4)-1; print $1,b,e,$4,$5,$6}}' > {output}.tmp
-        table_annovar.pl {output}.tmp {input[1]} --otherinfo -buildver {params.ver} -out merged -remove -protocol refGene,avsnp150,cosmic87_coding,nci60,dbnsfp35c,clinvar_20180603 -operation g,f,f,f,f,f -nastring . -polish &> {log}
-        rm {output}.tmp
-        mv merged.hg38_multianno.txt {output}
-        """
-
+#rule merged_bed:
+#    input: MUTECT_DIR+"/merged.table_nomultiallele"
+#    output: MUTECT_DIR+"/merged.bed"
+#    shell:
+#        """
+#            sed 1d {input} | tr ":" "\\t" | bawk '{{print $1,$2-1,$2,$3"-"$4}}' > {output}
+#        """
+#
+#rule annovar:
+#    input: MUTECT_DIR+"/merged.bed", ANNOVAR
+#    output: MUTECT_DIR+"/merged.hg38_multianno.txt"
+#    log: MUTECT_DIR+"/merged.hg38_multianno.log"
+#    params: ver="hg38"
+#    shell:
+#        """
+#        sed 's/chr//1;' < {input[0]} | tr "-" "\\t" | bawk '{{if($5=="") {{$5="-"}} if ($4==""){{$4="-"}} b=$2+1; e=b+length($4)-1; print $1,b,e,$4,$5,$6}}' > {output}.tmp
+#        table_annovar.pl {output}.tmp {input[1]} --otherinfo -buildver {params.ver} -out merged -remove -protocol refGene,avsnp150,cosmic87_coding,nci60,dbnsfp35c,clinvar_20180603 -operation g,f,f,f,f,f -nastring . -polish &> {log}
+#        rm {output}.tmp
+#        mv merged.hg38_multianno.txt {output}
+#        """
+#
 
 
 #### TODO dn/ds
