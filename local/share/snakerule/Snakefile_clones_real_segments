@@ -43,6 +43,16 @@ rule AF_spectra_cn:
             {params.tool} {input} {params.maxcn} {output}
         """
 
+rule AF_spectra_cn_normalized:
+    input: "{sample}.var_cnv.tsv.gz"
+    output: "{sample}.AFnormalized.png"
+    params: maxcn=3, tool=BIN_DIR+"/af_cn_normalize"
+    shell:
+        """
+            {params.tool} {input} {params.maxcn} {output}
+        """
+
+
 rule binomial:
     input: "{sample}.var_cnv.tsv.gz"
     output: "{sample}.calls.tsv.gz"
@@ -249,7 +259,7 @@ rule all_recal:
 
 
 rule all_R:
-    input: expand("{sample}.calls.tsv.gz", sample=SAMPLES), expand("{sample}.AF.png", sample=SAMPLES), expand("{sample}.cn.png", sample=SAMPLES)
+    input: expand("{sample}.calls.tsv.gz", sample=SAMPLES), expand("{sample}.AF.png", sample=SAMPLES), expand("{sample}.cn.png", sample=SAMPLES), expand("{sample}.AFnormalized.png", sample=SAMPLES)
 
 #CRC1307-02-1-B_CRC1307-02-0.bdelta.tsv.gz
 def find_pairs(wildcards):
