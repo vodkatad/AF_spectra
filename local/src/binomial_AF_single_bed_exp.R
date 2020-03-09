@@ -53,6 +53,7 @@ muts$binomp <- apply(muts[, c(8,9,11)], 1, rbinom)
 save.image("pippo.RData")
 
 muts$founder <- 0
+muts$binomp <- p.adjust(muts$binomp, method="bonferroni")
 muts[muts$binomp < pthr,]$founder <- 1
 
 #TODO LOG with some stats

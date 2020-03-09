@@ -198,7 +198,33 @@ rule cnvkitheat:
             cnvkit.py heatmap {input} -d -o {output}
         """
 
-######### maybeTODO annotations: not required for dn/ds...
+################ binomial to get only those produced in the expansion
+rule all_binomialexp:
+    input: [expand("{sample}.bexpcalls.tsv.gz", sample=SAMPLES), expand("{sample}.cn2.png", sample=SAMPLES)]
+
+rule binomialexp:
+    input: "{sample}.var_cnv.tsv.gz"
+    output: "{sample}.bexpcalls.tsv.gz"
+    log: "{sample}.bexpcalls.tsv.log"
+    params: hascn="true", cn=WANTED_CN, pthr=0.05, tool=BIN_DIR+"/binomial_AF_single_bed_exp"
+    shell:
+        """
+            zcat {input} | tr ":" "\\t" > {output}.tmp
+            {params.tool} {output}.tmp {params.hascn} {params.cn} {params.pthr} {output} {log}
+            rm {output}.tmp
+        """
+
+rule plot_cn2_len:
+    input: "{sample}.callable.bed.gz"
+    output: barplot="{sample}.cn2.png", len="{sample}.length2.txt", cumplot="{sample}.cumcn2.png"
+    params: cns=2, tool=CNLEN
+    shell:
+        """
+            {params.tool} {input} {params.cns} {output.barplot} {output.cumplot} {output.len}
+        """
+
+
+######## maybeTODO annotations: not required for dn/ds...
 ### annovar
 #rule merged_bed:
 #    input: MUTECT_DIR+"/merged.table_nomultiallele"
