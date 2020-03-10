@@ -26,7 +26,7 @@ rule plot_cnv_len:
 
 # we guess sequenza is 1 based cause it starts from pileups...end...included? Looked around in code, sic, going with "assumptions".
 rule intersect_cnv:
-    input: var="{sample}.tsv.gz", sequenza=DATA+"/{sample}_segments.txt", callable=CALLABLE, chrs=DATA+"/chrs"
+    input: var="{sample}.tsv.gz", sequenza=SDATA+"/{sample}_segments.txt", callable=CALLABLE, chrs=DATA+"/chrs"
     output: var="{sample}.var_cnv.tsv.gz", callable="{sample}.callable.bed.gz"
     shell:
         """

@@ -26,7 +26,7 @@ rule plot_cnv_len:
 
 # we guess sequenza is 1 based cause it starts from pileups...end...included? Looked around in code, sic, going with "assumptions".
 rule intersect_cnv:
-    input: var="{sample}.tsv.gz", sequenza=DATA+"/{sample}_segments.txt", callable=CALLABLE, chrs=DATA+"/chrs"
+    input: var="{sample}.tsv.gz", sequenza=SDATA+"/{sample}_segments.txt", callable=CALLABLE, chrs=DATA+"/chrs"
     output: var="{sample}.var_cnv.tsv.gz", callable="{sample}.callable.bed.gz"
     shell:
         """
@@ -181,7 +181,7 @@ rule intersect:
 
 #### heatmap sequenza -> cnvkit
 rule seqtocns:
-    input: sequenza=DATA+"/{sample}_segments.txt", chrs=DATA+"/chrs"
+    input: sequenza=SDATA+"/{sample}_segments.txt", chrs=DATA+"/chrs"
     output: "cns/{sample}.cns"
     shell: 
         """    
@@ -193,9 +193,10 @@ rule cnvkitheat:
     input: lambda wildcards: expand("cns/{sample}.cns", sample=eval(wildcards.which))
     singularity: HROOT+"/cnvkit/cnvkit.img"
     output: "{which}_cnvkit_heatmap.pdf"
+    params: tool=CNVKIT
     shell:
         """
-            cnvkit.py heatmap {input} -d -o {output}
+            {params.tool} heatmap {input} -d -o {output}
         """
 
 ################ binomial to get only those produced in the expansion
@@ -224,30 +225,50 @@ rule plot_cn2_len:
         """
 
 
-######## maybeTODO annotations: not required for dn/ds...
+########  not required for dn/ds... but I can't be that lazy and covered by junk work always :(
 ### annovar
-#rule merged_bed:
-#    input: MUTECT_DIR+"/merged.table_nomultiallele"
-#    output: MUTECT_DIR+"/merged.bed"
-#    shell:
-#        """
-#            sed 1d {input} | tr ":" "\\t" | bawk '{{print $1,$2-1,$2,$3"-"$4}}' > {output}
-#        """
-#
-#rule annovar:
-#    input: MUTECT_DIR+"/merged.bed", ANNOVAR
-#    output: MUTECT_DIR+"/merged.hg38_multianno.txt"
-#    log: MUTECT_DIR+"/merged.hg38_multianno.log"
-#    params: ver="hg38"
-#    shell:
-#        """
-#        sed 's/chr//1;' < {input[0]} | tr "-" "\\t" | bawk '{{if($5=="") {{$5="-"}} if ($4==""){{$4="-"}} b=$2+1; e=b+length($4)-1; print $1,b,e,$4,$5,$6}}' > {output}.tmp
-#        table_annovar.pl {output}.tmp {input[1]} --otherinfo -buildver {params.ver} -out merged -remove -protocol refGene,avsnp150,cosmic87_coding,nci60,dbnsfp35c,clinvar_20180603 -operation g,f,f,f,f,f -nastring . -polish &> {log}
-#        rm {output}.tmp
-#        mv merged.hg38_multianno.txt {output}
-#        """
-#
+def find_pairs_annovar(wildcards):
+    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
+    regex = r"^" + re.escape(wildcards.bsample) + r"-"
+    idxs = get_indexes(regex, SAMPLES)
+    els = [SAMPLES[i] for i in idxs]
+    els.remove(wildcards.bsample+'-0')
+    return [ x+'_'+wildcards.bsample+'.gain.multianno.txt' for x in els]
 
+rule class_bed:
+    input: "{t1sample}_{t0sample}.ovcnokdelta.tsv.gz"
+    output: "{t1sample}_{t0sample}.{class}.bed"
+    shell:
+        """
+            zcat {input} | bawk '$16=="{wildcards.class}" {{print $2,$3,$4,$7"-"$8}}' > {output}
+        """
+
+rule annovar:
+    input: "{t1sample}_{t0sample}.{class}.bed", ANNOVAR
+    output: "{t1sample}_{t0sample}.{class}.multianno.txt"
+    log: "{t1sample}_{t0sample}.{class}.multianno.log"
+    params: ver="hg38"
+    shell:
+        """
+        sed 's/chr//1;' < {input[0]} | tr "-" "\\t" | bawk '{{if($5=="") {{$5="-"}} if ($4==""){{$4="-"}} b=$2+1; e=b+length($4)-1; print $1,b,e,$4,$5,$6}}' > {output}.tmp
+        table_annovar.pl {output}.tmp {input[1]} --otherinfo -buildver {params.ver} -out merged -remove -protocol refGene,avsnp150,cosmic87_coding -operation g,f,f -nastring . -polish &> {log}
+        rm {output}.tmp
+        mv merged.hg38_multianno.txt {output}
+        """
+
+rule all_pairs_annovar:
+    input: find_pairs_annovar
+    output: "{bsample}.annovar"
+    shell: 
+        """
+            sed 1d {input} | bawk '{{print "{input}", $0}}"' > {output}
+        """
+
+rule all_all_annovar:
+    input: expand("{hsample}.annovar", hsample=SAMPLES_HIGH)
+    output: "all.annovar.gz"
+    shell: "cat {input}' | gzip >  {output}"
+    
 
 #### TODO dn/ds
 

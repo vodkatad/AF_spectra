@@ -11,16 +11,17 @@ def find_prj_root(path=os.getcwd()):
 PRJ_ROOT=find_prj_root()
 BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
 
+CNVKIT="cnvkit"
 HROOT='/home/egrassi'
 DATA=PRJ_ROOT+"/local/share/data/CRC1307_clones_mutect"
-SDATA=DATA
+SDATA=PRJ_ROOT+"/local/share/data/CRC1307_clones_mutect_sequenza_fixed"
 BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
 
 KIND="SNV" # | indel
 MULTI="nomulti"
 
-VCFTOBED=BIN_DIR+"/vcf_to_bed"
+VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
 VCFTOBED1=BIN_DIR+"/vcf_to_bed"
 CNLEN=BIN_DIR+"/cn_len_plot"
 CNLEN2=BIN_DIR+"/cn_len_plot2"

@@ -10,9 +10,14 @@ def find_prj_root(path=os.getcwd()):
 
 PRJ_ROOT=find_prj_root()
 BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
+
+CNVKIT="cnvkit"
 
 HROOT='/home/egrassi'
 DATA=PRJ_ROOT+"/local/share/data/CRC1307_clones_mutect"
+SDATA=DATA
 BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
 
