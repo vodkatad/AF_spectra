@@ -263,8 +263,10 @@ rule all_pairs_annovar:
     output: "{bsample}.annovar.gz"
     shell: 
         """
-            sed 1d {input} | gzip > {output}
+            rm -f {output}
+            for f in {input}; do sed 1d $f ; done | gzip > {output}
         """
+
 # caution do not use -j, temp files will get overwritten
 rule all_all_annovar:
     input: expand("{hsample}.annovar.gz", hsample=SAMPLES_HIGH)

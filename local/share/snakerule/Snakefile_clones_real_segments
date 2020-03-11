@@ -382,8 +382,9 @@ rule binomialexp:
     params: hascn="true", cn=WANTED_CN, pthr=0.05, tool=BIN_DIR+"/binomial_AF_single_bed_exp"
     shell:
         """
+            mkdir -p {wildcards.sample}.plot_bexpcalls
             zcat {input} | tr ":" "\\t" > {output}.tmp
-            {params.tool} {output}.tmp {params.hascn} {params.cn} {params.pthr} {output} {log}
+            {params.tool} {output}.tmp {params.hascn} {params.cn} {params.pthr} {output} {log} {wildcards.sample}.plot_bexpcalls
             rm {output}.tmp
         """
 

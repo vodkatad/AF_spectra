@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-
+library(ggplot2)
 args <- commandArgs(trailingOnly = T)
 mutfile <- args[1]
 hascn <- as.logical(args[2])
@@ -7,6 +7,7 @@ cns <- args[3]
 pthr <- as.numeric(args[4])
 output <- args[5]
 log <- args[6]
+outputdir <- args[7]
 
 if (cns != "1,2,3") {
     stop("accepted_cn right now are hard-coded for 1,2,3")
@@ -40,9 +41,12 @@ rbinom <- function(mut) {
     bin <- binom.test(mutreads, tot, p=p, alternative="less")
     pval <- bin$p.value
   } else if (cn == 1) {
-    p <- 1
-    bin <- binom.test(mutreads, tot, p=p, alternative="less")
-    pval <- bin$p.value
+    #p <- 1
+    if (refreads == 0) {
+        pval <- 0
+    }
+    #bin <- binom.test(mutreads, tot, p=p, alternative="less")
+    #pval <- bin$p.value
   }
   return(pval)
 }
@@ -50,11 +54,36 @@ rbinom <- function(mut) {
 muts$targetcn <- ifelse(muts$cn %in% accepted_cn, 1, 0)
 muts$binomp <- apply(muts[, c(8,9,11)], 1, rbinom)
 
+mutsone <- muts[muts$cn ==1,]
+mutsone$pBH <- mutsone$binomp
+mutsone$pBonf <- mutsone$binomp
+mutsone$pFDR <- mutsone$binomp
+muts <- muts[muts$cn != 1,]
+
+
 save.image("pippo.RData")
 
-muts$founder <- 0
-muts$binomp <- p.adjust(muts$binomp, method="BH")
-muts[muts$binomp < pthr,]$founder <- 1
+muts <- muts[muts$accepted_cn==1,] # we correct only tests that we did
+muts$pBH <- p.adjust(muts$binomp, method="BH")
+muts$pBonf <- p.adjust(muts$binomp, method="bonferroni")
+muts$pFDR <- p.adjust(muts$binomp, method="fdr")
+
+muts <- rbind(muts, mutsone)
+
+histo <- function(d, column, cn) {
+    d <- d[d$cn == cn,]
+    tot <- nrow(d)
+    sign <- d[d[, column] < pthr,]
+    ggplot(sign, aes(x=altreads)) + geom_histogram(binwidth=3)+xlab('N. mutated reads')+ylab('N.muts')+theme_bw()+ggtitle(paste('Total m: ', tot, 'Called m:', nrow(sign)))
+    ggsave(paste0(outputdir,'/histo_', column, '_', cn,'.png'))
+}   
+
+allcn <- c(2,3)
+allp <- c('binomp','pBH','pBonf','pFDR')
+wanted <- expand.grid(allcn,allp)
+
+garbage <- apply(wanted, 1, function(x) { histo(muts, x[2], x[1]) })
+histo(muts, 'binomp',1)
 
 #TODO LOG with some stats
 nmut <- nrow(muts)
