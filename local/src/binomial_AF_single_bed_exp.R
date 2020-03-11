@@ -63,7 +63,7 @@ muts <- muts[muts$cn != 1,]
 
 save.image("pippo.RData")
 
-muts <- muts[muts$accepted_cn==1,] # we correct only tests that we did
+muts <- muts[muts$targetcn==1,] # we correct only tests that we did
 muts$pBH <- p.adjust(muts$binomp, method="BH")
 muts$pBonf <- p.adjust(muts$binomp, method="bonferroni")
 muts$pFDR <- p.adjust(muts$binomp, method="fdr")
@@ -74,7 +74,7 @@ histo <- function(d, column, cn) {
     d <- d[d$cn == cn,]
     tot <- nrow(d)
     sign <- d[d[, column] < pthr,]
-    ggplot(sign, aes(x=altreads)) + geom_histogram(binwidth=3)+xlab('N. mutated reads')+ylab('N.muts')+theme_bw()+ggtitle(paste('Total m: ', tot, 'Called m:', nrow(sign)))
+    ggplot(sign, aes(x=altreads)) + geom_histogram(binwidth=1)+xlab('N. mutated reads')+ylab('N.muts')+theme_bw()+ggtitle(paste('Total m: ', tot, 'Called m:', nrow(sign)))
     ggsave(paste0(outputdir,'/histo_', column, '_', cn,'.png'))
 }   
 
