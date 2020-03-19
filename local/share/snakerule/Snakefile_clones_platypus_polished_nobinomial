@@ -277,3 +277,25 @@ rule all_all_annovar:
 
 
 #### TODO signatures
+
+
+#### shared
+# right now selection of files is done inside R with list.files, this is DANGEROUS, FIXME
+rule shared_clone:
+    output: "{hsample}.shared.png"
+    params: tool=BIN_DIR+"/private_shared_gains"
+    shell: 
+        """
+            {params.tool} {wildcards.hsample} {output}
+        """
+
+rule all_shared:
+    input: expand("{sample}.shared.png", sample=SAMPLES_ZERO)
+
+rule shared_clone_all:
+    output: "all.shared.png"
+    params: tool=BIN_DIR+"/private_shared_gains"
+    shell: 
+        """
+            {params.tool} '*' {output}
+        """
