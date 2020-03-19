@@ -373,7 +373,7 @@ rule all_pairs_bulk:
 
 ################ binomial to get only those produced in the expansion
 rule all_binomialexp:
-    input: [expand("{sample}.bexpcalls.tsv.gz", sample=SAMPLES), expand("{sample}.cn2.png", sample=SAMPLES)]
+    input: [expand("{sample}.bexp.multianno.txt", sample=SAMPLES), expand("{sample}.cn2.png", sample=SAMPLES)]
 
 rule binomialexp:
     input: "{sample}.var_cnv.tsv.gz"
@@ -388,6 +388,19 @@ rule binomialexp:
             rm {output}.tmp
         """
 
+rule bexpn:
+    input: expand("{sample}.bexpcalls.tsv.gz", sample=SAMPLES)
+    output: "bexp_n.tsv", "bexp"
+    shell:
+        """
+            for f in {input}; do zcat $f | sed 1d | bawk -v n=$f '{{print n,$1,$11,$12,$14,$15,$16,$17,$9,$10}}'; done  | sed 's/\.bexpcalls\.tsv\.gz//1' > {output[1]}
+            for f in {input}; do zcat $f | sed 1d | bawk -v n=$f '$15<0.05{{print n,$1,$11,$12,$14,$15,$16,$17,$9,$10}}'; done  | sed 's/\.bexpcalls\.tsv\.gz//1' > {output[1]}.tmp
+            bawk '$4==1{{print $1}}' {output[1]}.tmp | sort | uniq -c | tr -s " " "\\t" | bawk '{{print $3,$2,'1'}}' > {output[0]}
+            bawk '$4==2{{print $1}}' {output[1]}.tmp | sort | uniq -c | tr -s " " "\\t" | bawk '{{print $3,$2,'2'}}' >> {output[0]}
+            bawk '$4==3{{print $1}}' {output[1]}.tmp | sort | uniq -c | tr -s " " "\\t" | bawk '{{print $3,$2,'3'}}' >> {output[0]}
+            rm {output[1]}.tmp
+        """
+
 rule plot_cn2_len:
     input: "{sample}.callable.bed.gz"
     output: barplot="{sample}.cn2.png", len="{sample}.length2.txt", cumplot="{sample}.cumcn2.png"
@@ -395,4 +408,64 @@ rule plot_cn2_len:
     shell:
         """
             {params.tool} {input} {params.cns} {output.barplot} {output.cumplot} {output.len}
+        """
+
+# BH for now
+rule class_bed_bexp:
+    input: "{sample}.bexpcalls.tsv.gz"
+    output: "{sample}.bexp.bed"
+    shell:
+        """
+            zcat {input} | sed 1d | bawk '$15<=0.05 && $13==1 {{print $2,$3,$4,$7"-"$8}}' > {output}
+        """
+
+rule annovar_bexp:
+    input: "{sample}.bexp.bed", ANNOVAR
+    output: "{sample}.bexp.multianno.txt"
+    log: "{sample}.bexp.multianno.log"
+    params: ver="hg38"
+    shell:
+        """
+        sed 's/chr//1;' < {input[0]} | tr "-" "\\t" | bawk '{{if($5=="") {{$5="-"}} if ($4==""){{$4="-"}} b=$2+1; e=b+length($4)-1; print $1,b,e,$4,$5,$6}}' > {output}.tmp
+        table_annovar.pl {output}.tmp {input[1]} --otherinfo -buildver {params.ver} -out merged -remove -protocol refGene,avsnp150,cosmic87_coding -operation g,f,f -nastring . -polish &> {log}
+        rm {output}.tmp
+        bawk '{{print "{wildcards.sample}", $0}}' < merged.hg38_multianno.txt > {output}
+        rm merged.hg38_multianno.txt
+        """
+
+
+### bexp in t0:
+rule bexp_t0:
+    input: bexp="{t1sample}.bexpcalls.tsv.gz", platy="../CRC1307_platypus_nobin/{t0sample}.calls.tsv.gz"
+    output: "{t1sample}_{t0sample}.rogue_n.tsv"
+    shell:
+        """
+            zcat {input.bexp} | sed 1d | bawk '$15<0.05{{print $1}}' > {output}.tmp
+            cat {output}.tmp | wc -l  | bawk '{{print "{wildcards.t1sample}","total", $1}}' > {output}
+            cat {output}.tmp | filter_1col 1 <(zcat {input.platy} | sed 1d |  bawk '$13==1{{print $1}}')  | wc -l | bawk '{{print "{wildcards.t1sample}","in_t0", $1}}' >> {output}
+            rm {output}.tmp
+        """
+
+def find_pairs_rn(wildcards):
+    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
+    regex = r"^" + re.escape(wildcards.bsample) + r"-"
+    idxs = get_indexes(regex, SAMPLES)
+    els = [SAMPLES[i] for i in idxs]
+    els.remove(wildcards.bsample+'-0')
+    return [ x+'_'+wildcards.bsample+'-0.rogue_n.tsv' for x in els]
+
+rule all_pairs_rn:
+    input: find_pairs_rn
+    output: "{bsample}.rogue_n"
+    shell: 
+        """
+            cat {input} > {output}
+        """
+
+rule all_rogue:
+    input: expand("{hsample}.rogue_n", hsample=SAMPLES_HIGH)
+    output: "all_rogue_n"
+    shell: 
+        """
+            cat {input} > {output}
         """

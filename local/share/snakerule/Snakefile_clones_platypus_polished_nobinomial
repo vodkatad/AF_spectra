@@ -185,7 +185,7 @@ rule seqtocns:
     output: "cns/{sample}.cns"
     shell: 
         """    
-            echo -e "chromosome\\tstart\\tend\\tgene\\tlog2" > {output}
+            {output}
             sed 1d {input.sequenza} | bawk '{{print $1, $2, $3, "geneplh", log($10/3)/log(2)}}' | filter_1col 1 {input.chrs} >> {output}
         """
 
@@ -201,7 +201,7 @@ rule cnvkitheat:
 
 ################ binomial to get only those produced in the expansion
 rule all_binomialexp:
-    input: [expand("{sample}.bexpcalls.tsv.gz", sample=SAMPLES), expand("{sample}.cn2.png", sample=SAMPLES)]
+    input: [expand("{sample}.bexpcalls.multianno.txt", sample=SAMPLES), expand("{sample}.cn2.png", sample=SAMPLES)]
 
 rule binomialexp:
     input: "{sample}.var_cnv.tsv.gz"
@@ -223,7 +223,6 @@ rule plot_cn2_len:
         """
             {params.tool} {input} {params.cns} {output.barplot} {output.cumplot} {output.len}
         """
-
 
 ########  not required for dn/ds... but I can't be that lazy and covered by junk work always :(
 ### annovar

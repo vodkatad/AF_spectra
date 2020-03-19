@@ -42,7 +42,7 @@ rbinom <- function(mut) {
     pval <- bin$p.value
   } else if (cn == 1) {
     #p <- 1
-    if (refreads == 0) {
+    if (refreads > 0) {
         pval <- 0
     }
     #bin <- binom.test(mutreads, tot, p=p, alternative="less")
