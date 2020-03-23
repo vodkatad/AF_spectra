@@ -4,7 +4,7 @@ args <- commandArgs(trailingOnly = T)
 mutfile <- args[1]
 maxcn <- as.numeric(args[2])
 outputplot <- args[3]
-save.image("p.RData")
+#save.image("p.RData")
 
 muts <- read.table(gzfile(mutfile), header=FALSE, stringsAsFactors=FALSE)
 colnames(muts) <- c("chr","b","e","id")

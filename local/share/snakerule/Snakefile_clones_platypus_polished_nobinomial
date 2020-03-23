@@ -12,7 +12,7 @@ rule process_vcf:
     shell:
         """
             bcftools view -s {params.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
-            | bawk '$7=="PASS"' | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
+            | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
         """
 
 rule plot_cnv_len:
@@ -138,7 +138,7 @@ rule all_all_raw_ov:
 rule raw_ov:
     input: len="{t1sample}_{t0sample}.ovlength.txt", calls="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", gens=DATA+"/generations.txt"
     output: "{t1sample}_{t0sample}.MR_ov.tsv"
-    params: tool=BIN_DIR+"/gain_MA"
+    params: tool=BIN_DIR+"/gain_MA_noloss"
     shell:
         """
             {params.tool} {input.len} {input.calls} {input.gens} {output}
@@ -147,7 +147,7 @@ rule raw_ov:
 rule raw_ov_TOPI:
     input: len="{t1sample}_{t0sample}.ovlength.txt", calls="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", gens=DATA+"/generations_TOPI.txt"
     output: "{t1sample}_{t0sample}.MR_ovtopi.tsv"
-    params: tool=BIN_DIR+"/gain_MA_topi"
+    params: tool=BIN_DIR+"/gain_MA_topi_noloss"
     shell:
         """
             {params.tool} {input.len} {input.calls} {input.gens} {output}
@@ -276,6 +276,15 @@ rule all_all_annovar:
 #### TODO dn/ds
 
 
+rule dnds:
+    input: ""
+    output: "dnds.tsv"
+    params:  tool=BIN_DIR+"/dnsd.R"
+    shell:
+        """
+            {params.tool} {input} {output}
+        """
+
 #### TODO signatures
 
 
@@ -298,4 +307,41 @@ rule shared_clone_all:
     shell: 
         """
             {params.tool} '*' {output}
+        """
+
+#### enrichments
+rule union_callable:
+    input: expand("{t1sample}_"+CLONE2[0]+".callable.bed.gz", t1sample=CLONE2[1:]), expand("{t1sample}_"+CLONE8[0]+".callable.bed.gz", t1sample=CLONE8[1:]),
+            expand("{t1sample}_"+CLONE9[0]+".callable.bed.gz", t1sample=CLONE9[1:])
+    output: "union_callable.bed.gz"
+    shell:
+        """
+            zcat {input} | sort -k1,1 -k2,2n > {output}.tmp
+            bedtools merge -i {output}.tmp | gzip > {output}
+            rm {output}.tmp
+        """
+
+rule all_gain:
+    input: expand("{t1sample}_"+CLONE2[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE2[1:]), expand("{t1sample}_"+CLONE8[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE8[1:]),
+            expand("{t1sample}_"+CLONE9[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE9[1:])
+    output: "all_gained_named.tsv"
+    shell:
+        """
+            for f in {input}; do zcat $f | bawk -v n=$f '$16=="gain"{{print n,$1}}' | sed 's/\.ovcnokdelta\.tsv\.gz//'; done > {output}
+        """
+
+rule all_gain_together:
+    input: "all_gained_named.tsv"
+    output: "all_gained.tsv"
+    shell:
+        """
+            cut -f 2 {input} | sort | uniq > {output}
+        """ 
+
+rule enrich_chr:
+    input: "union_callable.bed.gz", "all_gain.tsv"
+    output: "enrich_chr.tsv"
+    params: TOOL="todo"
+    shell:
+        """
         """

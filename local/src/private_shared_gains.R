@@ -38,6 +38,9 @@ colnames(pdata) <- c("shared_by","count","sample")
 #max(as.numeric(as.character(pdata$shared_by)))
 
 #pdata$shared_by <- factor(pdata$shared_by, levels = c(1,2,3,4,5,6,7,11)) 
-#WARNING  order of levels is not guaranteed!!!
+#order of levels need to be guaranteed:
+l <- as.numeric(as.character(levels(pdata$shared_by)))
+l <- l[order(l)]
+pdata$shared_by <- factor(pdata$shared_by, levels=l)
 ggplot(pdata,aes(x = sample, y = count, fill = shared_by)) +geom_bar(position = "fill",stat = "identity")+scale_fill_manual(values=colo) +scale_y_continuous(labels = percent_format())+theme_bw()+theme(text = element_text(size=15), axis.text.x = element_text(angle = 90, hjust = 1))+ggtitle(wanted)
 ggsave(output)

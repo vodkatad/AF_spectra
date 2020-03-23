@@ -6,7 +6,6 @@ cns <- args[2]
 outputbarplot <- args[3]
 outputcumplot <- args[4]
 outputlen <- args[5]
-save.image("p.RData")
 
 accepted_cn <- as.numeric(unlist(strsplit(cns, ',', fixed=TRUE)))
 
