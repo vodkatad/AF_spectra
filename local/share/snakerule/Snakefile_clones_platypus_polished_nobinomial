@@ -273,16 +273,18 @@ rule all_all_annovar:
     shell: "zcat {input} | gzip >  {output}"
     
 
-#### TODO dn/ds
-
+####  dn/ds
 
 rule dnds:
-    input: ""
-    output: "dnds.tsv"
-    params:  tool=BIN_DIR+"/dnsd.R"
+    input: mut="all_gained_named.tsv", rda=DNDSCV_RDA
+    output: "dnds.tsv", "dnds.Rdata"
+    log: "dnds.log"
+    params:  tool=BIN_DIR+"/dnds"
     shell:
         """
-            {params.tool} {input} {output}
+            tr ":" "\\t" < {input.mut} | bawk '{{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
+            {params.tool} {output[0]}.tmp {output} {input.rda} &> {log}
+            rm {output[0]}.tmp
         """
 
 #### TODO signatures
