@@ -243,6 +243,19 @@ rule class_bed:
             zcat {input} | bawk '$16=="{wildcards.class}" {{print $2,$3,$4,$7"-"$8}}' > {output}
         """
 
+def wanted_pairs():
+    l1 = expand("{t1sample}_"+CLONE2[0], t1sample=CLONE2[1:]) 
+    l2 = expand("{t1sample}_"+CLONE8[0], t1sample=CLONE8[1:])
+    l3 = expand("{t1sample}_"+CLONE9[0], t1sample=CLONE9[1:])
+    return l1 + l2 + l3
+
+def find_pairs_vcf(wildcards):
+    return [x+".gain.vcf.gz" for x in wanted_pairs()]
+
+
+rule all_gain_vcf:
+    input: find_pairs_vcf
+
 rule class_vcf:
     input: ovcnok="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", vcf=DATA+"/{t1sample}.pass.vcf.gz"
     output: "{t1sample}_{t0sample}.{class}.vcf.gz"
@@ -250,7 +263,7 @@ rule class_vcf:
         """
             zcat {input.vcf} | grep "^##" > {output}.tmp
             zcat {input.vcf} | grep -v "^##" | grep "^#" | cut -f 11 --complement >> {output}.tmp
-            zcat {input.ovcnok} | bawk '$16=="{wildcards.class}" {{print $5,$6,$7,$8,".","PASS","CONTQ=42","GT:AF","0/1:"$11}}' >> {output}.tmp
+            zcat {input.ovcnok} | bawk '$16=="{wildcards.class}" {{print $5,$6,$5":"$6"_"$7"/"$8,$7,$8,".","PASS","CONTQ=42","GT:AF","0/1:"$11}}' >> {output}.tmp
             bgzip -c {output}.tmp > {output}
             rm {output}.tmp
         """
