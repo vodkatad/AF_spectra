@@ -243,6 +243,18 @@ rule class_bed:
             zcat {input} | bawk '$16=="{wildcards.class}" {{print $2,$3,$4,$7"-"$8}}' > {output}
         """
 
+rule class_vcf:
+    input: ovcnok="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", vcf=DATA+"/{t1sample}.pass.vcf.gz"
+    output: "{t1sample}_{t0sample}.{class}.vcf.gz"
+    shell:
+        """
+            zcat {input.vcf} | grep "^##" > {output}.tmp
+            zcat {input.vcf} | grep -v "^##" | grep "^#" | cut -f 11 --complement >> {output}.tmp
+            zcat {input.ovcnok} | bawk '$16=="{wildcards.class}" {{print $5,$6,$7,$8,".","PASS","CONTQ=42","GT:AF","0/1:"$11}}' >> {output}.tmp
+            bgzip -c {output}.tmp > {output}
+            rm {output}.tmp
+        """
+
 rule annovar:
     input: "{t1sample}_{t0sample}.{class}.bed", ANNOVAR
     output: "{t1sample}_{t0sample}.{class}.multianno.txt"

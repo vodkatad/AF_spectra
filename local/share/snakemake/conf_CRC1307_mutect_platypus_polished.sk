@@ -44,7 +44,11 @@ SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for m
 WANTED_CN = "1,2,3"
 
 wildcard_constraints:
-    sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+    sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"   
+wildcard_constraints:
+    t1sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+wildcard_constraints:
+    t0sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
 
 SAMPLES_HIGH=["CRC1307-09","CRC1307-08","CRC1307-02"] # list comprehens TODO
 SAMPLES_ZERO=["CRC1307-09-0","CRC1307-08-0","CRC1307-02-0"]
