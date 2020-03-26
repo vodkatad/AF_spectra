@@ -1,0 +1,17 @@
+include: "conf.sk"
+
+rule chain:
+    output: "chain.gz"
+    shell: "wget -O {output} http://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz"
+
+
+wildcard_constraints:
+    which="[\w\d_.]+"   
+
+rule bed:
+    input: bed=BED+"/{which}.bed", chain="chain.gz"
+    output: bed="{which}.bed", miss="{which}.miss"
+    shell:
+        """
+            liftOver <(bawk '{{print "chr"$1,$2,$3}}' {input.bed}) {input.chain} {output.bed} {output.miss}
+        """

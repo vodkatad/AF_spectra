@@ -175,3 +175,20 @@ do.call(grid.arrange, gb)
 chromosomes <- seqnames(get(ref_genome))[1:22] # Make a rainfall plot
 plots <- lapply(names(vcfs), function(x) { plot_rainfall(vcfs[[x]], title = x, chromosomes = chromosomes, cex = 1.5, ylim = 1e+09) })
 do.call(grid.arrange, plots)
+
+###
+library(bedr)
+regions = bed_to_granges("../MutationalPatterns/Homo_sapiens.GRCh37.75_autosomal_exon_merged_sorted.bed")
+regions_list <- GRangesList(regions)
+names(regions_list) <- c('exons')
+#probably import is ok?
+surveyed <- import("../../local/share/data/CRC1307_clones_mutect/callable_covered.bed.gz")
+surveyed_list <- rep(list(surveyed), length(vcfs))
+# warnings on different chr we don't care
+distr <- genomic_distribution(vcfs, surveyed_list, regions_list)
+
+distr_testwhole <- enrichment_depletion_test(distr, by = rep("whole", length(vcfs)))
+distr_test <- enrichment_depletion_test(distr, by=sampl)
+
+plot_enrichment_depletion(distr_test)
+plot_enrichment_depletion(distr_testwhole)
