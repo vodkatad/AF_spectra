@@ -9,6 +9,7 @@ def find_prj_root(path=os.getcwd()):
             raise Exception("Can not find the PRJ_ROOT directory")
 
 PRJ_ROOT=find_prj_root()
+BIN_DIR=PRJ_ROOT+"/local/bin"
 BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
 SNAKE_ROOT=os.getenv('SNAKE_ROOT')
 
@@ -25,6 +26,8 @@ CLONE9=['CRC1307-09-0', 'CRC1307-09-1-B', 'CRC1307-09-1-C', 'CRC1307-09-1-E']
 ALL_SAMPLES=BULK+CLONE2+CLONE8+CLONE9
 SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
 
+# right now manually determined
+NSIGN=2
 
 wildcard_constraints:
     sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"   

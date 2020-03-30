@@ -15,3 +15,24 @@ rule bed:
         """
             liftOver <(bawk '{{print "chr"$1,$2,$3}}' {input.bed}) {input.chain} {output.bed} {output.miss}
         """
+
+def wanted_pairs():
+    l1 = expand("{t1sample}_"+CLONE2[0], t1sample=CLONE2[1:]) 
+    l2 = expand("{t1sample}_"+CLONE8[0], t1sample=CLONE8[1:])
+    l3 = expand("{t1sample}_"+CLONE9[0], t1sample=CLONE9[1:])
+    return l1 + l2 + l3
+
+def find_pairs_vcf(wildcards):
+    return [VCF_DIR+"/"+x+".gain.vcf.gz" for x in wanted_pairs()]
+    
+rule mut_pat_signatures:
+    input: find_pairs_vcf
+    output: directory("mut_pat_signatures_{nrank}")
+    params: tool=BIN_DIR+"/mut_pat_sign", input= lambda wildcards, input: ','.join(input)#, nsign=NSIGN
+    shell:
+        """
+            mkdir -p {output}
+            {params.tool} {params.input} {output} {wildcards.nrank}
+        """
+
+#rule mut_mat_enrich:

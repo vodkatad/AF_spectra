@@ -177,8 +177,9 @@ plots <- lapply(names(vcfs), function(x) { plot_rainfall(vcfs[[x]], title = x, c
 do.call(grid.arrange, plots)
 
 ###
-library(bedr)
-regions = bed_to_granges("../MutationalPatterns/Homo_sapiens.GRCh37.75_autosomal_exon_merged_sorted.bed")
+#library(bedr)
+#regions = bed_to_granges("../MutationalPatterns/Homo_sapiens.GRCh37.75_autosomal_exon_merged_sorted.bed")
+regions <- import("../MutationalPatterns/Homo_sapiens.GRCh37.75_autosomal_exon_merged_sorted.bed")
 regions_list <- GRangesList(regions)
 names(regions_list) <- c('exons')
 #probably import is ok?
@@ -188,7 +189,23 @@ surveyed_list <- rep(list(surveyed), length(vcfs))
 distr <- genomic_distribution(vcfs, surveyed_list, regions_list)
 
 distr_testwhole <- enrichment_depletion_test(distr, by = rep("whole", length(vcfs)))
-distr_test <- enrichment_depletion_test(distr, by=sampl)
+distr_test <- enrichment_depletion_test(distr, by=sample_names)
 
 plot_enrichment_depletion(distr_test)
 plot_enrichment_depletion(distr_testwhole)
+
+regions2 <- import("../../local/share/data/CRC1307_clones_mutect/all_normal_chr.bed")
+rg <- split(regions2, seqnames(regions2))
+regions_list <- GRangesList(rg[[6]])
+
+names(regions_list) <- c("chr6")
+
+distr <- genomic_distribution(vcfs, surveyed_list, regions_list)
+
+distr_testwhole <- enrichment_depletion_test(distr, by = rep("whole", length(vcfs)))
+distr_test <- enrichment_depletion_test(distr, by=sample_names)
+
+plot_enrichment_depletion(distr_test)
+plot_enrichment_depletion(distr_testwhole)
+# mh, not ok with residuals of chi sq?  maybe its not ok to work on chromosomes...
+
