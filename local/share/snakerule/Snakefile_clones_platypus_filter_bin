@@ -1,0 +1,228 @@
+include: "./conf.sk"
+# 15 is BH, 16 is bonf, 14 is binomp, 17 is pFDR
+rule pair_ov_nobcnok:
+    input: calls=GAINED_DIR+"/{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", bint1=BINO_DIR+"/{t1sample}.bexpcalls.tsv.gz", bint0=BINO_DIR+"/{t0sample}.bexpcalls.tsv.gz"
+    output: "{t1sample}_{t0sample}.ovcnokdelta.tsv.gz"
+    params: pthr=0.05
+    log: "{t1sample}_{t0sample}.ovcnokdelta.tsv.gz.log"
+    shell:
+        """
+            zcat {input.bint1} | sed 1d | bawk '$15 < {params.pthr} && $13 == 1 {{print $1}}' > {output}.binot1
+            zcat {input.bint0} | sed 1d | bawk '$15 < {params.pthr} && $13 == 1 {{print $1}}' > {output}.binot0
+            zcat {input.calls} | filter_1col -v 1 {output}.binot1 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "keep_t1",$0}}' > {log}
+            zcat {input.calls} | filter_1col -v 1 {output}.binot0 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "keep_t0",$0}}' >> {log}
+            zcat {input.calls} | filter_1col  1 {output}.binot1 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "remove_t1",$0}}' >> {log}
+            zcat {input.calls} | filter_1col  1 {output}.binot0 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "remove_t0",$0}}' >> {log}
+            zcat {input.calls} | filter_1col -v 1 {output}.binot0 | filter_1col -v 1 {output}.binot1  | gzip > {output}
+            rm {output}.binot?
+        """
+
+# casino per avere overlap misto tra i due campioni
+# 1tmp e` t1, 2tmp e` t0 -> l'R usa la prima colonna per il calcolo della lunghezza ma filtra per cn giuste in tutte e due
+rule pair_length_ov:
+    input: len=GAINED_DIR+"/{t1sample}_{t0sample}.ovlength.txt", ovbed=GAINED_DIR+"/{t1sample}_{t0sample}.callable.bed.gz"
+    output: len="{t1sample}_{t0sample}.ovlength.txt", ovbed="{t1sample}_{t0sample}.callable.bed.gz"
+    shell:
+        """ 
+            ln -s {input.len} {output.len}
+            ln -s {input.ovbed} {output.ovbed}
+        """
+
+################ CN match
+def find_pairs_raw_ov(wildcards):
+    # if per distinguere topi da non topi _ov or _ovTOPI
+    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
+    regex = r"^" + re.escape(wildcards.bsample) + r"-"
+    idxs = get_indexes(regex, SAMPLES)
+    els = [SAMPLES[i] for i in idxs]
+    els.remove(wildcards.bsample+'-0')
+    r1 = re.compile(r'-M')
+    els_topi = filter(r1.search, els) 
+    els_notopi = filter(lambda x: not r1.search(x), els) 
+    return [ x+'_'+wildcards.bsample+'-0.MR_ov.tsv' for x in els_notopi] + [ x+'_'+wildcards.bsample+'-0.MR_ovtopi.tsv' for x in els_topi]
+
+rule all_pairs_raw_ov:
+    input: find_pairs_raw_ov
+    output: "{bsample}.MR_ov"
+    shell: "head -n 1 {input[0]} > {output}; grep -h -v conte {input} >> {output}"
+
+rule all_all_raw_ov:
+    input: expand("{hsample}.MR_ov", hsample=SAMPLES_HIGH)
+    output: "all.MR_ov"
+    shell: "head -n 1 {input[0]} > {output}; grep -h -v conte {input} >> {output}"
+    
+rule raw_ov:
+    input: len="{t1sample}_{t0sample}.ovlength.txt", calls="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", gens=DATA+"/generations.txt"
+    output: "{t1sample}_{t0sample}.MR_ov.tsv"
+    params: tool=BIN_DIR+"/gain_MA_noloss"
+    shell:
+        """
+            {params.tool} {input.len} {input.calls} {input.gens} {output}
+        """
+
+rule raw_ov_TOPI:
+    input: len="{t1sample}_{t0sample}.ovlength.txt", calls="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", gens=DATA+"/generations_TOPI.txt"
+    output: "{t1sample}_{t0sample}.MR_ovtopi.tsv"
+    params: tool=BIN_DIR+"/gain_MA_topi_noloss"
+    shell:
+        """
+            {params.tool} {input.len} {input.calls} {input.gens} {output}
+        """
+
+################
+rule all_recal:
+    input: expand("{sample}.var_cnv.tsv.gz", sample=SAMPLES)
+
+
+rule all_R:
+    input: expand("{sample}.calls.tsv.gz", sample=SAMPLES), expand("{sample}.AFnormalized.png", sample=SAMPLES), expand("{sample}.cn.png", sample=SAMPLES)
+
+
+########  not required for dn/ds... but I can't be that lazy and covered by junk work always :(
+### annovar
+def find_pairs_annovar(wildcards):
+    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
+    regex = r"^" + re.escape(wildcards.bsample) + r"-"
+    idxs = get_indexes(regex, SAMPLES)
+    els = [SAMPLES[i] for i in idxs]
+    els.remove(wildcards.bsample+'-0')
+    print(els)
+    return [ x+'_'+wildcards.bsample+'-0.gain.multianno.txt' for x in els]
+
+rule class_bed:
+    input: "{t1sample}_{t0sample}.ovcnokdelta.tsv.gz"
+    output: "{t1sample}_{t0sample}.{class}.bed"
+    shell:
+        """
+            zcat {input} | bawk '$16=="{wildcards.class}" {{print $2,$3,$4,$7"-"$8}}' > {output}
+        """
+
+def wanted_pairs():
+    l1 = expand("{t1sample}_"+CLONE2[0], t1sample=CLONE2[1:]) 
+    l2 = expand("{t1sample}_"+CLONE8[0], t1sample=CLONE8[1:])
+    l3 = expand("{t1sample}_"+CLONE9[0], t1sample=CLONE9[1:])
+    return l1 + l2 + l3
+
+def find_pairs_vcf(wildcards):
+    return [x+".gain.vcf.gz" for x in wanted_pairs()]
+
+
+rule all_gain_vcf:
+    input: find_pairs_vcf
+
+rule class_vcf:
+    input: ovcnok="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", vcf=DATA+"/{t1sample}.pass.vcf.gz"
+    output: "{t1sample}_{t0sample}.{class}.vcf.gz"
+    shell:
+        """
+            zcat {input.vcf} | grep "^##" > {output}.tmp
+            zcat {input.vcf} | grep -v "^##" | grep "^#" | cut -f 11 --complement >> {output}.tmp
+            zcat {input.ovcnok} | bawk '$16=="{wildcards.class}" {{print $5,$6,$5":"$6"_"$7"/"$8,$7,$8,".","PASS","CONTQ=42","GT:AF","0/1:"$11}}' >> {output}.tmp
+            bgzip -c {output}.tmp > {output}
+            rm {output}.tmp
+        """
+
+rule annovar:
+    input: "{t1sample}_{t0sample}.{class}.bed", ANNOVAR
+    output: "{t1sample}_{t0sample}.{class}.multianno.txt"
+    log: "{t1sample}_{t0sample}.{class}.multianno.log"
+    params: ver="hg38"
+    shell:
+        """
+        sed 's/chr//1;' < {input[0]} | tr "-" "\\t" | bawk '{{if($5=="") {{$5="-"}} if ($4==""){{$4="-"}} b=$2+1; e=b+length($4)-1; print $1,b,e,$4,$5,$6}}' > {output}.tmp
+        table_annovar.pl {output}.tmp {input[1]} --otherinfo -buildver {params.ver} -out merged -remove -protocol refGene,avsnp150,cosmic87_coding -operation g,f,f -nastring . -polish &> {log}
+        rm {output}.tmp
+        bawk '{{print "{wildcards.t1sample}", $0}}' < merged.hg38_multianno.txt > {output}
+        rm merged.hg38_multianno.txt
+        """
+
+rule all_pairs_annovar:
+    input: find_pairs_annovar
+    output: "{bsample}.annovar.gz"
+    shell: 
+        """
+            rm -f {output}
+            for f in {input}; do sed 1d $f ; done | gzip > {output}
+        """
+
+# caution do not use -j, temp files will get overwritten
+rule all_all_annovar:
+    input: expand("{hsample}.annovar.gz", hsample=SAMPLES_HIGH)
+    output: "all.annovar.gz"
+    shell: "zcat {input} | gzip >  {output}"
+    
+
+####  dn/ds
+
+rule dnds:
+    input: mut="all_gained_named.tsv", rda=DNDSCV_RDA
+    output: "dnds.tsv", "dnds.Rdata"
+    log: "dnds.log"
+    params:  tool=BIN_DIR+"/dnds"
+    shell:
+        """
+            tr ":" "\\t" < {input.mut} | bawk '{{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
+            {params.tool} {output[0]}.tmp {output} {input.rda} &> {log}
+            rm {output[0]}.tmp
+        """
+
+#### TODO signatures
+
+
+#### shared
+# right now selection of files is done inside R with list.files, this is DANGEROUS, FIXME
+rule shared_clone:
+    output: "{hsample}.shared.png"
+    params: tool=BIN_DIR+"/private_shared_gains"
+    shell: 
+        """
+            {params.tool} {wildcards.hsample} {output}
+        """
+
+rule all_shared:
+    input: expand("{sample}.shared.png", sample=SAMPLES_ZERO)
+
+rule shared_clone_all:
+    output: "all.shared.png"
+    params: tool=BIN_DIR+"/private_shared_gains"
+    shell: 
+        """
+            {params.tool} '*' {output}
+        """
+
+#### enrichments
+rule union_callable:
+    input: expand("{t1sample}_"+CLONE2[0]+".callable.bed.gz", t1sample=CLONE2[1:]), expand("{t1sample}_"+CLONE8[0]+".callable.bed.gz", t1sample=CLONE8[1:]),
+            expand("{t1sample}_"+CLONE9[0]+".callable.bed.gz", t1sample=CLONE9[1:])
+    output: "union_callable.bed.gz"
+    shell:
+        """
+            zcat {input} | sort -k1,1 -k2,2n > {output}.tmp
+            bedtools merge -i {output}.tmp | gzip > {output}
+            rm {output}.tmp
+        """
+
+rule all_gain:
+    input: expand("{t1sample}_"+CLONE2[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE2[1:]), expand("{t1sample}_"+CLONE8[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE8[1:]),
+            expand("{t1sample}_"+CLONE9[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE9[1:])
+    output: "all_gained_named.tsv"
+    shell:
+        """
+            for f in {input}; do zcat $f | bawk -v n=$f '$16=="gain"{{print n,$1}}' | sed 's/\.ovcnokdelta\.tsv\.gz//'; done > {output}
+        """
+
+rule all_gain_together:
+    input: "all_gained_named.tsv"
+    output: "all_gained.tsv"
+    shell:
+        """
+            cut -f 2 {input} | sort | uniq > {output}
+        """ 
+
+rule enrich_chr:
+    input: "union_callable.bed.gz", "all_gain.tsv"
+    output: "enrich_chr.tsv"
+    params: TOOL="todo"
+    shell:
+        """
+        """
