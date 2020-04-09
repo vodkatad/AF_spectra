@@ -205,9 +205,10 @@ graphics.off()
 
 
 
+save.image("mut_pat.Rdata")
+exit(0)
 chromosomes <- seqnames(get(ref_genome))[1:22]
 gb <- lapply(sample_names,function(x) {
   ggsave(file=paste0(x,"_waterfall.png"), plot=plot_rainfall(vcf = vcfs[[x]], title=x, chromosomes=chromosomes))
   })
 
-save.image("mut_pat.Rdata")

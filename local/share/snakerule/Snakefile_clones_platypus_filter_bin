@@ -12,9 +12,9 @@ rule pair_ov_nobcnok:
             zcat {input.calls} | filter_1col -v 1 {output}.binot1 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "keep_t1",$0}}' > {log}
             zcat {input.calls} | filter_1col -v 1 {output}.binot0 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "keep_t0",$0}}' >> {log}
             zcat {input.calls} | filter_1col  1 {output}.binot1 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "remove_t1",$0}}' >> {log}
-            zcat {input.calls} | filter_1col  1 {output}.binot0 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "remove_t0",$0}}' >> {log}
+            zcat {input.calls} | filter_1col  1 {output}.binot0 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "removeh_t0",$0}}' >> {log}
             zcat {input.calls} | filter_1col -v 1 {output}.binot0 | filter_1col -v 1 {output}.binot1  | gzip > {output}
-            rm {output}.binot?
+            rm {output}.binot?cd
         """
 
 # casino per avere overlap misto tra i due campioni

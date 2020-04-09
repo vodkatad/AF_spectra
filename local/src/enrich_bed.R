@@ -2,7 +2,7 @@ library(rtracklayer)
 #library(corrplot)
 setwd("/mnt/trcanmed/snaketree/prj/AF_spectra/dataset/CRC1307_platypus_nobin/")
 d <- read.table('all_gained.tsv', sep="\t", header=F, stringsAsFactors = F)
-l <- unlist(strsplit(d$V1,':'))
+l <- strsplit(d$V1,':')
 dd <- as.data.frame(do.call(rbind, l))
 colnames(dd) <- c('chr','start','ref','alt')
 

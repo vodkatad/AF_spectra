@@ -16,6 +16,29 @@ rule bed:
             liftOver <(bawk '{{print "chr"$1,$2,$3}}' {input.bed}) {input.chain} {output.bed} {output.miss}
         """
 
+#from os import glob
+#rule replibed:
+#    input: glob.glob("all_RepliSeq*.bed")
+
+def getbedname(wildcards):
+    if wildcards.which == "Homo_sapiens.GRCh37.75_autosomal_exon_merged_sorted":
+        return("exons")
+    else:
+        return(wildcards.which)
+
+
+# warning this is an "unsafe" rule that determines the cnv file to be opened based on vcf filenames
+# and thus violates the chain of input/output by snakemake
+# Warnings are not an issue, different chr names from beds  (TODOPARANOIA check)
+rule bed_enrich:
+    input: bed="{which}.bed", callable=CALLABLE
+    output: tsv="{which}.enrich.tsv", plot="{which}.enrich.pdf"
+    params: tool=BIN_DIR+"/mutpat_enrich_cnv", input= lambda wildcards, input: ','.join(find_pairs_vcf(wildcards)), cnvdir=VCF_DIR, name=getbedname
+    shell:  
+        """
+            {params.tool} {params.input} {input.bed} {params.name} {input.callable} {params.cnvdir} {output.plot} {output.tsv}
+        """
+####
 def wanted_pairs():
     l1 = expand("{t1sample}_"+CLONE2[0], t1sample=CLONE2[1:]) 
     l2 = expand("{t1sample}_"+CLONE8[0], t1sample=CLONE8[1:])
@@ -35,4 +58,3 @@ rule mut_pat_signatures:
             {params.tool} {params.input} {output} {wildcards.nrank}
         """
 
-#rule mut_mat_enrich:
