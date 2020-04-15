@@ -168,8 +168,12 @@ strand_bias <- strand_bias_test(strand_counts)
 plot_strand(strand_counts[grepl('CRC1307-02',strand_counts$group),], mode = "relative")
 
 clones <- unique(unlist(lapply(sample_names, function(x) {xx <-strsplit(x,"-"); paste0(xx[[1]][1],'-',xx[[1]][2])} )))
-gb <- lapply(clones,function(x) {plot_strand_bias(strand_bias[grepl(x,strand_bias$group),])})
-do.call(grid.arrange, gb)
+for (c in clones) {
+  p0 <- plot_strand(strand_counts[grepl(c,strand_counts$group),], mode = "relative")
+  p1 <- plot_strand_bias(strand_bias[grepl(c,strand_bias$group),])
+  do.call(grid.arrange, list(p0,p1))
+}
+
 
 ####
 chromosomes <- seqnames(get(ref_genome))[1:22] # Make a rainfall plot
