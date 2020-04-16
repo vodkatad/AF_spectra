@@ -12,9 +12,60 @@ rule pair_ov_nobcnok:
             zcat {input.calls} | filter_1col -v 1 {output}.binot1 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "keep_t1",$0}}' > {log}
             zcat {input.calls} | filter_1col -v 1 {output}.binot0 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "keep_t0",$0}}' >> {log}
             zcat {input.calls} | filter_1col  1 {output}.binot1 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "remove_t1",$0}}' >> {log}
+            zcat {input.calls} | filter_1col  1 {output}.binot0 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "remove_t0",$0}}' >> {log}
+            zcat {input.calls} | filter_1col -v 1 {output}.binot0 | filter_1col -v 1 {output}.binot1  | gzip > {output}
+            rm {output}.binot?
+        """
+
+## bonf test
+#lazy
+#egrassi@godot:/mnt/trcanmed/snaketree/prj/AF_spectra/dataset/CRC1307_platypus_filterbin$ ls *ovcnokdelta.tsv.gz | tr "." "\t" | cut -f 1 | tr "\n" "," | sed 's/,/","/g'
+LAZY="CRC1307-02-1-A_CRC1307-02-0","CRC1307-02-1-B_CRC1307-02-0","CRC1307-02-1-E_CRC1307-02-0","CRC1307-08-1-B_CRC1307-08-0","CRC1307-08-1-D_CRC1307-08-0","CRC1307-08-1-E_CRC1307-08-0","CRC1307-08-MA-A_CRC1307-08-0","CRC1307-08-MA-C_CRC1307-08-0","CRC1307-08-MA-F_CRC1307-08-0","CRC1307-08-MC-D_CRC1307-08-0","CRC1307-08-MC-E_CRC1307-08-0","CRC1307-08-MC-F_CRC1307-08-0","CRC1307-08-MI-A_CRC1307-08-0","CRC1307-08-MI-B_CRC1307-08-0","CRC1307-08-MI-F_CRC1307-08-0","CRC1307-09-1-B_CRC1307-09-0","CRC1307-09-1-C_CRC1307-09-0","CRC1307-09-1-E_CRC1307-09-0"
+
+rule allbonf:
+    input: expand("{lazy}.ovcnokdelta.bonf.tsv.gz", lazy=LAZY)
+
+rule allfdr:
+    input: expand("{lazy}.ovcnokdelta.fdr.tsv.gz", lazy=LAZY)
+
+rule pair_ov_nobcnok_fdr:
+    input: calls=GAINED_DIR+"/{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", bint1=BINO_DIR+"/{t1sample}.bexpcalls.tsv.gz", bint0=BINO_DIR+"/{t0sample}.bexpcalls.tsv.gz"
+    output: "{t1sample}_{t0sample}.ovcnokdelta.fdr.tsv.gz"
+    params: pthr=0.05
+    log: "{t1sample}_{t0sample}.ovcnokdelta.fdr.tsv.gz.log"
+    shell:
+        """
+            zcat {input.bint1} | sed 1d | bawk '$17 < {params.pthr} && $13 == 1 {{print $1}}' > {output}.binot1
+            zcat {input.bint0} | sed 1d | bawk '$17 < {params.pthr} && $13 == 1 {{print $1}}' > {output}.binot0
+            zcat {input.calls} | filter_1col -v 1 {output}.binot1 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "keep_t1",$0}}' > {log}
+            zcat {input.calls} | filter_1col -v 1 {output}.binot0 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "keep_t0",$0}}' >> {log}
+            zcat {input.calls} | filter_1col  1 {output}.binot1 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "remove_t1",$0}}' >> {log}
             zcat {input.calls} | filter_1col  1 {output}.binot0 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "removeh_t0",$0}}' >> {log}
             zcat {input.calls} | filter_1col -v 1 {output}.binot0 | filter_1col -v 1 {output}.binot1  | gzip > {output}
-            rm {output}.binot?cd
+            rm {output}.binot?
+        """
+
+#egrassi@godot:/mnt/trcanmed/snaketree/prj/AF_spectra/dataset/CRC1307_platypus_filterbin$ for f in *ovcnokdelta.tsv.gz.log; do grep remove $f | grep common | bawk -v n=$f '{print n,$1,$3}'; done | sed 's/\.ovcnokdelta\.tsv\.gz\.log//1' | tr "_" "\t" | cut -f 1,4,5 > check_5perc
+
+#egrassi@godot:/mnt/trcanmed/snaketree/prj/AF_spectra/dataset/CRC1307_platypus_filterbin$ for f in  ../CRC1307_mutect_nobin/*.bexpcalls.tsv.gz; do zcat $f | sed 1d | bawk '$15<0.05 && $13==1{print $1}' | wc -l |  bawk -v n=$f '{print n,$1}'; done | tr -s "/" "\t" | tr -s "." "\t" | cut -f 3,7 > bexp_check_5perc
+
+#egrassi@godot:/mnt/trcanmed/snaketree/prj/AF_spectra/dataset/CRC1307_platypus_filterbin$ join -t$'\t' <(sort check_5perc ) <(sort bexp_check_5perc )| grep t1 | bawk '{print $3/$4}'
+            
+rule pair_ov_nobcnok_bonf:
+    input: calls=GAINED_DIR+"/{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", bint1=BINO_DIR+"/{t1sample}.bexpcalls.tsv.gz", bint0=BINO_DIR+"/{t0sample}.bexpcalls.tsv.gz"
+    output: "{t1sample}_{t0sample}.ovcnokdelta.bonf.tsv.gz"
+    params: pthr=0.05
+    log: "{t1sample}_{t0sample}.ovcnokdelta.bonf.tsv.gz.log"
+    shell:
+        """
+            zcat {input.bint1} | sed 1d | bawk '$16 < {params.pthr} && $13 == 1 {{print $1}}' > {output}.binot1
+            zcat {input.bint0} | sed 1d | bawk '$16 < {params.pthr} && $13 == 1 {{print $1}}' > {output}.binot0
+            zcat {input.calls} | filter_1col -v 1 {output}.binot1 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "keep_t1",$0}}' > {log}
+            zcat {input.calls} | filter_1col -v 1 {output}.binot0 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "keep_t0",$0}}' >> {log}
+            zcat {input.calls} | filter_1col  1 {output}.binot1 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "remove_t1",$0}}' >> {log}
+            zcat {input.calls} | filter_1col  1 {output}.binot0 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "removeh_t0",$0}}' >> {log}
+            zcat {input.calls} | filter_1col -v 1 {output}.binot0 | filter_1col -v 1 {output}.binot1  | gzip > {output}
+            rm {output}.binot?
         """
 
 # casino per avere overlap misto tra i due campioni
