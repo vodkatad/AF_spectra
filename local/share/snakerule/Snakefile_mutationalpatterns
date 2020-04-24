@@ -51,7 +51,7 @@ def find_pairs_vcf(wildcards):
 rule mut_pat_signatures:
     input: find_pairs_vcf
     output: directory("mut_pat_signatures_{nrank}")
-    params: tool=BIN_DIR+"/mut_pat_sign", input= lambda wildcards, input: ','.join(input)#, nsign=NSIGN
+    params: tool=BIN_DIR+"/mut_pat_sign_tcga", input= lambda wildcards, input: ','.join(input)#, nsign=NSIGN
     shell:
         """
             mkdir -p {output}
