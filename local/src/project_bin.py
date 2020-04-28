@@ -11,6 +11,32 @@ def next_bed_entry(bedcn):
         return([entry[0], int(entry[1]), int(entry[2]), float(entry[3])])
     return(None)
 
+# return the first entry that overlap current and True if the bed is finished
+# schiavismo di fidanzate
+last_entry = None
+already_given = False
+def get_next_overlapping_bed(current, bedcn, verbose):
+    global last_entry
+    global already_given
+    if last_entry == None:
+        last_entry = next_bed_entry(bedcn)
+        if last_entry == None:
+            return(None, True)
+
+    result = None 
+    if last_entry != None and last_entry[0] == current[0] and last_entry[1] < current[2] and current[1] < last_entry[2]:
+        if verbose:
+            print('evaluating overlap {} {} {}'.format(last_entry[0], last_entry[1], last_entry[2]), file=sys.stderr)
+        result = last_entry
+        if last_entry[2] <= current[2]:
+            last_entry = None
+        else:
+            if already_given:
+                result = None
+            already_given = not already_given
+
+    return(result, False)
+        
 def get_next_bin(current, binlen, chrs):
      # we have space for another bin
     if current[2] + binlen < chrs[current[0]]: # check ends here TODO
@@ -71,16 +97,17 @@ if __name__ == "__main__":
         print('cn_bed\t{}'.format(args.bedcn), file=sys.stderr)
         print('bin_size\t{}'.format(args.bin), file=sys.stderr)
 
-    current = (None, 0, args.bin)
+    
     # Tuple with current bin: chr, b, e. 0 based end excluded
     next_bin = None
     done = False
+    current = None
     with open(args.bedcn, 'r') as bedcn:
-        entry = next_bed_entry(bedcn)
-        while not done and entry != None:
+        #entry = next_bed_entry(bedcn) # ???
+        while not done:
             # First chr to be considered from the bed directly
-            if current[0] == None:
-                current = (entry[0], 0, args.bin, chrlen[entry[0]])
+            if current == None:
+                current = ('chr1', 0, args.bin)
             else:
                 # We should always have completely consumed the previous bin in our previous loop
                 current = get_next_bin(current, args.bin, chrlen)
@@ -93,14 +120,13 @@ if __name__ == "__main__":
             # overlap check  a0 <= b1 && b0 <= a1;
             # https://fgiesen.wordpress.com/2011/10/16/checking-for-interval-overlap/
             # < and not <= for end excluded
-            # if args.verbose:
-            #     print('evaluating bin {} {} {}'.format(current[0], current[1], current[2]), file=sys.stderr)
-            while entry != None and entry[0] == current[0] and entry[1] < current[2] and current[1] < entry[2]:
-                if args.verbose:
-                    print('evaluating overlap {} {} {}'.format(entry[0], entry[1], entry[2]), file=sys.stderr)
+            while True:
+                entry, done = get_next_overlapping_bed(current, bedcn, args.verbose)
+                if entry is None:
+                    break
                 overlap.append(entry)
                 overlaplen.append(min(entry[2], current[2]) - max(entry[1], current[1]))
-                entry = next_bed_entry(bedcn)
+
             # manage the overlapping entries. We get a weighted average of their cn,
             # where the weight is the overlap length
             if len(overlap) != 0:
@@ -111,14 +137,4 @@ if __name__ == "__main__":
                     ovlen += overlaplen[i]
                 cn =  cn / ovlen
                 print('{}\t{}\t{}\t{}'.format(current[0],current[1],current[2], cn))
-
-            # If our last overlapping entry is not completely inside the current bin we do not want
-            # to read the next entry, otherwise we go on
-            if len(overlap) > 0 and overlap[-1][2] < current[2]:
-                if args.verbose:
-                    print('going on for {} {} {}'.format(entry[0], entry[1], entry[2]), file=sys.stderr)
-                entry = next_bed_entry(bedcn)
-            # if we would like to further examine the last overlapping entry but the bed is finished keep the last one!
-            elif entry == None:
-                    entry = overlap[-1]
             
