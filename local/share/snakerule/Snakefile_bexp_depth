@@ -1,0 +1,25 @@
+DEPTHS = ['10x','20x','30x','40x','50x']
+
+rule all_merge:
+    input: ['merged_' + x for x in DEPTHS]
+    output: "all_bexp_different_coverage.tsv"
+    shell: 
+        """
+            head -n 1 {input[0]} > {output}
+            cat {input} | grep -v -w called_in_gen >> {output}
+        """
+
+rule merge:
+    input: bonf='CRC1307_mutect_nobin_{depth}/bexp_n_gen.bonf.tsv', bh='CRC1307_mutect_nobin_{depth}/bexp_n_gen.bh.tsv', len='CRC1307_mutect_nobin_{depth}/all.lengthgen.txt'
+    output: "merged_{depth}"
+    run:
+        import pandas as pd
+        bonf = pd.read_csv(input.bonf, sep="\t", index_col=0)
+        bh = pd.read_csv(input.bh, sep="\t", index_col=0)
+        covered = pd.read_csv(input.len, sep="\t", index_col=0)
+        bonf['correction'] = 'bonf'
+        bh['correction'] = 'bh'
+        covered['coverage'] = wildcards.depth
+        bexp = pd.concat([bonf, bh])
+        tot = bexp.join(covered, how='inner')
+        tot.to_csv(output[0], sep="\t", header=True)
