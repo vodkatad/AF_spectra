@@ -1,0 +1,13 @@
+include: "./conf.sk"
+
+rule seqtobin:
+    input: sequenza=DATA+"/{sample}_segments.txt", chrs=DATA+"/chrs"
+    output: "{sample}.{bin}.tsv.gz"
+    params: tool=BIN_DIR+"/project_bin"
+    shell: 
+        """    
+            {params.tool} -c <(sed 1d {input.sequenza} |  bawk '{{print $1,$2-1,$3,$10}}' | sort -k1,1 -k2,2n) -b {wildcards.bin} | gzip > {output}
+        """
+
+rule alltobin:
+    input: expand("{sample}.10000.tsv.gz", sample=SAMPLES)

@@ -137,4 +137,6 @@ if __name__ == "__main__":
                     ovlen += overlaplen[i]
                 cn =  cn / ovlen
                 print('{}\t{}\t{}\t{}'.format(current[0],current[1],current[2], cn))
+            else:
+                print('{}\t{}\t{}\t{}'.format(current[0],current[1],current[2], 0))
             
