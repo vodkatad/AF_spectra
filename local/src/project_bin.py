@@ -8,7 +8,6 @@ def next_bed_entry(bedcn):
     if line != '':
         line.rstrip('\n')
         entry = line.split('\t')
-        print(entry)
         return([entry[0], int(entry[1]), int(entry[2]), float(entry[3])])
     return(None)
 
@@ -94,8 +93,8 @@ if __name__ == "__main__":
             # overlap check  a0 <= b1 && b0 <= a1;
             # https://fgiesen.wordpress.com/2011/10/16/checking-for-interval-overlap/
             # < and not <= for end excluded
-            if args.verbose:
-                print('evaluating bin {} {} {}'.format(current[0], current[1], current[2]), file=sys.stderr)
+            # if args.verbose:
+            #     print('evaluating bin {} {} {}'.format(current[0], current[1], current[2]), file=sys.stderr)
             while entry != None and entry[0] == current[0] and entry[1] < current[2] and current[1] < entry[2]:
                 if args.verbose:
                     print('evaluating overlap {} {} {}'.format(entry[0], entry[1], entry[2]), file=sys.stderr)
@@ -112,8 +111,14 @@ if __name__ == "__main__":
                     ovlen += overlaplen[i]
                 cn =  cn / ovlen
                 print('{}\t{}\t{}\t{}'.format(current[0],current[1],current[2], cn))
+
             # If our last overlapping entry is not completely inside the current bin we do not want
             # to read the next entry, otherwise we go on
-            if len(overlap) > 0 and overlap[0][2] > current[2]:
+            if len(overlap) > 0 and overlap[-1][2] < current[2]:
+                if args.verbose:
+                    print('going on for {} {} {}'.format(entry[0], entry[1], entry[2]), file=sys.stderr)
                 entry = next_bed_entry(bedcn)
+            # if we would like to further examine the last overlapping entry but the bed is finished keep the last one!
+            elif entry == None:
+                    entry = overlap[-1]
             
