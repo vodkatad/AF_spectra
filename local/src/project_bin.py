@@ -3,6 +3,7 @@
 import argparse
 import sys
 
+# return next bed entry as vector of chr, b, e, CN
 def next_bed_entry(bedcn):
     line = bedcn.readline()
     if line != '':
@@ -11,11 +12,11 @@ def next_bed_entry(bedcn):
         return([entry[0], int(entry[1]), int(entry[2]), float(entry[3])])
     return(None)
 
-# return the first entry that overlap current and True if the bed is finished
-# schiavismo di fidanzate
+# return the first entry that overlap bin and True if the bed is finished
+# abstracting this logic (1-lookeahead) from the while makes it easier to reason about
 last_entry = None
 already_given = False
-def get_next_overlapping_bed(current, bedcn, verbose):
+def get_next_overlapping_bed(bin, bedcn, verbose):
     global last_entry
     global already_given
     if last_entry == None:
@@ -24,11 +25,14 @@ def get_next_overlapping_bed(current, bedcn, verbose):
             return(None, True)
 
     result = None 
-    if last_entry != None and last_entry[0] == current[0] and last_entry[1] < current[2] and current[1] < last_entry[2]:
+    # overlap check  a0 <= b1 && b0 <= a1;
+    # https://fgiesen.wordpress.com/2011/10/16/checking-for-interval-overlap/
+    # < and not <= for end excluded
+    if last_entry != None and last_entry[0] == bin[0] and last_entry[1] < bin[2] and bin[1] < last_entry[2]:
         if verbose:
             print('evaluating overlap {} {} {}'.format(last_entry[0], last_entry[1], last_entry[2]), file=sys.stderr)
         result = last_entry
-        if last_entry[2] <= current[2]:
+        if last_entry[2] <= bin[2]:
             last_entry = None
         else:
             if already_given:
@@ -37,22 +41,24 @@ def get_next_overlapping_bed(current, bedcn, verbose):
 
     return(result, False)
         
-def get_next_bin(current, binlen, chrs):
+# return next bin given chrs lenghs, None if finished
+def get_next_bin(bin, binlen, chrs):
      # we have space for another bin
-    if current[2] + binlen < chrs[current[0]]: # check ends here TODO
-        return (current[0], current[2], current[2] + binlen)
+    if bin[2] + binlen < chrs[bin[0]]: # check ends here TODO
+        return (bin[0], bin[2], bin[2] + binlen)
     # we need to get the next chr
-    elif current[2] == chrs[current[0]]:
+    elif bin[2] == chrs[bin[0]]:
         k = list(chrs.keys()) # ordered?
-        chri = k.index(current[0])
+        chri = k.index(bin[0])
         if chri + 1 < len(k):
             return (k[chri+1], 0, binlen) 
         else:
             return None
     # we need the last piece of this chr
     else:
-        return(current[0], current[2], chrs[current[0]])
+        return(bin[0], bin[2], chrs[bin[0]])
 
+# FIXME it skips a chr if it has no bed overlapping or "after" it
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Project bed file with cn on a fixed size binning")
@@ -63,8 +69,6 @@ if __name__ == "__main__":
     #parser.add_argument('--chrlen', '-l', dest='chrlen', action='store', help='file with size of chrs', required=False) 
     # TODO add possibility to be flexible with chr and chr lengths
     parser.add_argument('--verbose', '-v', action='store_true',  help='verbose execution')
-
-    #CHRS = ['chr' + x for x in range(1,22)]
 
     #[egrassi@occam matched_normals_30x_downsampled]>head -n 22  ~/bit/task/annotations/dataset/gnomad/GRCh38.d1.vd1.allchr.bed | cut -f 1,2 | awk '{print "@",$1,"@",":",$2}' | tr "@" '"' | tr -d " "
     chrlen = {
@@ -99,36 +103,35 @@ if __name__ == "__main__":
 
     
     # Tuple with current bin: chr, b, e. 0 based end excluded
-    next_bin = None
     done = False
-    current = None
+    bin = None
     with open(args.bedcn, 'r') as bedcn:
-        #entry = next_bed_entry(bedcn) # ???
         while not done:
-            # First chr to be considered from the bed directly
-            if current == None:
-                current = ('chr1', 0, args.bin)
+            # First bin starting from chr1, FIXME from chrs
+            if bin == None:
+                bin = ('chr1', 0, args.bin)
             else:
-                # We should always have completely consumed the previous bin in our previous loop
-                current = get_next_bin(current, args.bin, chrlen)
+                # We should always have completely consumed the previous bin in our previous loop, so we can get the next one
+                bin = get_next_bin(bin, args.bin, chrlen)
                 # End of bins
-                if current == None:
+                if bin == None:
                     done = True
                     break
+
             overlap = []
             overlaplen = []
-            # overlap check  a0 <= b1 && b0 <= a1;
-            # https://fgiesen.wordpress.com/2011/10/16/checking-for-interval-overlap/
-            # < and not <= for end excluded
+            # get bed entries overlapping with the bin bin
+            # and append them and their length to two lists
             while True:
-                entry, done = get_next_overlapping_bed(current, bedcn, args.verbose)
+                entry, done = get_next_overlapping_bed(bin, bedcn, args.verbose)
                 if entry is None:
                     break
                 overlap.append(entry)
-                overlaplen.append(min(entry[2], current[2]) - max(entry[1], current[1]))
+                overlaplen.append(min(entry[2], bin[2]) - max(entry[1], bin[1]))
 
             # manage the overlapping entries. We get a weighted average of their cn,
             # where the weight is the overlap length
+            # then we print the result or 0 for bins without any overlap.
             if len(overlap) != 0:
                 cn = 0
                 ovlen = 0
@@ -136,7 +139,7 @@ if __name__ == "__main__":
                     cn += overlap[i][3] * overlaplen[i]
                     ovlen += overlaplen[i]
                 cn =  cn / ovlen
-                print('{}\t{}\t{}\t{}'.format(current[0],current[1],current[2], cn))
+                print('{}\t{}\t{}\t{}'.format(bin[0],bin[1],bin[2], cn))
             else:
-                print('{}\t{}\t{}\t{}'.format(current[0],current[1],current[2], 0))
+                print('{}\t{}\t{}\t{}'.format(bin[0],bin[1],bin[2], 0))
             

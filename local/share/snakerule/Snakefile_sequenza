@@ -11,3 +11,8 @@ rule seqtobin:
 
 rule alltobin:
     input: expand("{sample}.10000.tsv.gz", sample=SAMPLES)
+
+
+# TODO R with heatmap/correlations
+# TODO bedtools merge to check that sequenza gives us a segmentation
+# TODO bedtools intersect and then script to get projected weighted cn to test project_bin.py
