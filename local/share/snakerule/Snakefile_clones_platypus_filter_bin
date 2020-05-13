@@ -1,22 +1,5 @@
 include: "./conf.sk"
 # 15 is BH, 16 is bonf, 14 is binomp, 17 is pFDR
-rule pair_ov_nobcnok:
-    input: calls=GAINED_DIR+"/{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", bint1=BINO_DIR+"/{t1sample}.bexpcalls.tsv.gz", bint0=BINO_DIR+"/{t0sample}.bexpcalls.tsv.gz"
-    output: "{t1sample}_{t0sample}.ovcnokdelta.tsv.gz"
-    params: pthr=0.05
-    log: "{t1sample}_{t0sample}.ovcnokdelta.tsv.gz.log"
-    shell:
-        """
-            zcat {input.bint1} | sed 1d | bawk '$15 < {params.pthr} && $13 == 1 {{print $1}}' > {output}.binot1
-            zcat {input.bint0} | sed 1d | bawk '$15 < {params.pthr} && $13 == 1 {{print $1}}' > {output}.binot0
-            zcat {input.calls} | filter_1col -v 1 {output}.binot1 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "keep_t1",$0}}' > {log}
-            zcat {input.calls} | filter_1col -v 1 {output}.binot0 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "keep_t0",$0}}' >> {log}
-            zcat {input.calls} | filter_1col  1 {output}.binot1 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "remove_t1",$0}}' >> {log}
-            zcat {input.calls} | filter_1col  1 {output}.binot0 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "remove_t0",$0}}' >> {log}
-            zcat {input.calls} | filter_1col -v 1 {output}.binot0 | filter_1col -v 1 {output}.binot1  | gzip > {output}
-            rm {output}.binot?
-        """
-
 ## bonf test
 #lazy
 #egrassi@godot:/mnt/trcanmed/snaketree/prj/AF_spectra/dataset/CRC1307_platypus_filterbin$ ls *ovcnokdelta.tsv.gz | tr "." "\t" | cut -f 1 | tr "\n" "," | sed 's/,/","/g'
@@ -39,7 +22,7 @@ rule pair_ov_nobcnok_fdr:
             zcat {input.bint0} | sed 1d | bawk '$17 < {params.pthr} && $13 == 1 {{print $1}}' > {output}.binot0
             zcat {input.calls} | filter_1col -v 1 {output}.binot1 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "keep_t1",$0}}' > {log}
             zcat {input.calls} | filter_1col -v 1 {output}.binot0 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "keep_t0",$0}}' >> {log}
-            zcat {input.calls} | filter_1col  1 {output}.binot1 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "remove_t1",$0}}' >> {log}
+            zcat {input.calls} | filter_1col  1 {output}.binot1 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "",$0}}' >> {log}
             zcat {input.calls} | filter_1col  1 {output}.binot0 | cut -f 16 | sort | uniq -c | tr -s " " "\\t" | bawk '{{print "removeh_t0",$0}}' >> {log}
             zcat {input.calls} | filter_1col -v 1 {output}.binot0 | filter_1col -v 1 {output}.binot1  | gzip > {output}
             rm {output}.binot?
@@ -102,8 +85,17 @@ rule all_all_raw_ov:
     output: "all.MR_ov"
     shell: "head -n 1 {input[0]} > {output}; grep -h -v conte {input} >> {output}"
     
+rule plots:
+    input: "all.MR_ov"
+    output: "MR_estimates_vitro.pdf", "MR_estimates_vivo.pdf"
+    params: tool=BIN_DIR+"/MR_estimates_plots"
+    shell:
+        """
+         {params.tool} {input} {output}
+        """
+
 rule raw_ov:
-    input: len="{t1sample}_{t0sample}.ovlength.txt", calls="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", gens=DATA+"/generations.txt"
+    input: len="{t1sample}_{t0sample}.ovlength.txt", calls="{t1sample}_{t0sample}.ovcnokdelta.bonf.tsv.gz", gens=DATA+"/generations.txt"
     output: "{t1sample}_{t0sample}.MR_ov.tsv"
     params: tool=BIN_DIR+"/gain_MA_noloss"
     shell:
@@ -112,7 +104,7 @@ rule raw_ov:
         """
 
 rule raw_ov_TOPI:
-    input: len="{t1sample}_{t0sample}.ovlength.txt", calls="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", gens=DATA+"/generations_TOPI.txt"
+    input: len="{t1sample}_{t0sample}.ovlength.txt", calls="{t1sample}_{t0sample}.ovcnokdelta.bonf.tsv.gz", gens=DATA+"/generations_TOPI.txt"
     output: "{t1sample}_{t0sample}.MR_ovtopi.tsv"
     params: tool=BIN_DIR+"/gain_MA_topi_noloss"
     shell:
@@ -141,7 +133,7 @@ def find_pairs_annovar(wildcards):
     return [ x+'_'+wildcards.bsample+'-0.gain.multianno.txt' for x in els]
 
 rule class_bed:
-    input: "{t1sample}_{t0sample}.ovcnokdelta.tsv.gz"
+    input: "{t1sample}_{t0sample}.ovcnokdelta.bonf.tsv.gz"
     output: "{t1sample}_{t0sample}.{class}.bed"
     shell:
         """
@@ -162,7 +154,7 @@ rule all_gain_vcf:
     input: find_pairs_vcf
 
 rule class_vcf:
-    input: ovcnok="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", vcf=DATA+"/{t1sample}.pass.vcf.gz"
+    input: ovcnok="{t1sample}_{t0sample}.ovcnokdelta.bonf.tsv.gz", vcf=DATA+"/{t1sample}.pass.vcf.gz"
     output: "{t1sample}_{t0sample}.{class}.vcf.gz"
     shell:
         """
@@ -254,12 +246,12 @@ rule union_callable:
         """
 
 rule all_gain:
-    input: expand("{t1sample}_"+CLONE2[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE2[1:]), expand("{t1sample}_"+CLONE8[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE8[1:]),
-            expand("{t1sample}_"+CLONE9[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE9[1:])
+    input: expand("{t1sample}_"+CLONE2[0]+".ovcnokdelta.bonf.tsv.gz", t1sample=CLONE2[1:]), expand("{t1sample}_"+CLONE8[0]+".ovcnokdelta.bonf.tsv.gz", t1sample=CLONE8[1:]),
+            expand("{t1sample}_"+CLONE9[0]+".ovcnokdelta.bonf.tsv.gz", t1sample=CLONE9[1:])
     output: "all_gained_named.tsv"
     shell:
         """
-            for f in {input}; do zcat $f | bawk -v n=$f '$16=="gain"{{print n,$1}}' | sed 's/\.ovcnokdelta\.tsv\.gz//'; done > {output}
+            for f in {input}; do zcat $f | bawk -v n=$f '$16=="gain"{{print n,$1}}' | sed 's/\.ovcnokdelta\.bonf\.tsv\.gz//'; done > {output}
         """
 
 rule all_gain_together:
@@ -277,3 +269,4 @@ rule enrich_chr:
     shell:
         """
         """
+        

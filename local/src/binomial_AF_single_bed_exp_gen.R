@@ -54,6 +54,16 @@ save.image("pippo.RData")
 # limits up to 4 generations for cn2 and cn3
 # 1/4 1/8 1/16 1/32
 # lower is always 1/2 / 1/3 as we want to be inclusive
+# "lower" upper limit for CN=3 is ok only as 1/3 (not 2/3 too):
+# bino <- function(mutreads, tot) {
+#   p1 <- binom.test(mutreads, tot, p=1/3, alternative="less")$p.value
+#   p2 <- binom.test(mutreads, tot, p=2/3, alternative="less")$p.value
+#   return((list(one=p1<0.05, two=p2<0.05)))
+# }
+# mut <- seq(1, 100)
+
+# res <- lapply(mut, bino, 100)
+# check <- res[sapply(res, function(x) isTRUE(x$one) & isFALSE(x$two)) ]
 limits2 <- list(c(1/2,1/8), c(1/2,1/16), c(1/2,1/32), c(1/2, 1/64))
 limits3 <- list(c(1/3,1/12), c(1/3,1/24), c(1/3,1/48), c(1/3,1/96))
 

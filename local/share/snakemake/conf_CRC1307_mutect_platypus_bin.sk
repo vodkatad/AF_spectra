@@ -20,7 +20,7 @@ BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
 
 GAINED_DIR=PRJ_ROOT+'/dataset/CRC1307_platypus_nobin'
-BINO_DIR=PRJ_ROOT+'/dataset/CRC1307_mutect_nobin'
+BINO_DIR=PRJ_ROOT+'/dataset/CRC1307_mutect_nobin_20x'
 
 VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
 VCFTOBED1=BIN_DIR+"/vcf_to_bed"

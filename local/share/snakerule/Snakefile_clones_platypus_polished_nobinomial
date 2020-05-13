@@ -130,6 +130,15 @@ rule all_pairs_raw_ov:
     output: "{bsample}.MR_ov"
     shell: "head -n 1 {input[0]} > {output}; grep -h -v conte {input} >> {output}"
 
+rule plots:
+    input: "all.MR_ov"
+    output: "MR_estimates_vitro.pdf", "MR_estimates_vivo.pdf"
+    params: tool=BIN_DIR+"/MR_estimates_plots"
+    shell:
+        """
+         {params.tool} {input} {output}
+        """
+
 rule all_all_raw_ov:
     input: expand("{hsample}.MR_ov", hsample=SAMPLES_HIGH)
     output: "all.MR_ov"
