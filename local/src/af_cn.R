@@ -14,6 +14,6 @@ muts$cn <- as.numeric(muts$cn)
 muts <- muts[muts$cn <= maxcn,]
 muts$cn <- factor(muts$cn, levels=seq(1, maxcn))
 
-ggplot(data=muts, aes(x=af, color=cn)) + geom_density(position="identity")+theme_bw()
+ggplot(data=muts, aes(x=af, y=..count.., color=cn)) + geom_density(position="identity")+theme_bw()
 ggsave(outputplot)
 
