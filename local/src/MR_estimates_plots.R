@@ -24,6 +24,8 @@ MR_conte = mean(MR_conte)
 ggplot(vdata, aes(x = clone, y = MR_EDU, color=clone, fill=clone)) + geom_point(alpha = .7, size=1, shape=24) + geom_point(data = gd, size = 4)+theme_bw()
 ggsave(outputf1)
 
+
+# TODO FIXME
 vdata <- data[data$clone==8,]
 
 gd$condition <- 'invivo'
