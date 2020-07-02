@@ -84,7 +84,7 @@ rule heatmap:
         #import sys
         #sys.setrecursionlimit(10000)
         #h = sns.clustermap(cnvs, method=method, metric=metric, col_cluster=False, yticklabels = yticklabels,  cmap='RdBu_r', vmin=0, vmax=12,norm=divnorm, cbar_kws=cbar_kws)
-        h = sns.clustermap(cnvs, col_cluster=False, row_cluster=False, yticklabels = True, cmap='RdBu_r', vmin=0, vmax=12,center=2, cbar_kws=cbar_kws)
+        h = sns.clustermap(cnvs, col_cluster=False, method=method, metric=metric, row_cluster=clusters, yticklabels = True, cmap='RdBu_r', vmin=0, vmax=12,center=2, cbar_kws=cbar_kws)
         #Z = h.dendrogram_row.linkage
         ax = h.ax_heatmap
         #place vertical lines to identify chromosomes

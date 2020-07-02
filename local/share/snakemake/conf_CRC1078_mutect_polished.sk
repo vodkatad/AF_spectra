@@ -1,0 +1,64 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
+
+HROOT='/home/egrassi'
+DATA=PRJ_ROOT+"/local/share/data/CRC1078"
+SDATA=DATA
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+
+PLOIDY=2
+
+KIND="SNV" # | indel
+MULTI="nomulti"
+
+VCFTOBED=BIN_DIR+"/vcf_to_bed"
+VCFTOBED1=BIN_DIR+"/vcf_to_bed"
+CNLEN=BIN_DIR+"/cn_len_plot"
+CNLEN2=BIN_DIR+"/cn_len_plot2"
+
+DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
+CALLABLE=DATA+"/callable_covered.bed.gz"
+SAMPLES=['CRC1078-02-0', 'CRC1078-07-0', 'CRC1078-09-0','CRC1078-02-1-C', 'CRC1078-02-1-D', 'CRC1078-02-1-E', 'CRC1078-07-1-A', 'CRC1078-07-1-E', 'CRC1078-07-1-F', 'CRC1078-09-1-B', 'CRC1078-09-1-C', 'CRC1078-09-1-D']
+
+BULK=['']
+# TODO FIXME
+CLONE2=['CRC1078-02-0', 'CRC1078-02-1-C', 'CRC1078-02-1-D', 'CRC1078-02-1-E']
+CLONE7=['CRC1078-07-0', 'CRC1078-07-1-A', 'CRC1078-07-1-E', 'CRC1078-07-1-F']
+CLONE9=['CRC1078-09-0', 'CRC1078-09-1-B', 'CRC1078-09-1-C', 'CRC1078-09-1-D']
+
+
+ALL_SAMPLES=SAMPLES
+SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
+WANTED_CN = "1,2,3"
+
+wildcard_constraints:
+    sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+
+SAMPLES_HIGH=["CRC01078-02","CRC1078-07","CRC1078-09"] # list comprehens TODO
+
+
+# rule process_vcf_special:
+#     input: vcf=DATA+"/"+SAMPLES[0]+".pass.vcf.gz", chrs=DATA+"/chrs"  
+#     output: SAMPLES[0]+".tsv.gz"
+#     params: tool=VCFTOBED1, multi=MULTI, kind=KIND, sample="CRC1307LMO"
+#     log: SAMPLES[0]+".multiallelic"
+#     shell:
+#         """
+#             bcftools view -s {params.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
+#             | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
+#         """
+
+# ruleorder: process_vcf_special > process_vcf
