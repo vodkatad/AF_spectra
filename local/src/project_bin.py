@@ -28,9 +28,11 @@ def get_next_overlapping_bed(bin, bedcn, verbose):
     # overlap check  a0 <= b1 && b0 <= a1;
     # https://fgiesen.wordpress.com/2011/10/16/checking-for-interval-overlap/
     # < and not <= for end excluded
+    if verbose:
+        print('evaluating overlap {} {} {}'.format(last_entry[0], last_entry[1], last_entry[2]), file=sys.stderr)
     if last_entry != None and last_entry[0] == bin[0] and last_entry[1] < bin[2] and bin[1] < last_entry[2]:
         if verbose:
-            print('evaluating overlap {} {} {}'.format(last_entry[0], last_entry[1], last_entry[2]), file=sys.stderr)
+            print('ov', file=sys.stderr)
         result = last_entry
         if last_entry[2] <= bin[2]:
             last_entry = None
@@ -43,14 +45,19 @@ def get_next_overlapping_bed(bin, bedcn, verbose):
         
 # return next bin given chrs lenghs, None if finished
 def get_next_bin(bin, binlen, chrs):
+    #global already_given
+    #global last_entry
      # we have space for another bin
     if bin[2] + binlen < chrs[bin[0]]: # check ends here TODO
         return (bin[0], bin[2], bin[2] + binlen)
     # we need to get the next chr
     elif bin[2] == chrs[bin[0]]:
+        #already_given = False
+        #last_entry = None
         k = list(chrs.keys()) # ordered?
         chri = k.index(bin[0])
         if chri + 1 < len(k):
+            #print('Processing ' + k[chri+1], file=sys.stderr)
             return (k[chri+1], 0, binlen) 
         else:
             return None
