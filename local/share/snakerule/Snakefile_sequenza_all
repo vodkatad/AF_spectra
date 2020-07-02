@@ -38,7 +38,7 @@ rule heatmap:
         boundaries = cnvs[['chr','b','e']].copy()
         cnvs = cnvs.drop(columns=['chr','b','e']).transpose()
         names = list(cnvs.index.values)
-        print(names)
+        #print(names)
         models = [x.split('-')[0] for x in names]
         clones = [x.split('-')[1] for x in names]
         times = [x.split('-')[2] for x in names]
@@ -51,8 +51,21 @@ rule heatmap:
                 sorted_names.append(str(p.iloc[i]['m']) +'-'+ str(p.iloc[i]['c'])+ '-' +str(p.iloc[i]['t']) +'-'+ str(p.iloc[i]['l']))
             else: 
                 sorted_names.append(str(p.iloc[i]['m']) +'-'+ str(p.iloc[i]['c'])+ '-' +str(p.iloc[i]['t']))
-        print(sorted_names)
+        #print(sorted_names)
+
         cnvs = cnvs.reindex(sorted_names)
+        samples = p['m'].tolist()
+        # Create a categorical palette to identify the samples
+        sample_pal = sns.color_palette("bright", len(np.unique(samples)))
+        #sample_pal = sns.husl_palette(len(samples), h=.5)
+        sample_lut = dict(zip(map(str, np.unique(samples)), sample_pal))
+        # Convert the palette to vectors that will be drawn on the side of the matrix
+        allsamples = cnvs.index.get_level_values(None)
+        sample_colors = pd.Series(samples, index=allsamples).map(sample_lut)
+        print(sample_colors)
+        print(sample_lut)
+        print(sample_pal)
+
         verbose = True
         metric = 'euclidean'
         method = 'ward'
@@ -82,7 +95,7 @@ rule heatmap:
         #import sys
         #sys.setrecursionlimit(10000)
         #h = sns.clustermap(cnvs, method=method, metric=metric, col_cluster=False, yticklabels = yticklabels,  cmap='RdBu_r', vmin=0, vmax=12,norm=divnorm, cbar_kws=cbar_kws)
-        h = sns.clustermap(cnvs, col_cluster=False, row_cluster=clusters, yticklabels = True, cmap='RdBu_r', vmin=0, vmax=12,center=2, cbar_kws=cbar_kws)
+        h = sns.clustermap(cnvs, row_colors=sample_colors, col_cluster=False, row_cluster=clusters, yticklabels = True, cmap='RdBu_r', vmin=0, vmax=12,center=2, cbar_kws=cbar_kws)
         #Z = h.dendrogram_row.linkage
         ax = h.ax_heatmap
         #place vertical lines to identify chromosomes
