@@ -321,7 +321,7 @@ rule dnds:
             rm {output[0]}.tmp
         """
 
-#### TODO signatures
+#### TODO dn/ds plot
 
 
 #### shared

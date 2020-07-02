@@ -10,6 +10,7 @@ dlen <- read.table(len, header=FALSE)
 glen <- dlen$V1
 generation <- read.table(gens, header=TRUE, sep="\t", colClasses=c("character", "numeric", "character", "numeric"))
 
+save.image('pippo.Rdata')
 data <- dcalls[,c("V1","V16"), drop=F]
 colnames(data) <- c("id", "class")
 df <- as.data.frame(table(data$class))

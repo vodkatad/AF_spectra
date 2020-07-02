@@ -13,18 +13,18 @@ BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
 SNAKE_ROOT=os.getenv('SNAKE_ROOT')
 ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
 
-CNVKIT="cnvkit"
-
 HROOT='/home/egrassi'
-DATA=PRJ_ROOT+"/local/share/data/CRC0282"
+DATA=PRJ_ROOT+"/local/share/data/CRC1502"
 SDATA=DATA
 BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
 
+PLOIDY=3
+
 KIND="SNV" # | indel
 MULTI="nomulti"
 
-VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
+VCFTOBED=BIN_DIR+"/vcf_to_bed"
 VCFTOBED1=BIN_DIR+"/vcf_to_bed"
 CNLEN=BIN_DIR+"/cn_len_plot"
 CNLEN2=BIN_DIR+"/cn_len_plot2"
@@ -32,28 +32,28 @@ CNLEN2=BIN_DIR+"/cn_len_plot2"
 DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
 CALLABLE=DATA+"/callable_covered.bed.gz"
 
-DNDSCV_RDA=DATA+"/../RefCDS_human_GRCh38.p12.rda"
-
-SAMPLES=['CRC0282-01-0', 'CRC0282-05-0', 'CRC0282-07-0', 'CRC0282-01-1-A', 'CRC0282-01-1-B', 'CRC0282-01-1-E', 'CRC0282-05-1-A', 'CRC0282-05-1-C', 'CRC0282-05-1-D', 'CRC0282-07-1-A', 'CRC0282-07-1-B', 'CRC0282-07-1-E','CRC0282-01-MI-A', 'CRC0282-01-MI-D', 'CRC0282-01-MI-E', 'CRC0282-01-MA-C', 'CRC0282-01-MA-D', 'CRC0282-01-MA-G', 'CRC0282-01-MC-D', 'CRC0282-01-MC-E', 'CRC0282-01-MC-F']
-
 BULK=['']
-# TODO FIXME
-CLONE2=['CRC0282-01-0', 'CRC0282-01-1-A', 'CRC0282-01-1-B', 'CRC0282-01-1-E', 'CRC0282-01-MI-A', 'CRC0282-01-MI-D', 'CRC0282-01-MI-E', 'CRC0282-01-MA-C', 'CRC0282-01-MA-D', 'CRC0282-01-MA-G', 'CRC0282-01-MC-D', 'CRC0282-01-MC-E', 'CRC0282-01-MC-F']
-CLONE8=['CRC0282-05-0', 'CRC0282-05-1-A', 'CRC0282-05-1-C', 'CRC0282-05-1-D']
-CLONE9=['CRC0282-07-0', 'CRC0282-07-1-A', 'CRC0282-07-1-B', 'CRC0282-07-1-E']
+#SAMPLES=['CRC1502-03-0', 'CRC1502-08-0', 'CRC1502-09-0', 'CRC1502-03-1-A', 'CRC1502-03-1-C', 'CRC1502-03-1-D', 'CRC1502-08-1-A', 'CRC1502-08-1-C', 'CRC1502-08-1-D', 'CRC1502-09-1-A', 'CRC1502-09-1-C', 'CRC1502-09-1-E', 'CRC1502-10-MA-A', 'CRC1502-10-MA-D', 'CRC1502-10-MA-C', 'CRC1502-10-MC-A', 'CRC1502-10-MC-C', 'CRC1502-10-MC-D', 'CRC1502-10-MI-A', 'CRC1502-10-MI-C', 'CRC1502-10-MI-G']
+SAMPLES=['CRC1502-08-0', 'CRC1502-09-0', 'CRC1502-08-1-A', 'CRC1502-08-1-C', 'CRC1502-08-1-D', 'CRC1502-09-1-A', 'CRC1502-09-1-C', 'CRC1502-09-1-E']
+#SAMPLES=['CRC1502-08-0', 'CRC1502-09-0', 'CRC1502-08-1-A', 'CRC1502-08-1-C', 'CRC1502-08-1-D', 'CRC1502-09-1-A', 'CRC1502-09-1-C', 'CRC1502-09-1-E']
+
+#SAMPLES=['CRC0282-01-0', 'CRC0282-05-0', 'CRC0282-07-0', 'CRC0282-01-1-A', 'CRC0282-01-1-B', 'CRC0282-01-1-E', 'CRC0282-05-1-A', 'CRC0282-05-1-C', 'CRC0282-05-1-D', 'CRC0282-07-1-A', 'CRC0282-07-1-B', 'CRC0282-07-1-E']
+CLONE2=['']
+CLONE8=['CRC1502-08-0', 'CRC1502-08-1-A', 'CRC1502-08-1-C', 'CRC1502-08-1-D']
+CLONE9=['CRC1502-09-0','CRC1502-09-1-A', 'CRC1502-09-1-C', 'CRC1502-09-1-E']
+
 ALL_SAMPLES=SAMPLES
 SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
 WANTED_CN = "1,2,3"
 
 wildcard_constraints:
-    sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"   
-wildcard_constraints:
-    t1sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
-wildcard_constraints:
-    t0sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+    sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
 
-SAMPLES_HIGH=["CRC0282-01","CRC0282-05","CRC0282-07"] # list comprehens TODO
+SAMPLES_HIGH=["CRC1502-08","CRC1502-09"] # list comprehens TODO
 SAMPLES_ZERO=[x+'-0' for x in SAMPLES_HIGH]
+
+CNVKIT='cnvkit'
+DNDSCV_RDA=DATA+"/../RefCDS_human_GRCh38.p12.rda"
 
 # rule process_vcf_special:
 #     input: vcf=DATA+"/"+SAMPLES[0]+".pass.vcf.gz", chrs=DATA+"/chrs"  

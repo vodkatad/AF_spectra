@@ -42,5 +42,10 @@ colnames(pdata) <- c("shared_by","count","sample")
 l <- as.numeric(as.character(levels(pdata$shared_by)))
 l <- l[order(l)]
 pdata$shared_by <- factor(pdata$shared_by, levels=l)
-ggplot(pdata,aes(x = sample, y = count, fill = shared_by)) +geom_bar(position = "fill",stat = "identity")+scale_fill_manual(values=colo) +scale_y_continuous(labels = percent_format())+theme_bw()+theme(text = element_text(size=15), axis.text.x = element_text(angle = 90, hjust = 1))+ggtitle(wanted)
-ggsave(output)
+if (length(levels(pdata$shared_by)) < length(colo)) {
+  ggplot(pdata,aes(x = sample, y = count, fill = shared_by)) +geom_bar(position = "fill",stat = "identity")+scale_fill_manual(values=colo) +scale_y_continuous(labels = percent_format())+theme_bw()+theme(text = element_text(size=15), axis.text.x = element_text(angle = 90, hjust = 1))+ggtitle(wanted)
+  ggsave(output)
+} else {
+  ggplot(pdata,aes(x = sample, y = count, fill = shared_by)) +geom_bar(position = "fill",stat = "identity")+scale_fill_manual(values=c(colo, colo)) +scale_y_continuous(labels = percent_format())+theme_bw()+theme(text = element_text(size=15), axis.text.x = element_text(angle = 90, hjust = 1))+ggtitle(wanted)
+  ggsave(output)
+}
