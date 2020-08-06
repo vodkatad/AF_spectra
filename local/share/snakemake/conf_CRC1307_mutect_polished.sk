@@ -44,6 +44,7 @@ wildcard_constraints:
 
 SAMPLES_HIGH=["CRC1307-09","CRC1307-08","CRC1307-02"] # list comprehens TODO
 
+PLOIDY=3
 
 rule process_vcf_special:
     input: vcf=DATA+"/"+SAMPLES[0]+".pass.vcf.gz", chrs=DATA+"/chrs"  

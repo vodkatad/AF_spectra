@@ -66,7 +66,8 @@ save.image("pippo.RData")
 # check <- res[sapply(res, function(x) isTRUE(x$one) & isFALSE(x$two)) ]
 limits2 <- list(c(1/2,1/8), c(1/2,1/16), c(1/2,1/32), c(1/2, 1/64))
 limits3 <- list(c(1/3,1/12), c(1/3,1/24), c(1/3,1/48), c(1/3,1/96))
-
+# 1/2 - 1/128
+# 1/3 - 1/192
 muts$targetcn <- ifelse(muts$cn %in% accepted_cn, 1, 0)
 muts <- muts[muts$targetcn==1,]
 res <- NULL
