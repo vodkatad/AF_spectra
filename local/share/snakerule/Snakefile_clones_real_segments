@@ -86,7 +86,7 @@ rule pair_ov_binom:
             zcat {input.t0} | bawk '$15==1' > {input.t0}.tmp
             zcat {input.t1} | bawk '$15==0' > {input.t1}.no.tmp
             zcat {input.t0} | bawk '$15==0' > {input.t0}.no.tmp
-            cat {input.t1}.tmp | filter_1col 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"common"}}' > {output.binom}.tmp
+            cat {input.t1}.tmp | filter_1col 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"common"}}' > {output.binom}.tm
             cat {input.t1}.tmp | filter_1col -v 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"gain"}}' >> {output.binom}.tmp
             cat {input.t0}.tmp | filter_1col -v 1 <(cut -f 1 {input.t1}.tmp) | bawk '{{print $0,"loss"}}' >> {output.binom}.tmp
             cat {input.t1}.no.tmp | filter_1col 1 <(cut -f 1 {input.t0}.no.tmp) | bawk '{{print $0,"common"}}' > {output.nobinom}.tmp

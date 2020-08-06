@@ -23,3 +23,53 @@ rule merge:
         bexp = pd.concat([bonf, bh])
         tot = bexp.join(covered, how='inner')
         tot.to_csv(output[0], sep="\t", header=True)
+
+
+### all dnds
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+DNDSCV_RDA=PRJ_ROOT+"/local/share/data/RefCDS_human_GRCh38.p12.rda"
+BIN_DIR=PRJ_ROOT+"/local/bin"
+        
+def input_all_gained(wildcards):
+    import glob
+    return glob.glob("CRC*/platypus_nobin/all_gained_named.tsv") + ["CRC1307_platypus_nobin/all_gained_named.tsv"]
+
+rule all_dnds:
+    input: input_all_gained
+    output: "dnds.tsv", "dnds.Rdata"
+    log: "dnds.log"
+    params:  tool=BIN_DIR+"/dnds", rda=DNDSCV_RDA
+    shell:
+        """
+            cat {input} | tr ":" "\\t" | bawk '{{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
+            {params.tool} {output[0]}.tmp {output} {params.rda} &> {log}
+            rm {output[0]}.tmp
+        """
+
+#### TODO dn/ds plot
+
+
+#### shared
+# right now selection of files is done inside R with list.files, this is DANGEROUS, FIXME
+rule shared_clone:
+    output: "{hsample}.shared.png"
+    params: tool=BIN_DIR+"/private_shared_gains"
+
+
+
+#egrassi@godot:/mnt/trcanmed/snaketree/prj/AF_spectra/dataset$ grep wall CRC*/platypus_nobin/dnds.tsv  CRC1307_platypus_nobin/dnds.tsv  | tr "/" "\t" | tr "_" "\t" | cut -f 1,6,7,8
+#CRC0282 0.937575744678809       0.852361772254831       1.03130889444349
+#CRC0327 1.39346842110341        0.670110088592115       2.89766453851189
+#CRC1078 0.647971238408106       0.410085699806697       1.02385117550319
+#CRC1502 0.763560613708499       0.456284024078526       1.27776731167463
+#CRC1307 1.08332207165535        0.744123741132339       1.57713918541261
