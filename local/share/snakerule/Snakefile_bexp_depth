@@ -73,3 +73,12 @@ rule shared_clone:
 #CRC1078 0.647971238408106       0.410085699806697       1.02385117550319
 #CRC1502 0.763560613708499       0.456284024078526       1.27776731167463
 #CRC1307 1.08332207165535        0.744123741132339       1.57713918541261
+
+## horror
+rule overall_horror:
+    output: "MR_edu"
+    shell:
+        """
+            cut  -f 2,8 */platypus_nobin/all.MR_ov | grep -v end > MR_edu
+            cut -f 2,8 CRC1307_platypus_nobin/all.MR_ov | grep -v end >> MR_edu 
+        """
