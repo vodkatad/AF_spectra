@@ -1,0 +1,45 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIN_DIR=PRJ_ROOT+"/local/bin"
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+
+VCF_DIR=PRJ_ROOT+"/dataset/CRC0282/platypus_nobin"
+CALLABLE=PRJ_ROOT+"/local/share/data/CRC0282/callable_covered.bed.gz"
+
+BED=PRJ_ROOT+"/local/share/data/mutational_patterns/data"
+
+SAMPLES=['CRC0282-01-0', 'CRC0282-05-0', 'CRC0282-07-0', 'CRC0282-01-1-A', 'CRC0282-01-1-B', 'CRC0282-01-1-E', 'CRC0282-05-1-A', 'CRC0282-05-1-C', 'CRC0282-05-1-D', 'CRC0282-07-1-A', 'CRC0282-07-1-B', 'CRC0282-07-1-E']#'CRC0282-01-MI-A', 'CRC0282-01-MI-D', 'CRC0282-01-MI-E', 'CRC0282-01-MA-C', 'CRC0282-01-MA-D', 'CRC0282-01-MA-G', 'CRC0282-01-MC-D', 'CRC0282-01-MC-E', 'CRC0282-01-MC-F']
+
+BULK=['']
+# TODO FIXME
+CLONE2=['CRC0282-01-0', 'CRC0282-01-1-A', 'CRC0282-01-1-B', 'CRC0282-01-1-E', ]#'CRC0282-01-MI-A', 'CRC0282-01-MI-D', 'CRC0282-01-MI-E', 'CRC0282-01-MA-C', 'CRC0282-01-MA-D', 'CRC0282-01-MA-G', 'CRC0282-01-MC-D', 'CRC0282-01-MC-E', 'CRC0282-01-MC-F']
+CLONE8=['CRC0282-05-0', 'CRC0282-05-1-A', 'CRC0282-05-1-C', 'CRC0282-05-1-D', ]
+CLONE9=['CRC0282-07-0', 'CRC0282-07-1-A', 'CRC0282-07-1-B', 'CRC0282-07-1-E']
+ALL_SAMPLES=SAMPLES
+SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
+WANTED_CN = "1,2,3"
+
+SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
+
+# right now manually determined
+NSIGN=2
+
+wildcard_constraints:
+    sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"   
+wildcard_constraints:
+    t1sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+wildcard_constraints:
+    t0sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+
+SAMPLES_HIGH=["CRC0282-01","CRC0282-05","CRC0282-07"] # list comprehens TODO
+SAMPLES_ZERO=[x+'-0' for x in SAMPLES_HIGH]
