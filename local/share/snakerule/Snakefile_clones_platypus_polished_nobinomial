@@ -277,6 +277,27 @@ rule class_vcf:
             rm {output}.tmp
         """
 
+def find_kind_vcf(wildcards):
+    import re
+    res = find_pairs_vcf('')
+    if wildcards.kind == "vitro":
+        return [x for x in res if not re.match('.+M.+',x) ]
+    elif wildcards.kind == "vivo":
+        return [x for x in res if re.match('.+M.+',x) ]
+    else:
+        return res
+
+rule merged_vcf:
+    input: find_kind_vcf
+    output: "{kind}.merged.vcf.gz"
+    shell:
+        """
+            for f in {input}; do 
+                tabix -f $f;
+            done;
+            bcftools merge {input} | bgzip > {output}
+        """
+        
 rule annovar:
     input: "{t1sample}_{t0sample}.{class}.bed", ANNOVAR
     output: "{t1sample}_{t0sample}.{class}.multianno.txt"
