@@ -1,0 +1,34 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIN_DIR=PRJ_ROOT+"/local/bin"
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+
+BASE_DIR=PRJ_ROOT+"/dataset/"
+
+SAMPLES=['CRC1307','CRC0282','CRC1502','CRC1078','CRC0327']
+
+DIRS = [os.path.join(x,"platypus_nobin") for x in SAMPLES[1:]] + ['CRC1307_platypus_nobin']
+
+def wanted_pairs():
+    import glob
+    import re
+    res = []
+    for d in DIRS:
+        l = os.path.join(BASE_DIR, d)
+        found = glob.glob(l+"/*0.gain.vcf.gz")
+        for f in found:
+            if not re.match('.+M.+', os.path.basename(f)) and  (re.match('.+CRC1078.+', os.path.basename(f)) or  re.match('.+CRC1307.+', os.path.basename(f))) : # implement here "all" logic (here only in vitro samples)
+                res.append(f)
+    print(res)
+    return res
+
