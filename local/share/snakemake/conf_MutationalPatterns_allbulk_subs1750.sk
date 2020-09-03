@@ -1,0 +1,32 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIN_DIR=PRJ_ROOT+"/local/bin"
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+
+BASE_DIR=PRJ_ROOT+"/dataset/"
+
+SAMPLES=['CRC1307','CRC0282','CRC1502','CRC1078','CRC0327']
+
+#egrassi@godot:/mnt/trcanmed/snaketree/prj/AF_spectra/local/share/data/second_shipment_bulk$ for f in *pass.vcf.gz; do zcat $f | grep "^#" > subs/$f; zcat $f | grep -v "^#" | shuf -n 10000 >> subs/$f; gzip -c subs/$f > subs/$f.gz2; done
+DIRS = [PRJ_ROOT+"/local/share/data/second_shipment_bulk/subs_small"]
+
+def wanted_pairs():
+    import glob
+    import re
+    res = []
+    for d in DIRS:
+        l = os.path.join(BASE_DIR, d)
+        res = glob.glob(l+"/*.pass.vcf.gz")
+    print(res)
+    return res
+
