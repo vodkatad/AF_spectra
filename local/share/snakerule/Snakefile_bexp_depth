@@ -56,6 +56,18 @@ rule all_dnds:
             rm {output[0]}.tmp
         """
 
+rule dnds_vitro:
+    input: input_all_gained
+    output: "dnds_vitro.tsv", "dnds_vitro.Rdata"
+    log: "dnds_vitro.log"
+    params:  tool=BIN_DIR+"/dnds", rda=DNDSCV_RDA
+    shell:
+        """
+            cat {input} | tr ":" "\\t" | bawk '$1 !~ /M/ {{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
+            {params.tool} {output[0]}.tmp {output} {params.rda} &> {log}
+            rm {output[0]}.tmp
+        """
+    
 #### TODO dn/ds plot
 
 # signatures
