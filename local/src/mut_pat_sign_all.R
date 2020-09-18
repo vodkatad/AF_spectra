@@ -24,7 +24,7 @@ sample_names <- unlist(lapply(files, function(x) {y <- basename(x); strsplit(y,"
 vcfs <- read_vcfs_as_granges(files, sample_names, ref_genome)
 base_clone <- unique(sapply(sample_names, function(x) {y<-strsplit(x, '-')[[1]]; return(paste0(y[1],'-',y[2]))}))
 #base <- unique(sapply(sample_names, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])}))
-base <- 'allvitro' # FXIME TODO
+base <- 'CRC_MA' # FXIME TODO
 ### basic mut spectrum
 type_occurrences <- mut_type_occurrences(vcfs, ref_genome)
 pdf("spectrum.pdf")
@@ -37,11 +37,11 @@ graphics.off()
 mut_mat <- mut_matrix(vcf_list = vcfs, ref_genome = ref_genome)
 
 
-garb <- sapply(base_clone, function(x) { 
+#garb <- sapply(base_clone, function(x) { 
   #pdf(paste0(x, ".96_profile.pdf"))
-  ggsave(file=paste0(x, ".96_profile.pdf"), plot=plot_96_profile(mut_mat[,grepl(x, colnames(mut_mat))]))
+#  ggsave(file=paste0(x, ".96_profile.pdf"), plot=plot_96_profile(mut_mat[,grepl(x, colnames(mut_mat))]))
   #graphics.off()
-} )
+#} )
 
 ### NMF for signatures
 nrun_estimate <- 50
