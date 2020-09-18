@@ -1,0 +1,147 @@
+include: "./conf.sk"
+
+rule seqtobin:
+    input: sequenza=DATA+"/{sample}_segments.txt", chrs=DATA+"/chrs"
+    output: "{sample}.{bin}.tsv.gz"
+    params: tool=BIN_DIR+"/project_bin"
+    shell: 
+        """    
+            {params.tool} -c <(sed 1d {input.sequenza} |  bawk '{{print $1,$2-1,$3,$10}}' | grep -v chrX | grep -v chrY| sed 's/chr//1' |  sort -k1,1n -k2,2n | bawk '{{print "chr"$1,$2,$3,$4}}') -b {wildcards.bin} | gzip > {output}
+        """
+
+rule alltobin:
+    input: expand("{sample}.10000.tsv.gz", sample=SAMPLES)
+
+
+# TODO R with heatmap/correlations
+# TODO bedtools merge to check that sequenza gives us a segmentation
+# TODO bedtools intersect and then script to get projected weighted cn to test project_bin.py
+
+rule alltobin_merged:
+    input: expand("{sample}.50000.tsv.gz", sample=SAMPLES)
+    output: m="merged.tsv.gz"
+    run:
+        import pandas as pd
+        res = pd.read_csv(input[0], sep="\t", header=None) 
+        samples = SAMPLES
+        res.columns = ['chr','b','e', samples[0]]
+        for i in range(1, len(input)):
+            print('adding ' + samples[i])
+            current = pd.read_csv(input[i], sep="\t", header=None) 
+            current.columns = ['chr','b','e',samples[i]]
+            current = current.drop(columns=['chr','b','e'])
+            res = pd.concat([res, current], axis=1, sort=False)            
+        res.to_csv(output.m, sep="\t", compression='gzip', index=False)
+
+rule heatmap:
+    input: "merged.tsv.gz"
+    output: "{clu}_heatmap.png"
+    run:
+        import numpy as np
+        import pandas as pd
+        import seaborn as sns
+        import matplotlib.colors as colors
+        import matplotlib 
+        import matplotlib.cm as cm
+        import matplotlib.ticker as ticker
+        import matplotlib.pyplot as plt
+        import matplotlib.colors as colors
+        import matplotlib.transforms as transforms
+        if wildcards.clu == "clu":
+            clusters = True
+        else:
+            clusters = False
+        cnvs = pd.read_csv(input[0], sep="\t") 
+        #divnorm = colors.Normalize(vmin=0, vmax=12)
+        #divnorm = colors.Normalize(vmin=0, vmax=12)
+        boundaries = cnvs[['chr','b','e']].copy()
+        cnvs = cnvs.drop(columns=['chr','b','e']).transpose()
+        names = list(cnvs.index.values)
+        #print(names)
+        models = [x.split('-')[0] for x in names]
+        clones = [x.split('-')[1] for x in names]
+        times = [x.split('-')[2] for x in names]
+        letter = [x.split('-')[3] if len(x.split('-'))==4 else '' for x in names]
+        p = pd.DataFrame(data={'m':models,'c':clones, 't': times, 'l':letter})
+        p = p.sort_values(by=['m','c','t','l'])
+        sorted_names= []
+        for i in range(0, len(p)):
+            if p.iloc[i]['l'] != "":
+                sorted_names.append(str(p.iloc[i]['m']) +'-'+ str(p.iloc[i]['c'])+ '-' +str(p.iloc[i]['t']) +'-'+ str(p.iloc[i]['l']))
+            else: 
+                sorted_names.append(str(p.iloc[i]['m']) +'-'+ str(p.iloc[i]['c'])+ '-' +str(p.iloc[i]['t']))
+        #print(sorted_names)
+
+        cnvs = cnvs.reindex(sorted_names)
+        samples = p['m'].tolist()
+        # Create a categorical palette to identify the samples
+        sample_pal = sns.color_palette("bright", len(np.unique(samples)))
+        #sample_pal = sns.husl_palette(len(samples), h=.5)
+        sample_lut = dict(zip(map(str, np.unique(samples)), sample_pal))
+        # Convert the palette to vectors that will be drawn on the side of the matrix
+        allsamples = cnvs.index.get_level_values(None)
+        sample_colors = pd.Series(samples, index=allsamples).map(sample_lut)
+        print(sample_colors)
+        print(sample_lut)
+        print(sample_pal)
+
+        verbose = True
+        metric = 'euclidean'
+        method = 'ward'
+
+        chr_limits = boundaries.index[boundaries['e'].isin(boundaries.groupby('chr', sort=False)['e'].max().values)].tolist()
+        chr_boundaries = np.append(0, chr_limits)
+        chr_list = boundaries['chr'].unique().tolist()
+        chrN_list = []
+
+        for x in chr_list:
+            x = x[3:] #remove 'chr' for readability
+            chrN_list.append(x)
+
+        #compute the position where chromosome labels will be placed on the plots
+        start = 0
+        pos_list = []
+        for end in chr_limits:
+            pos_list.append((start+end)/2)
+            start = end+1
+
+        if clusters:
+            yticklabels = True
+        else:
+            yticklabels = False
+
+        cbar_kws={"ticks":np.arange(0,13,1)}
+        #import sys
+        #sys.setrecursionlimit(10000)
+        #h = sns.clustermap(cnvs, method=method, metric=metric, col_cluster=False, yticklabels = yticklabels,  cmap='RdBu_r', vmin=0, vmax=12,norm=divnorm, cbar_kws=cbar_kws)
+        h = sns.clustermap(cnvs, row_colors=sample_colors, col_cluster=False, row_cluster=clusters, yticklabels = True, cmap='RdBu_r', vmin=0, vmax=12,center=2, cbar_kws=cbar_kws)
+        #Z = h.dendrogram_row.linkage
+        ax = h.ax_heatmap
+        #place vertical lines to identify chromosomes
+        for pos in chr_limits:
+            ax.axvline(x=pos, color='black')
+
+        #place chromosome ticks at the right position
+        ax.xaxis.set_major_locator(ticker.FixedLocator((pos_list)))
+        ax.xaxis.set_major_formatter(ticker.FixedFormatter((chrN_list)))
+        ax.tick_params(axis='x', rotation=0, labelsize=20)
+        ax.tick_params(axis='y', rotation=0, labelsize=15)
+    
+        ax.xaxis.set_minor_locator(ticker.FixedLocator(chr_boundaries))
+        ax.tick_params(axis='x', length=20, which='minor')
+
+        ax.set_xlabel("Chromosomes", fontweight='bold', fontsize=25)
+        if clusters:
+            ax.set_ylabel("Clusters", fontweight='bold', fontsize=25)
+        else:
+            ax.set_ylabel("Clones", fontsize=25, fontweight='bold')
+
+        plt.gcf().set_size_inches(37, 21)
+    
+        if clusters:
+            plt.gcf().suptitle("Clusters mean CNV heatmap", fontsize=30, fontweight='bold')
+            plt.savefig(output[0])
+        else:
+            plt.gcf().suptitle("CNV heatmap", fontsize=30, fontweight='bold')
+            plt.savefig(output[0])
+        plt.clf()

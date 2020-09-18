@@ -1,0 +1,20 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIN_DIR=PRJ_ROOT+"/local/bin"
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+
+BASE_DIR=PRJ_ROOT+"/dataset/"
+
+DATA=PRJ_ROOT+"/local/share/data/second_shipment_bulk"
+
+SAMPLES=["CRC0282LMO-0-B","CRC0327LMO-0-B","CRC1078LMO-0-B","CRC1307LMO-0-B","CRC1502LMO-0-B"]

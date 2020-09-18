@@ -157,6 +157,8 @@ rule vitro_heatmap:
         import matplotlib.pyplot as plt
         import matplotlib.colors as colors
         import matplotlib.transforms as transforms
+        from matplotlib.patches import Rectangle
+
         if wildcards.clu == "clu":
             clusters = True
         else:
@@ -227,6 +229,18 @@ rule vitro_heatmap:
         h = sns.clustermap(cnvs, row_colors=sample_colors, col_cluster=False, row_cluster=clusters, yticklabels = True, cmap='RdBu_r', vmin=0, vmax=12,center=2, cbar_kws=cbar_kws)
         #Z = h.dendrogram_row.linkage
         ax = h.ax_heatmap
+
+        # Todo...ahemm :)
+        height = 0
+        ax.add_patch(Rectangle((0, height), len(cnvs.columns), 1, fill=False, edgecolor=sample_pal[0], lw=3))
+        height = height + 12
+        ax.add_patch(Rectangle((0, height), len(cnvs.columns), 1, fill=False, edgecolor=sample_pal[1], lw=3))
+        height = height + 12
+        ax.add_patch(Rectangle((0, height), len(cnvs.columns), 1, fill=False, edgecolor=sample_pal[2], lw=3))
+        height = height + 12
+        ax.add_patch(Rectangle((0, height), len(cnvs.columns), 1, fill=False, edgecolor=sample_pal[3], lw=3))
+        height = height + 12
+        ax.add_patch(Rectangle((0, height), len(cnvs.columns), 1, fill=False, edgecolor=sample_pal[4], lw=3))
         #place vertical lines to identify chromosomes
         for pos in chr_limits:
             ax.axvline(x=pos, color='black')
