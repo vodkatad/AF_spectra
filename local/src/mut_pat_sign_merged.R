@@ -53,6 +53,7 @@ nrun <- 150
 seed <- 123456
 pdf("nmf_num_sign.pdf")
 mut_mat2 <- mut_mat + 0.0001
+# we do not add 0.0001 cause it's already done in extract_signatures, other later fun? TODO
 estimate <- nmf(mut_mat2, rank=2:5, method="brunet", nrun=nrun_estimate, seed=seed)
 plot(estimate)
 graphics.off()

@@ -90,6 +90,15 @@ rule all_sign:
             {params.tool} {params.input} {output} {wildcards.nrank}
         """
 
+rule vcf_comma:
+    input: input_all_merged
+    output: "list_vcf_{kind}"
+    params: input= lambda wildcards, input: ','.join(input)
+    shell:
+        """
+            echo {params.input} > {output}
+        """
+
 ### Signatures
 
 
@@ -115,4 +124,13 @@ rule overall_horror:
         """
             cut  -f 2,8 */platypus_nobin/all.MR_ov | grep -v end > MR_edu
             cut -f 2,8 CRC1307_platypus_nobin/all.MR_ov | grep -v end >> MR_edu 
+        """
+
+
+rule overall_horror_2:
+    output: "gained_norm"
+    shell:
+        """
+            cut -f 2,5,6  */platypus_nobin/all.MR_ov | grep -v end | awk  -F'\\t' -v OFS='\\t'  '{{print $1,$2/$3}}' > {output}
+            cut -f 2,5,6 CRC1307_platypus_nobin/all.MR_ov | grep -v end | awk  -F'\\t' -v OFS='\\t'  '{{print $1,$2/$3}}' >> {output}
         """

@@ -17,3 +17,13 @@ rule mut_pat_signatures:
             mkdir -p {output}
             {params.tool} {params.input} {output} {wildcards.nrank}
         """
+
+rule vcf_comma:
+    input: find_pairs_vcf
+    output: "list_vcf"
+    params: input= lambda wildcards, input: ','.join(input)
+    shell:
+        """
+            echo {params.input} > {output}
+        """
+
