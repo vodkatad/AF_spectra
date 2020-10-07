@@ -137,6 +137,7 @@ rule vitro_alltobin_merged:
         res = pd.read_csv(input.all, sep="\t") 
         cols = res.columns
         vitro_cols = [i for i, x in enumerate(cols) if not re.match('.+M.+',x)]
+        #vitro_cols = [i for i, x in enumerate(cols) if not re.match('CRC1502-03.+',x) and not re.match('.+M.+',x)] # Giorgia
         n_v_c = cols[vitro_cols]
         res = res[[c for c in res.columns if c in n_v_c]]
         res.to_csv(output.vitro, sep="\t", compression='gzip', index=False) 
@@ -230,17 +231,23 @@ rule vitro_heatmap:
         #Z = h.dendrogram_row.linkage
         ax = h.ax_heatmap
 
-        # Todo...ahemm :)
-        height = 0
-        ax.add_patch(Rectangle((0, height), len(cnvs.columns), 1, fill=False, edgecolor=sample_pal[0], lw=3))
-        height = height + 12
-        ax.add_patch(Rectangle((0, height), len(cnvs.columns), 1, fill=False, edgecolor=sample_pal[1], lw=3))
-        height = height + 12
-        ax.add_patch(Rectangle((0, height), len(cnvs.columns), 1, fill=False, edgecolor=sample_pal[2], lw=3))
-        height = height + 12
-        ax.add_patch(Rectangle((0, height), len(cnvs.columns), 1, fill=False, edgecolor=sample_pal[3], lw=3))
-        height = height + 12
-        ax.add_patch(Rectangle((0, height), len(cnvs.columns), 1, fill=False, edgecolor=sample_pal[4], lw=3))
+        # TODO generalize limits
+        if not clusters:
+            height = 0
+            for model in range(0,5):
+                for _i in range(0,3):
+                    #if model == 4 and _i == 2: # Giorgia
+                    #    break
+                    ax.add_patch(Rectangle((0, height), len(cnvs.columns), 1, fill=False, edgecolor=sample_pal[model], lw=2))
+                    height = height + 4
+
+        # ax.add_patch(Rectangle((0, height), len(cnvs.columns), 1, fill=False, edgecolor=sample_pal[1], lw=3))
+        # height = height + 12
+        # ax.add_patch(Rectangle((0, height), len(cnvs.columns), 1, fill=False, edgecolor=sample_pal[2], lw=3))
+        # height = height + 12
+        # ax.add_patch(Rectangle((0, height), len(cnvs.columns), 1, fill=False, edgecolor=sample_pal[3], lw=3))
+        # height = height + 12
+        # ax.add_patch(Rectangle((0, height), len(cnvs.columns), 1, fill=False, edgecolor=sample_pal[4], lw=3))
         #place vertical lines to identify chromosomes
         for pos in chr_limits:
             ax.axvline(x=pos, color='black')

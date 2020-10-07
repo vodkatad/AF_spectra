@@ -75,8 +75,12 @@ def input_all_merged(wildcards):
     import glob
     if wildcards.kind == "vitro":
         return glob.glob("CRC*/platypus_nobin/vitro.merged.vcf.gz") + ["CRC1307_platypus_nobin/vitro.merged.vcf.gz"]
-    if wildcards.kind == "vivo":
+    elif wildcards.kind == "vivo":
         return glob.glob("CRC*/platypus_nobin/vivo.merged.vcf.gz") + ["CRC1307_platypus_nobin/vivo.merged.vcf.gz"]
+    elif wildcards.kind == "vitroloss":
+        return glob.glob("CRC*/platypus_nobin/vitro.mergedloss.vcf.gz") + ["CRC1307_platypus_nobin/vitro.mergedloss.vcf.gz"]
+    elif wildcards.kind == "vivoloss":
+        return glob.glob("CRC*/platypus_nobin/vivo.mergedloss.vcf.gz") + ["CRC1307_platypus_nobin/vivo.mergedloss.vcf.gz"]
     else:
         print("wrong option, baby")
 
@@ -98,6 +102,7 @@ rule vcf_comma:
         """
             echo {params.input} > {output}
         """
+
 
 ### Signatures
 

@@ -277,6 +277,13 @@ rule class_vcf:
             rm {output}.tmp
         """
 
+def find_pairs_lost_vcf(wildcards):
+    return [x+".loss.vcf.gz" for x in wanted_pairs()]
+
+
+rule all_lost_vcf:
+    input: find_pairs_lost_vcf
+
 def find_kind_vcf(wildcards):
     import re
     res = find_pairs_vcf('')
@@ -297,7 +304,30 @@ rule merged_vcf:
             done;
             bcftools merge {input} | bgzip > {output}
         """
-        
+
+# TODO remove repeated code by having lost/gain as wildcard usable in find_kind_vcf and find_pairs_vcf
+
+def find_kind_vcf_lost(wildcards):
+    import re
+    res = find_pairs_lost_vcf('')
+    if wildcards.kind == "vitro":
+        return [x for x in res if not re.match('.+M.+',x) ]
+    elif wildcards.kind == "vivo":
+        return [x for x in res if re.match('.+M.+',x) ]
+    else:
+        return res
+
+rule merged_loss_vcf:
+    input: find_kind_vcf_lost
+    output: "{kind}.mergedloss.vcf.gz"
+    shell:
+        """
+            for f in {input}; do 
+                tabix -f $f;
+            done;
+            bcftools merge {input} | bgzip > {output}
+        """
+
 rule annovar:
     input: "{t1sample}_{t0sample}.{class}.bed", ANNOVAR
     output: "{t1sample}_{t0sample}.{class}.multianno.txt"
