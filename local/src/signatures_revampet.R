@@ -40,5 +40,68 @@ mut_mat2 <- mut_mat + 0.0001
 estimate <- nmf(mut_mat2, rank=2:5, method="brunet", nrun=nrun_estimate, seed=seed)
 
 nsign <- 4 # from the plot optimal n. is 2 considering cophenetic...
-nmf_res <- extract_signatures(mut_mat, rank = nsign, nrun = nrun)
+#nmf_res <- extract_signatures(mut_mat, rank = nsign, nrun = nrun, single_core=TRUE)
 
+
+my_extract_signatures <- function(mut_matrix, rank, nrun = 200, nmf_type = c("regular", "variational_bayes"), single_core = FALSE) {
+  # Match argument
+  nmf_type <- match.arg(nmf_type)
+  
+  # Add a small pseudocount to avoid features with zero counts.
+  mut_matrix <- as.matrix(mut_matrix) + 0.0001
+  
+  # Make sure the rank_range is valid.
+  if (!(rank > 0 & rank == round(rank))) {
+    stop("Rank should be a positive integer", call. = FALSE)
+  }
+  
+  if (ncol(mut_matrix) < max(rank)) {
+    stop(paste0(
+      "The rank should be smaller than the number of ",
+      "samples in the input matrix."
+    ), call. = FALSE)
+  }
+  
+  if (nmf_type == "regular") {
+    # Calculate NMF
+    if (single_core){
+      res <- NMF::nmf(mut_matrix, rank = rank, method = "brunet", nrun = nrun, seed = 123456, .opt = "v-p")
+    } else{
+      res <- NMF::nmf(mut_matrix, rank = rank, method = "brunet", nrun = nrun, seed = 123456)
+    }
+    # Find signatures and contribution of signatures
+    signatures <- NMF::basis(res)
+    contribution <- NMF::coef(res)
+  } else {
+    if (!requireNamespace("ccfindR", quietly = TRUE)) {
+      stop(paste0(
+        "Package 'ccfindR' is needed for variational_bayes to work. ",
+        "Please either install it or use the regular NMF."
+      ), call. = FALSE)
+    }
+    sc <- ccfindR::scNMFSet(count = mut_matrix)
+    res <- ccfindR::vb_factorize(sc, ranks = rank, nrun = nrun, progress.bar = FALSE, verbose = 0)
+    # estimate = ccfindR::vb_factorize(sc, ranks = 2:7, nrun = nrun, progress.bar = FALSE, verbose = 0)
+    # plot(estimate)
+    # optimal_rank(sb)
+    signatures <- ccfindR::basis(res)[[1]]
+    contribution <- ccfindR::coeff(res)[[1]]
+  }
+  # Reconstruct mutation matrix
+  reconstructed <- signatures %*% contribution
+  return(list(
+    signatures = signatures,
+    contribution = contribution,
+    reconstructed = reconstructed
+  ))
+}
+
+nmf_res <- my_extract_signatures(mut_mat, rank = nsign, nrun = nrun, single_core=TRUE)
+
+
+## TODO match to these signatures our data.
+nn <- nmf_res$contribution
+nn <- nn[, grepl('CRC',colnames(nn))]
+plot_contribution_heatmap(nn)
+
+# todo on gained

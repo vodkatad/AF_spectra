@@ -191,6 +191,8 @@ ggsave("cosine_samples_signature.png")
 ###
 ci <- c('MA1_cosmic8','MA2_cosmic20','MA3_cosmic9','MA3_cosmic1-6')
 colnames(nmf_res$signatures) <- ci
+rownames(nmf_res$contribution) <- ci 
+
 
 ff <- fit_to_signatures(mut_mat,  nmf_res$signatures)
 ff$contribution
@@ -356,3 +358,39 @@ ggplot(cos_sim_ori_rec, aes(y=cos_sim, x=sample)) +
 ggsave("cosine_clones_signatureall.png")
 
 
+### signal refsig
+# do the normal beginning for merged samples
+
+signal <- '/home/egrassi/signal_refsig.txt'
+crc_signatures = read.table(signal, sep = "\t", header = TRUE)
+new_order = match(row.names(mut_mat), crc_signatures$Substitution.Type)
+# Reorder cancer signatures dataframe> 
+crc_signatures = crc_signatures[as.vector(new_order),]
+# Add trinucletiode changes names as row.names>
+row.names(crc_signatures) = crc_signatures$Substitution.Type
+# Keep only 96 contributions of the signatures in matrix
+crc_signatures = as.matrix(crc_signatures[,2:(ncol(crc_signatures)-1)])
+# manually checked that the last one was never there, POLE.
+
+ff <- fit_to_signatures(mut_mat, crc_signatures)
+ff$contribution
+which(rowSums(ff$contribution) > 10)
+select <- which(rowSums(ff$contribution) > 10)
+
+plot_contribution_heatmap(ff$contribution,cluster_samples = TRUE,method = "complete")
+ggsave("heatmap_signalrefsig_merged.png")
+
+
+cos_sim_ori_rec <- cos_sim_matrix(mut_mat, ff$reconstructed)
+cos_sim_ori_rec <- as.data.frame(diag(cos_sim_ori_rec))
+colnames(cos_sim_ori_rec) = "cos_sim"
+cos_sim_ori_rec$sample = row.names(cos_sim_ori_rec)
+
+ggplot(cos_sim_ori_rec, aes(y=cos_sim, x=sample)) +
+  geom_bar(stat="identity", fill = "skyblue4") +
+  coord_cartesian(ylim=c(0.7, 1)) +
+  coord_flip(ylim=c(0.7,1)) +
+  ylab("Cosine similarity\n original VS reconstructed") + 
+  xlab("") + xlim(rev(levels(factor(cos_sim_ori_rec$sample)))) +theme_bw()+
+  theme(panel.grid.minor.y=element_blank(), panel.grid.major.y=element_blank()) +geom_hline(aes(yintercept=.95))
+ggsave("cosine_merged_signalrefsig.png")
