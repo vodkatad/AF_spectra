@@ -188,7 +188,8 @@ rule vitro_heatmap:
         cnvs = cnvs.reindex(sorted_names)
         samples = p['m'].tolist()
         # Create a categorical palette to identify the samples
-        sample_pal = sns.color_palette("bright", len(np.unique(samples)))
+        #sample_pal = sns.color_palette("bright", len(np.unique(samples)))
+        sample_pal = sns.color_palette(["#ff5733","#f607b9","#155d00","#77a003","#0829fc"])
         #sample_pal = sns.husl_palette(len(samples), h=.5)
         sample_lut = dict(zip(map(str, np.unique(samples)), sample_pal))
         # Convert the palette to vectors that will be drawn on the side of the matrix
