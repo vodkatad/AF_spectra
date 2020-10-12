@@ -1,0 +1,29 @@
+include: "./conf.sk"
+
+rule vcf_to_matrix:
+    input: vcf=DATA+"/platypus_filtered.vcf.gz", chrs=DATA+"/chrs"
+    output: "binary_matrix.tsv.gz"
+    shell:
+        """
+            zgrep -v "^##" {input.vcf} | filter_1col 1 <(cat  <(echo '#CHROM') {input.chrs})  | cut -f 3,6,7,8,9 --complement \\
+            | perl -ane 'if ($. == 1) {{ $F[0] = substr($F[0],1); print join("\\t",@F); print "\\n"; }} elsif (length($F[3]) == 1 && length($F[2]) == 1 && $F[3] !~ /,/) {{ for($i=4; $i < scalar(@F); $i++) {{ @s = split(":",$F[$i]); $F[$i] = $s[0] eq "0/0" ? 0 : 1; }} print join("\\t",@F); print "\\n"; }}' \\
+            | gzip > {output}
+        """
+
+
+rule remove_private:
+    input: "binary_matrix.tsv.gz"
+    output: "noprivate_binary_matrix.tsv.gz"
+    params: tool=BIN_DIR+"/remove_private"
+    shell:
+        """
+            {params.tool} {input} {output}
+        """
+
+
+
+
+rule process_vcf:
+    output: "plh"
+    shell: "touch {output}"
+
