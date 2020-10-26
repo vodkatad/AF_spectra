@@ -10,6 +10,18 @@ rule vcf_to_matrix:
             | gzip > {output}
         """
 
+### TODO, but since they are pretty similar at the CN level we start without it
+#BASE_DIR=
+#rule clones_overlap_can_study:
+#    input: ""
+rule common_to_clones:
+    input: "binary_matrix.tsv.gz"
+    output: "{time}_common.matrix.tsv.gz"
+    params: tool=BIN_DIR+"/keep_common"
+    shell:
+        """
+            {params.tool} {input} {output} {wildcards.time}
+        """
 
 rule remove_private:
     input: "binary_matrix.tsv.gz"
@@ -21,6 +33,14 @@ rule remove_private:
         """
 
 
+rule bulk:
+    input: DATA+"/../second_shipment_bulk/"+BULKNAME+".pass.vcf.gz"
+    output: "bulk.list"
+    shell:
+        """
+            echo "ID" > {output}
+            zgrep -v "^#" {input} | bawk 'length($5)==1 && length($4)==1{{print $1":"$2":"$4":"$5}}' | sort | uniq>> {output}
+        """
 
 
 rule process_vcf:
