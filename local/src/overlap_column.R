@@ -22,8 +22,12 @@ cat("\t")
 cat(common)
 cat("\n")
 
+only_1 <- setdiff(data_1[,column], data_2[, column])
+only_2 <- setdiff(data_2[,column], data_1[, column])
 
 write.table(data.frame("ID"=clist), file = paste0(prefix, ".common.ids.tsv"), sep="\t", quote=FALSE, row.names=FALSE)
+write.table(data.frame("ID"=only_1), file = paste0(prefix, ".n1.ids.tsv"), sep="\t", quote=FALSE, row.names=FALSE)
+write.table(data.frame("ID"=only_2), file = paste0(prefix, ".n2.ids.tsv"), sep="\t", quote=FALSE, row.names=FALSE)
 
 library(VennDiagram)
 venn.diagram(

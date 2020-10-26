@@ -47,3 +47,16 @@ rule process_vcf:
     output: "plh"
     shell: "touch {output}"
 
+#../../../local/src/overlap_column.R 0_common.matrix.tsv.gz ../../CRC1307/tree/0_common.matrix.tsv.gz T0_common_1078 T0_common_1307 ID 1307_1078_T0_clones
+#1307_1078_T0_clones.n1.ids.tsv
+rule vcf_from_list:
+    input: muts="1307_1078_T0_clones.{n}.ids.tsv", vcf=DATA+"/../second_shipment_bulk/"+BULKNAME+".pass.vcf.gz"
+    output: "{n}.vcf.gz"
+    shell:
+        """
+            zcat {input.vcf} | grep "^##" > {output}.tmp
+            zcat {input.vcf} | grep -v "^##" | grep "^#" | cut -f 11 --complement >> {output}.tmp
+            cat {input.muts} | tr ":" "\\t" | bawk '{{print $1,$2,".",$3,$4,".","PASS","CONTQ=42","GT:AF","0/1:0.5"}}' >> {output}.tmp
+            bgzip -c {output}.tmp > {output}
+            rm {output}.tmp
+        """
