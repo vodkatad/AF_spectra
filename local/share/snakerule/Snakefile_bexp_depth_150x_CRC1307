@@ -1,4 +1,16 @@
-DEPTHS = ['50x','100x','150x','200x']#,'300x']
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+#DEPTHS = ['10x','20x','30x','40x','50x', '60x', '70x', '80x', '90x', '100x','150x','200x']#,'300x']
+DEPTHS = ['10x','20x','30x','40x','50x','100x','150x','200x']#,'300x']
 
 rule all_merge:
     input: ['merged_' + x for x in DEPTHS]
@@ -23,3 +35,24 @@ rule merge:
         bexp = pd.concat([bonf, bh])
         tot = bexp.join(covered, how='inner')
         tot.to_csv(output[0], sep="\t", header=True)
+
+
+### meta folies
+rule all_subdirs:
+    input: expand("mutect_nobin_{coverage}/all.lengthgen.txt", coverage=DEPTHS)
+
+rule dir_and_call:
+    input: snake=PRJ_ROOT+"/local/share/snakerule/Snakefile_clones_real_segments", confplh=PRJ_ROOT+"/local/share/snakemake/conf_CRC1307_150x_mutect_polished_PLHx.sk"
+    output: alllen="mutect_nobin_{coverage}/all.lengthgen.txt", bexp="mutect_nobin_{coverage}/bexp_n_gen.bh.tsv", conf=PRJ_ROOT+"/local/share/snakemake/conf_CRC1307_150x_mutect_polished_{coverage}.sk"
+    shell:
+        """
+           d=$(dirname {output.alllen})
+           mkdir -p $d
+           cd $d
+           ln -s {input.snake} Snakefile
+           cat {input.confplh} | sed 's/PLHx/{wildcards.coverage}/1' > {output.conf}
+           ln -s {output.conf} conf.sk
+           o1=$(basename {output.alllen})
+           o2=$(basename {output.bexp})
+           snakemake $o1 $o2
+        """
