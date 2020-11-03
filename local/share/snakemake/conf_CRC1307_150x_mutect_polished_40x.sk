@@ -28,7 +28,7 @@ CNLEN=BIN_DIR+"/cn_len_plot"
 CNLEN2=BIN_DIR+"/cn_len_plot2"
 
 DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
-CALLABLE=DATA+"/callable_40x.covered.bed.gz"
+CALLABLE=DATA+"/{sample}_callable_40x.covered.bed.gz"
 
 SAMPLES=['CRC1307-02-1-E', 'CRC1307-09-1-B']
 BULK=['plh']

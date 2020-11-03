@@ -58,3 +58,20 @@ oex <- exsubcl[order(-exsubcl)]
 axis(1, at=oi[labels],labels=paste0("1/",oex[labels]), las=2)
 abline(model, col="red")
 
+
+sottoriva <- function(data) {
+  ddd <- data
+  exsubcl <- ddd$af
+  excum <- sapply(1:length(exsubcl),function(i)sum(exsubcl[i]<=exsubcl[1:length(exsubcl)]))
+  invf <- 1/exsubcl
+  maxi <- length(invf)
+  labels <-  c(1, floor(maxi/5), floor(maxi/2), floor(maxi/0.5), maxi)
+  model <- lm(excum~invf)
+  sfit <- summary(model)
+  plot(invf, excum, cex=1.5, xaxt="n", xlab='1/f', ylab="Cumulative n. of muts M(f)", main=paste0("R2=", round(sfit$r.squared, digits=3)))
+  oi <- invf[order(invf)]
+  oex <- exsubcl[order(-exsubcl)]
+  axis(1, at=oi[labels],labels=paste0("1/",oex[labels]), las=2)
+  abline(model, col="red")
+  return(sfit)
+}
