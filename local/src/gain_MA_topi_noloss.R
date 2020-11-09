@@ -15,6 +15,9 @@ colnames(data) <- c("id", "class")
 df <- as.data.frame(table(data$class))
 df[df$Var1=="gain","Freq"]-df[df$Var1=="loss","Freq"]
 gained <- df[df$Var1=="gain","Freq"]#-df[df$Var1=="loss","Freq"]
+if (length(gained)  == 0) {
+    gained <- 0
+}
 name_num <- strsplit(len,"_")[[1]][1]
 name_den <- strsplit(len,"_")[[1]][2]
 name_den <- strsplit(name_den,'.', fixed=TRUE)[[1]][1]
@@ -42,7 +45,7 @@ MR <- sapply(unique(generation$TIPO), function(x ) get_MR(generation[generation$
 MR_time <- get_MR_time(days, gained, glen)
 
 type <- strsplit(name_num, '-')[[1]][3]
-
+save.image('pippo.Rdata')
 res <- data.frame(clone=clone, end=name_num, start=name_den, class=type, n_gained=gained, len_cnok=glen, MR_conte=MR[1], MR_EDU=MR[1], MR_giorni=MR_time)
 
 write.table(res, args[4], sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
