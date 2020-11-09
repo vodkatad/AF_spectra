@@ -1,3 +1,5 @@
+include: "conf.sk"
+#### first data for Orso on bexp on 30x
 DEPTHS = ['10x','20x','30x','40x','50x']
 
 rule all_merge:
@@ -25,52 +27,8 @@ rule merge:
         tot.to_csv(output[0], sep="\t", header=True)
 
 
-### all dnds
-import os
-def find_prj_root(path=os.getcwd()):
-    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
-        return path
-    else:
-        if path:
-            return find_prj_root(os.path.dirname(path))
-        else:
-            raise Exception("Can not find the PRJ_ROOT directory")
+#### signatures TODO definitive
 
-PRJ_ROOT=find_prj_root()
-DNDSCV_RDA=PRJ_ROOT+"/local/share/data/RefCDS_human_GRCh38.p12.rda"
-BIN_DIR=PRJ_ROOT+"/local/bin"
-        
-def input_all_gained(wildcards):
-    import glob
-    return glob.glob("CRC*/platypus_nobin/all_gained_named.tsv") + ["CRC1307_platypus_nobin/all_gained_named.tsv"]
-
-rule all_dnds:
-    input: input_all_gained
-    output: "dnds.tsv", "dnds.Rdata"
-    log: "dnds.log"
-    params:  tool=BIN_DIR+"/dnds", rda=DNDSCV_RDA
-    shell:
-        """
-            cat {input} | tr ":" "\\t" | bawk '{{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
-            {params.tool} {output[0]}.tmp {output} {params.rda} &> {log}
-            rm {output[0]}.tmp
-        """
-
-rule dnds_vitro:
-    input: input_all_gained
-    output: "dnds_vitro.tsv", "dnds_vitro.Rdata"
-    log: "dnds_vitro.log"
-    params:  tool=BIN_DIR+"/dnds", rda=DNDSCV_RDA
-    shell:
-        """
-            cat {input} | tr ":" "\\t" | bawk '$1 !~ /M/ {{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
-            {params.tool} {output[0]}.tmp {output} {params.rda} &> {log}
-            rm {output[0]}.tmp
-        """
-    
-#### TODO dn/ds plot
-
-# signatures
 def input_all_merged(wildcards):
     import glob
     if wildcards.kind == "vitro":
@@ -103,16 +61,11 @@ rule vcf_comma:
             echo {params.input} > {output}
         """
 
-
-### Signatures
-
-
-#### shared
+#### shared muts
 # right now selection of files is done inside R with list.files, this is DANGEROUS, FIXME
 rule shared_clone:
     output: "{hsample}.shared.png"
     params: tool=BIN_DIR+"/private_shared_gains"
-
 
 
 #egrassi@godot:/mnt/trcanmed/snaketree/prj/AF_spectra/dataset$ grep wall CRC*/platypus_nobin/dnds.tsv  CRC1307_platypus_nobin/dnds.tsv  | tr "/" "\t" | tr "_" "\t" | cut -f 1,6,7,8
@@ -122,20 +75,122 @@ rule shared_clone:
 #CRC1502 0.763560613708499       0.456284024078526       1.27776731167463
 #CRC1307 1.08332207165535        0.744123741132339       1.57713918541261
 
-## horror
-rule overall_horror:
-    output: "MR_edu"
+#### Overall inputs and summarizing plots
+# 0- dnds
+# 1- all gained per Mb
+# 2- MR vitro
+# 3- indels gained per Mb
+# 4- indels MR vitro
+
+## inputs
+# $4==1 keeps only first 6 months in vitro samples
+def kind_MR(wildcards):
+    if wildcards.kind == "SNV":
+        return expand("{model}/platypus_nobin/all.MR_ov", model=MODELS)
+    else:
+        return expand("{model}/platypus_nobin_indels/all.MR_ov", model=MODELS)
+
+rule overall_MR_edu_vitro:
+    output: "MR_edu_{kind}"
+    input: kind_MR
     shell:
         """
-            cut  -f 2,8 */platypus_nobin/all.MR_ov | grep -v end > MR_edu
-            cut -f 2,8 CRC1307_platypus_nobin/all.MR_ov | grep -v end >> MR_edu 
+            cat {input} | bawk '$4==1{{print $2,$8}}' > {output}
         """
 
-
-rule overall_horror_2:
-    output: "gained_norm"
+rule overall_SNV_gained_norm:
+    output: "vitro_gained_norm_{kind}"
+    input: kind_MR
     shell:
         """
-            cut -f 2,5,6  */platypus_nobin/all.MR_ov | grep -v end | awk  -F'\\t' -v OFS='\\t'  '{{print $1,$2/$3}}' > {output}
-            cut -f 2,5,6 CRC1307_platypus_nobin/all.MR_ov | grep -v end | awk  -F'\\t' -v OFS='\\t'  '{{print $1,$2/$3}}' >> {output}
+            cat {input} | bawk '$4==1{{print $2,$5/$6}}' > {output}
         """
+
+rule overall_SNV_gained_norm_vivo:
+    output: "vivo_gained_norm_{kind}"
+    input: kind_MR
+    shell:
+        """
+            cat {input} | bawk '$4!=1 && $4!="class"{{print $2,$5/$6}}' > {output}
+        """
+        
+### all dnds
+rule all_dnds:
+    input: expand("{model}/platypus_nobin/all_gained_named.tsv", model=MODELS)
+    output: "dnds.tsv", "dnds.Rdata"
+    log: "dnds.log"
+    params:  tool=BIN_DIR+"/dnds", rda=DNDSCV_RDA
+    shell:
+        """
+            cat {input} | tr ":" "\\t" | bawk '{{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
+            {params.tool} {output[0]}.tmp {output} {params.rda} &> {log}
+            rm {output[0]}.tmp
+        """
+
+rule dnds_vitro:
+    input: expand("{model}/platypus_nobin/all_gained_named.tsv", model=MODELS)
+    output: "dnds_vitro.tsv", "dnds_vitro.Rdata"
+    log: "dnds_vitro.log"
+    params:  tool=BIN_DIR+"/dnds", rda=DNDSCV_RDA
+    shell:
+        """
+            cat {input} | tr ":" "\\t" | bawk '$1 !~ /M/ {{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
+            {params.tool} {output[0]}.tmp {output} {params.rda} &> {log}
+            rm {output[0]}.tmp
+        """
+
+rule dnds_overall:
+    input: expand("{model}/platypus_nobin/dnds.tsv", model=MODELS)
+    output: "dnds_overall.tsv"
+    shell:
+        """
+          for f in {input}; do \\
+            n=$(echo $f | tr "\/" "\\t" | cut -f 1); \\
+            bawk -v name=$n '$1=="wall"{{print name,$3,$4,$5}}' $f; \\
+          done > {output}
+        """
+
+## plots
+# single plots are from all_gained_named.tsv with also in vivo so we will keep it here
+rule dnds_global:
+    input: "dnds_overall.tsv"
+    output: "dnds_overall.png"
+    params: tool=BIN_DIR+"/dnds_plot_overall", colors=COLORS_MODELS
+    shell:
+        """
+            {params.tool} {input} {output} '{params.colors}'
+        """
+
+rule dnds_onebyone: # TODO
+    input: expand("{model}/platypus_nobin/dnds.tsv", model=MODELS)
+    output: "dnds_onebyone.png"
+    params: tool=BIN_DIR+"/dnds_plot_onebyone"
+    shell:
+        """
+            {params.tool} {input} {output}
+        """
+
+#egrassi@godot:/scratch/trcanmed/AF_spectra/local/bin$ ln -s ../src/MR_plot.R MR_plot
+#egrassi@godot:/scratch/trcanmed/AF_spectra/local/bin$ ln -s ../src/gained_plot.R gained_plot
+rule MR_edu_plot:
+    input: "MR_edu_{kind}"
+    output: "MR_edu_{kind}.png"
+    params: tool=BIN_DIR+"/MR_plot", colors=MANY_COLORS_MODELS
+    shell:
+        """
+            {params.tool} {input} {output} '{params.colors}'
+        """
+
+wildcard_constraints:
+    kind="[a-zA-Z]+"
+
+rule gained_plot:
+    input: "{vivi}_gained_norm_{kind}"
+    output: "{vivi}_gained_norm_{kind}.png"
+    params: tool=BIN_DIR+"/gained_plot", colors=MANY_COLORS_MODELS
+    shell:
+        """
+            {params.tool} {input} {output} '{params.colors}'
+        """
+
+## TODO b/d
