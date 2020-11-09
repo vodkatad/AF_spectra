@@ -75,3 +75,35 @@ sottoriva <- function(data) {
   abline(model, col="red")
   return(sfit)
 }
+
+#### 
+path30x <- '/scratch/trcanmed/AF_spectra/dataset/CRC1502/mutect_nobin/CRC1502-03-1-A.var_cnv.tsv.gz'
+path120x <- '/scratch/trcanmed/AF_spectra/dataset/CRC1502_150x/mutect_nobin_30x/CRC1502-03-1-A.var_cnv.tsv.gz'
+
+load <- function(path) {
+  d <- read.table(path, sep="\t", stringsAsFactors=FALSE, header=FALSE)
+  exploded <- lapply(d$V4, function(x) {strsplit(x, ":", fixed=TRUE)})
+  colnames(d) <- c('chr', 'b','e','id')
+  rownames(d) <- d$id
+  d$id <- NULL
+  d$af <- as.numeric(sapply(exploded, function(x) { x[[1]][7]}))
+  d$cn <- as.numeric(sapply(exploded, function(x) { x[[1]][8]}))
+  return(d)
+}
+
+lc <- load(path30x)
+hc <- load(path120x)
+
+s_lc <- sottoriva(lc[lc$cn==2 & lc$af > 0.12 & lc$af < 0.24,])
+s_hc <- sottoriva(hc[hc$cn==2 & hc$af > 0.12 & hc$af < 0.24,])
+
+s_lc_2 <- sottoriva(lc[lc$cn==2 & lc$af > 0.12 & lc$af < 0.4,]) # less than expected...
+s_hc_2 <- sottoriva(hc[hc$cn==2 & hc$af > 0.12 & hc$af < 0.4,])
+
+# need to fix the intercept?
+#linear model with slope μ/β and intercept –μ/(β fmax). We exploited the intercept constraint to perform a more restrictive fit using the model y=m(x-1/fmax)+0.
+
+bulk_path <- '/scratch/trcanmed/AF_spectra/dataset/second_shipment_bulk/mutect_nobin/CRC1502LMO-0-B.var_cnv.tsv.gz'
+b <- load(bulk_path)
+s_b <- sottoriva(b[b$cn==2 & b$af > 0.12 & b$af < 0.24,])
+
