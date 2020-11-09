@@ -1,0 +1,68 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
+
+HROOT='/home/egrassi'
+DATA=PRJ_ROOT+"/local/share/data/CRC1502"
+SDATA=DATA
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+
+PLOIDY=2
+
+KIND="indel"
+MULTI="nomulti"
+
+VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
+VCFTOBED1=BIN_DIR+"/vcf_to_bed"
+CNLEN=BIN_DIR+"/cn_len_plot"
+CNLEN2=BIN_DIR+"/cn_len_plot2"
+
+DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
+CALLABLE=DATA+"/callable_covered.bed.gz"
+
+BULKNAME="CRC1502LMO-0-B"
+BULK=['']
+SAMPLES=['CRC1502-03-0', 'CRC1502-08-0', 'CRC1502-09-0', 'CRC1502-03-1-A', 'CRC1502-03-1-C', 'CRC1502-03-1-D', 'CRC1502-08-1-A', 'CRC1502-08-1-C', 'CRC1502-08-1-D', 'CRC1502-09-1-A', 'CRC1502-09-1-C', 'CRC1502-09-1-E']# 'CRC1502-10-MA-A', 'CRC1502-10-MA-D', 'CRC1502-10-MA-C', 'CRC1502-10-MC-A', 'CRC1502-10-MC-C', 'CRC1502-10-MC-D', 'CRC1502-10-MI-A', 'CRC1502-10-MI-C', 'CRC1502-10-MI-G']
+#SAMPLES=['CRC1502-08-0', 'CRC1502-09-0', 'CRC1502-08-1-A', 'CRC1502-08-1-C', 'CRC1502-08-1-D', 'CRC1502-09-1-A', 'CRC1502-09-1-C', 'CRC1502-09-1-E']
+
+CLONE2=['CRC1502-03-0', 'CRC1502-03-1-A','CRC1502-03-1-C','CRC1502-03-1-D']
+CLONE8=['CRC1502-08-0', 'CRC1502-08-1-A', 'CRC1502-08-1-C', 'CRC1502-08-1-D']
+CLONE9=['CRC1502-09-0','CRC1502-09-1-A', 'CRC1502-09-1-E', 'CRC1502-09-1-C']
+
+ALL_SAMPLES=SAMPLES
+SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
+WANTED_CN = "1,2,3"
+
+wildcard_constraints:
+    sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+
+SAMPLES_HIGH=["CRC1502-08","CRC1502-09",'CRC1502-03'] # list comprehens TODO
+SAMPLES_ZERO=[x+'-0' for x in SAMPLES_HIGH]
+
+CNVKIT='cnvkit'
+DNDSCV_RDA=DATA+"/../RefCDS_human_GRCh38.p12.rda"
+
+# rule process_vcf_special:
+#     input: vcf=DATA+"/"+SAMPLES[0]+".pass.vcf.gz", chrs=DATA+"/chrs"  
+#     output: SAMPLES[0]+".tsv.gz"
+#     params: tool=VCFTOBED1, multi=MULTI, kind=KIND, sample="CRC1307LMO"
+#     log: SAMPLES[0]+".multiallelic"
+#     shell:
+#         """
+#             bcftools view -s {params.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
+#             | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
+#         """
+
+# ruleorder: process_vcf_special > process_vcf
