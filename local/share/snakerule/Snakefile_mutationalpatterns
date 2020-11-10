@@ -1,25 +1,5 @@
 include: "conf.sk"
 
-rule chain:
-    output: "chain.gz"
-    shell: "wget -O {output} http://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz"
-
-
-wildcard_constraints:
-    which="[\w\d_.]+"   
-
-rule bed:
-    input: bed=BED+"/{which}.bed", chain="chain.gz"
-    output: bed="{which}.bed", miss="{which}.miss"
-    shell:
-        """
-            liftOver <(bawk '{{print "chr"$1,$2,$3}}' {input.bed}) {input.chain} {output.bed} {output.miss}
-        """
-
-#from os import glob
-#rule replibed:
-#    input: glob.glob("all_RepliSeq*.bed")
-
 def getbedname(wildcards):
     if wildcards.which == "Homo_sapiens.GRCh37.75_autosomal_exon_merged_sorted":
         return("exons")
@@ -31,7 +11,7 @@ def getbedname(wildcards):
 # and thus violates the chain of input/output by snakemake
 # Warnings are not an issue, different chr names from beds  (TODOPARANOIA check)
 rule bed_enrich:
-    input: bed="{which}.bed", callable=CALLABLE
+    input: bed="../../{which}.bed", callable=CALLABLE
     output: tsv="{which}.enrich.tsv", plot="{which}.enrich.pdf"
     params: tool=BIN_DIR+"/mutpat_enrich_cnv", input= lambda wildcards, input: ','.join(find_pairs_vcf(wildcards)), cnvdir=VCF_DIR, name=getbedname
     shell:  
@@ -56,5 +36,15 @@ rule mut_pat_signatures:
         """
             mkdir -p {output}
             {params.tool} {params.input} {output} {wildcards.nrank}
+        """
+
+rule mut_pat_baseinfo:
+    input: find_pairs_vcf
+    output: directory("mut_pat")
+    params: tool=BIN_DIR+"/mut_pat_baseinfo", input= lambda wildcards, input: ','.join(input)
+    shell:
+        """
+            mkdir -p {output}
+            {params.tool} {params.input} {output}
         """
 

@@ -13,23 +13,21 @@ BIN_DIR=PRJ_ROOT+"/local/bin"
 BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
 SNAKE_ROOT=os.getenv('SNAKE_ROOT')
 
-VCF_DIR=PRJ_ROOT+"/dataset/CRC1502/platypus_nobin"
-CALLABLE=PRJ_ROOT+"/local/share/data/CRC1502_clones_mutect/callable_covered.bed.gz"
+VCF_DIR=PRJ_ROOT+"/dataset/CRC1307_platypus_nobin"
+CALLABLE=PRJ_ROOT+"/local/share/data/CRC1307_clones_mutect/callable_covered.bed.gz"
 
 BED=PRJ_ROOT+"/local/share/data/mutational_patterns/data"
 
-
-BULK=['']
-# TODO FIXME
-CLONE2=['CRC1502-03-0', 'CRC1502-03-1-A','CRC1502-03-1-C','CRC1502-03-1-D']
-CLONE8=['CRC1502-08-0', 'CRC1502-08-1-A', 'CRC1502-08-1-C', 'CRC1502-08-1-D']
-CLONE9=['CRC1502-09-0','CRC1502-09-1-A', 'CRC1502-09-1-E','CRC1502-09-1-C']
-
+SAMPLES=['CRC1307LMO-0-B', 'CRC1307-02-0', 'CRC1307-08-0', 'CRC1307-09-0', 'CRC1307-02-1-A', 'CRC1307-02-1-B', 'CRC1307-02-1-E', 'CRC1307-08-1-B', 'CRC1307-08-1-D', 'CRC1307-08-1-E', 'CRC1307-09-1-B', 'CRC1307-09-1-C', 'CRC1307-09-1-E']
+BULK=['CRC1307LMO-0-B']
+CLONE2=['CRC1307-02-0', 'CRC1307-02-1-A', 'CRC1307-02-1-B', 'CRC1307-02-1-E']
+CLONE8=['CRC1307-08-0','CRC1307-08-1-B', 'CRC1307-08-1-D', 'CRC1307-08-1-E']
+CLONE9=['CRC1307-09-0', 'CRC1307-09-1-B', 'CRC1307-09-1-C', 'CRC1307-09-1-E']
+ALL_SAMPLES=BULK+CLONE2+CLONE8+CLONE9
 SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
 
-WANTED_CN = "1,2,3"
 # right now manually determined
-NSIGN=4
+NSIGN=2
 
 wildcard_constraints:
     sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"   
@@ -38,5 +36,5 @@ wildcard_constraints:
 wildcard_constraints:
     t0sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
 
-SAMPLES_HIGH=["CRC1502-08","CRC1502-09"] # list comprehens TODO
-SAMPLES_ZERO=[x+'-0' for x in SAMPLES_HIGH]
+SAMPLES_HIGH=["CRC1307-09","CRC1307-08","CRC1307-02"] # list comprehens TODO
+SAMPLES_ZERO=["CRC1307-09-0","CRC1307-08-0","CRC1307-02-0"]

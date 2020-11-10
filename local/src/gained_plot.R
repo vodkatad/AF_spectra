@@ -6,7 +6,7 @@ args <- commandArgs(trailingOnly = T)
 infile <- args[1]
 outfile <- args[2]
 colors <- args[3]
-
+vivi <- args[4]
 
 our <- read.table(infile, sep="\t", header=FALSE, stringsAsFactors=FALSE)
 colnames(our) <- c('sample','gained')
@@ -14,7 +14,7 @@ our$gained <- our$gained * 1000000
 our$model <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
 our$clone <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][2]; return(y[1])})
 our$clone2 <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][4]; return(y[1])})
-#our$vivi <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][3]; return(y[1])})
+our$vivi <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][3]; return(y[1])})
 
 
 confidence_interval <- function(vector, interval) {
@@ -37,8 +37,11 @@ colnames(ic_clones) <- unique(our$model)
 pdata <- as.data.frame(t(ic_clones))
 pdata$model <- rownames(pdata)
 
-our$model_clone <- paste0(our$model, "_", our$clone)
-
+if (!is.na(vivi) && vivi == "vivo") {
+  our$model_clone <- paste0(our$model, "_", our$clone, "_", our$vivi)
+} else {
+  our$model_clone <- paste0(our$model, "_", our$clone)
+}
 
 n <- length(levels(as.factor(our$model_clone)))
 cbPalette <- unlist(strsplit(colors, ','))

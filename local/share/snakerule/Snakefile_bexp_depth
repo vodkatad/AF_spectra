@@ -175,7 +175,7 @@ rule dnds_onebyone: # TODO
 rule MR_edu_plot:
     input: "MR_edu_{kind}"
     output: "MR_edu_{kind}.png"
-    params: tool=BIN_DIR+"/MR_plot", colors=MANY_COLORS_MODELS
+    params: tool=BIN_DIR+"/MR_plot", colors=MANY_COLORS_MODELS_VITRO
     shell:
         """
             {params.tool} {input} {output} '{params.colors}'
@@ -187,10 +187,54 @@ wildcard_constraints:
 rule gained_plot:
     input: "{vivi}_gained_norm_{kind}"
     output: "{vivi}_gained_norm_{kind}.png"
-    params: tool=BIN_DIR+"/gained_plot", colors=MANY_COLORS_MODELS
+    params: tool=BIN_DIR+"/gained_plot", colors=lambda w: MANY_COLORS_MODELS_VITRO if w.vivi == "vitro" else MANY_COLORS_MODELS_VIVO
     shell:
         """
             {params.tool} {input} {output} '{params.colors}'
         """
 
+### quick and dirty remove 282
+rule MSS_MR_edu_plot:
+    input: "MR_edu_{kind}"
+    output: "MSSMR_edu_{kind}.png"
+    params: tool=BIN_DIR+"/MR_plot", colors=MSS_MANY_COLORS_MODELS_VITRO
+    shell:
+        """
+            grep -v CRC0282 {input} > {output}.tmp
+            {params.tool} {output}.tmp {output} '{params.colors}'
+            rm {output}.tmp
+        """
+
+rule MSS_gained_plot:
+    input: "{vivi}_gained_norm_{kind}"
+    output: "{vivi}_gainedMSS_norm_{kind}.png"
+    params: tool=BIN_DIR+"/gained_plot", colors=lambda w: MSS_MANY_COLORS_MODELS_VITRO if w.vivi == "vitro" else MSS_MANY_COLORS_MODELS_VIVO
+    shell:
+        """
+            grep -v CRC0282 {input} > {output}.tmp
+            {params.tool} {output}.tmp {output} '{params.colors}' {wildcards.vivi}
+            rm {output}.tmp
+        """
+
+
+
 ## TODO b/d
+
+
+
+### MutationalPatterns bed
+rule chain:
+    output: "chain.gz"
+    shell: "wget -O {output} http://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz"
+
+
+wildcard_constraints:
+    which="[\w\d_.]+"   
+
+rule bed:
+    input: bed=BED+"/{which}.bed", chain="chain.gz"
+    output: bed="{which}.bed", miss="{which}.miss"
+    shell:
+        """
+            liftOver <(bawk '{{print "chr"$1,$2,$3}}' {input.bed}) {input.chain} {output.bed} {output.miss}
+        """
