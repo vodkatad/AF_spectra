@@ -26,3 +26,8 @@ MSS_MANY_COLORS_MODELS_VITRO="#f607b9,#fb49ce,#f998e0,#155d00,#239203,#2fc603,#7
 # without colors for vivo different clones
 #MSS_MANY_COLORS_MODELS_VIVO="#f607b9,#155d00,#77a003,#0829fc"
 MSS_MANY_COLORS_MODELS_VIVO="#f607b9,#fb49ce,#f998e0,#155d00,#77a003,#95c805,#bcfc08,#0829fc,#4a62fb,#95a3fd,#003399"
+
+# for signature analyses
+BASE_DIR_BULK='/scratch/trcanmed/AF_spectra/local/share/data/second_shipment_bulk/'
+BULK=['CRC0327LMO-0-B.pass.vcf.gz','CRC1078LMO-0-B.pass.vcf.gz','CRC1307LMO-0-B.pass.vcf.gz','CRC1502LMO-0-B.pass.vcf.gz','CRC0282LMO-0-B.pass.vcf.gz']
+BULK_VCF=[os.path.join(BASE_DIR_BULK,x) for x in BULK] 

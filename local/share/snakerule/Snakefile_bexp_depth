@@ -29,37 +29,59 @@ rule merge:
 
 #### signatures TODO definitive
 
-def input_all_merged(wildcards):
+
+def input_signatures(wildcards):
     import glob
     if wildcards.kind == "vitro":
-        return glob.glob("CRC*/platypus_nobin/vitro.merged.vcf.gz") + ["CRC1307_platypus_nobin/vitro.merged.vcf.gz"]
+        return glob.glob("CRC*/platypus_nobin/vitro.merged.vcf.gz")
     elif wildcards.kind == "vivo":
-        return glob.glob("CRC*/platypus_nobin/vivo.merged.vcf.gz") + ["CRC1307_platypus_nobin/vivo.merged.vcf.gz"]
+        return glob.glob("CRC*/platypus_nobin/vivo.merged.vcf.gz") 
     elif wildcards.kind == "vitroloss":
-        return glob.glob("CRC*/platypus_nobin/vitro.mergedloss.vcf.gz") + ["CRC1307_platypus_nobin/vitro.mergedloss.vcf.gz"]
+        return glob.glob("CRC*/platypus_nobin/vitro.mergedloss.vcf.gz")
     elif wildcards.kind == "vivoloss":
-        return glob.glob("CRC*/platypus_nobin/vivo.mergedloss.vcf.gz") + ["CRC1307_platypus_nobin/vivo.mergedloss.vcf.gz"]
+        return glob.glob("CRC*/platypus_nobin/vivo.mergedloss.vcf.gz")
+    elif wildcards.kind == "vitrovivobulk":
+        return glob.glob("CRC*/platypus_nobin/vitro.merged.vcf.gz") + glob.glob("CRC*/platypus_nobin/vivo.merged.vcf.gz") + BULK_VCF
+    elif wildcards.kind == "allstartingvcf":
+        print("TODO!")
     else:
         print("wrong option, baby")
 
+# TODO for single clones a different matching strategy is needed
+rule all_sign_input:
+    input: input_signatures
+    output: "signinput_{kind}_{merged}"
+    run:
+        import re
+        with open(output[0],'w') as out:
+            for vcf in input:
+                crc = re.search('CRC\d{4}(LM|PR)*', vcf) # 1599 have LM/PR and we need to keep it
+                sample_kind = "NA"
+                sample = crc.group()
+                if re.search('vitro', vcf) is not None:
+                    sample_kind = 'vitroMA'
+                elif re.search('vivo', vcf) is not None:
+                    sample_kind = 'vivoMA'
+                elif re.search('bulk', vcf) is not None: # but for other bulk we have always LMO...
+                    sample_kind = 'bulk'
+                    if re.search('1599', vcf) is None: # re remove LM from the un-needed samples. Very bad but at this point this seems the only way around this issue.
+                        sample = sample[0:7]
+                annotation = sample + '_' + sample_kind
+                out.write("{}\t{}".format(vcf, annotation))
+                out.write("\n")
+                  
+
+# Todo also print the signature matrixes?
+# TODO also print 'selected' heatmap
 rule all_sign:
-    input: input_all_merged
-    output: directory("mut_pat_signatures_{kind}_{nrank}")
-    params: tool=BIN_DIR+"/mut_pat_sign_merged", input= lambda wildcards, input: ','.join(input)#, nsign=NSIGN
+    input: "signinput_vitrovivobulk_merged"
+    output: heat="vitrovivobulk_heatmap_{merged}_cosmic.png", cosine="vitrovivobulk_cosine_{merged}_cosmic.png"
+    params: tool=BIN_DIR+"/mut_pat_signatures_fit", colors=COLORS_MODELS
     shell:
         """
-            mkdir -p {output}
-            {params.tool} {params.input} {output} {wildcards.nrank}
+            {params.tool} {input} {output.heat} {output.cosine} '{params.colors}'
         """
 
-rule vcf_comma:
-    input: input_all_merged
-    output: "list_vcf_{kind}"
-    params: input= lambda wildcards, input: ','.join(input)
-    shell:
-        """
-            echo {params.input} > {output}
-        """
 
 #### shared muts
 # right now selection of files is done inside R with list.files, this is DANGEROUS, FIXME
