@@ -1,0 +1,31 @@
+include: "../conf.sk"
+
+rule big_merge:
+    input: PLATY_VCF+BULK_VCF
+    output: "big_merge_platypus_bulk.vcf.gz"
+    shell:
+        """
+            bcftools merge {input} | bgzip > {output}
+            tabix {output}
+        """
+
+rule vcf_to_matrix:
+    input: vcf="big_merge_platypus_bulk.vcf.gz", chrs=DATA+"/chrs"
+    output: "binary_matrix.tsv.gz"
+    shell:
+        """
+            zgrep -v "^##" {input.vcf} | filter_1col 1 <(cat  <(echo '#CHROM') {input.chrs})  | cut -f 3,6,7,8,9 --complement \\
+            | perl -ane 'if ($. == 1) {{ $F[0] = substr($F[0],1); print join("\\t",@F); print "\\n"; }} elsif (length($F[3]) == 1 && length($F[2]) == 1 && $F[3] !~ /,/) {{ for($i=4; $i < scalar(@F); $i++) {{ @s = split(":",$F[$i]); $F[$i] = $s[0] eq "1/0" || $s[0] eq "0/1" || $s[0] eq "1/1" ? 1 : 0; }} print join("\\t",@F); print "\\n"; }}' \\
+            | gzip > {output}
+        """
+
+
+rule remove_private:
+    input: "binary_matrix.tsv.gz"
+    output: "noprivate_binary_matrix.tsv.gz"
+    params: tool=BIN_DIR+"/remove_private"
+    shell:
+        """
+            {params.tool} {input} {output}
+        """
+

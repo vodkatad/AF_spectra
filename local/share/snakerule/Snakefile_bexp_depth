@@ -260,3 +260,8 @@ rule bed:
         """
             liftOver <(bawk '{{print "chr"$1,$2,$3}}' {input.bed}) {input.chain} {output.bed} {output.miss}
         """
+
+
+### QC #  TODO
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ for f in  */platypus_nobin/*ovcnokdelta.tsv.gz; do g=$(zcat $f | grep -c gain); l=$(zcat $f | grep -c loss); echo -e "$f\t$g\t$l"; done > gain_loss.snv
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ for f in  */platypus_nobin_indels/*ovcnokdelta.tsv.gz; do g=$(zcat $f | grep -c gain); l=$(zcat $f | grep -c loss); echo -e "$f\t$g\t$l"; done > gain_loss.indel

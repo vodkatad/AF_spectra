@@ -31,3 +31,11 @@ MSS_MANY_COLORS_MODELS_VIVO="#f607b9,#fb49ce,#f998e0,#155d00,#77a003,#95c805,#bc
 BASE_DIR_BULK='/scratch/trcanmed/AF_spectra/local/share/data/second_shipment_bulk/'
 BULK=['CRC0327LMO-0-B.pass.vcf.gz','CRC1078LMO-0-B.pass.vcf.gz','CRC1307LMO-0-B.pass.vcf.gz','CRC1502LMO-0-B.pass.vcf.gz','CRC0282LMO-0-B.pass.vcf.gz']
 BULK_VCF=[os.path.join(BASE_DIR_BULK,x) for x in BULK] 
+
+# and for vcf big merge
+PLATY_VCF=[]
+import glob
+for m in MODELS:
+    PLATY_VCF.append(glob.glob(os.path.join(PRJ_ROOT,'local/share/data', m, 'platypus_filtered.vcf.gz')))
+
+DATA=os.path.join(PRJ_ROOT,'local/share/data/CRC0282/')
