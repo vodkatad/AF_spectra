@@ -26,7 +26,7 @@ ggsave(outputf1)
 
 
 # TODO FIXME
-vdata <- data[data$clone==8,]
+#vdata <- data[grepl('M', data$clone, fixed=TRUE),]
 
 gd$condition <- 'invivo'
 vdata$condition <- ifelse(vdata$class==1,'invitro','invivo')

@@ -47,4 +47,3 @@ rule mut_pat_baseinfo:
             mkdir -p {output}
             {params.tool} {params.input} {output}
         """
-

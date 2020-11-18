@@ -194,3 +194,24 @@ cbPalette4 <- c("#ff5733", "#ff7433", "#f607b9","#fb49ce","#155d00","#239203","#
   
 ggplot(data = pcs, aes_string(x = "PC1", y = "PC2", color = "model")) +geom_point(size = 1) + xlab(paste0("PC1", ': ', round(percentVar[1] *100), "% variance")) + ylab(paste0("PC2", ":", round(percentVar[2] *100), "% variance")) + coord_fixed()+theme_bw()+scale_color_manual(values=cbPalette4)
 
+####
+pcs$time <- unlist(lapply(strsplit(as.character(pcs$sample),'.', fixed=T), function(x){ if (length(x)>2) {x[3]} else {'B'} }))
+pcs$env <- 'vitro'
+pcs$kind <- 'MA'
+pcs[grepl('.M', as.character(pcs$sample), fixed=T),]$env <- 'vivo'
+pcs[grepl('LM', as.character(pcs$sample), fixed=T),]$kind <- 'bulk'
+pcs$tt <- 'T1'
+pcs[pcs$time=='01',]$tt <- 'T0'
+pcs[pcs$time=='0',]$tt <- 'basale'
+table(pcs$tt)
+
+ggplot(data = pcs, aes(x = PC1, y = PC2, color = time)) +geom_point(size = 4) + xlab(paste0("PC1", ': ', round(percentVar[1] *100), "% variance")) + ylab(paste0("PC2", ":", round(percentVar[2] *100), "% variance")) +theme_bw()
+
+ff <- function(pc1, pc2) {
+pcs <- data.frame(PC1 = pca$x[, pc1], PC2 = pca$x[, pc2], sample = rownames(pca$x))
+pcs$model <- (unlist(lapply(strsplit(as.character(pcs$sample),'.', fixed=TRUE), function(x){ x[1] })))
+pcs$model2 <- substr(pcs$model, 0,7)
+pcs$time <- unlist(lapply(strsplit(as.character(pcs$sample),'.', fixed=T), function(x){ if (length(x)>2) {x[3]} else {'B'} }))
+ggplot(data = pcs, aes_string(x = 'PC1', y = 'PC2', color='model2', shape = 'time')) +geom_point(size = 4) + xlab(paste0("PC", pc1,': ', round(percentVar[pc1] *100), "% variance")) + ylab(paste0("PC", pc2, ":", round(percentVar[pc2] *100), "% variance")) +theme_bw()+scale_color_manual(values=cbPalette2[-1])
+
+}

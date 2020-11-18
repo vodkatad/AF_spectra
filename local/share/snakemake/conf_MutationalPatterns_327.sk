@@ -14,7 +14,7 @@ BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
 SNAKE_ROOT=os.getenv('SNAKE_ROOT')
 
 VCF_DIR=PRJ_ROOT+"/dataset/CRC0327/platypus_nobin"
-CALLABLE=PRJ_ROOT+"/local/share/data/CRC0327_clones_mutect/callable_covered.bed.gz"
+CALLABLE=PRJ_ROOT+"/local/share/data/CRC0327/callable_covered.bed.gz"
 
 BED=PRJ_ROOT+"/local/share/data/mutational_patterns/data"
 
