@@ -335,26 +335,6 @@ rule intersect:
         """
 
 ####
-rule seqtocns:
-    input: sequenza=DATA+"/{sample}_segments.txt", chrs=DATA+"/chrs"
-    output: "cns/{sample}.cns"
-    params: ploidy=PLOIDY
-    shell: 
-        """    
-            echo -e "chromosome\\tstart\\tend\\tgene\\tlog2" > {output}
-            sed 1d {input.sequenza} | bawk '{{print $1, $2, $3, "geneplh", log($10/{params.ploidy})/log(2)}}' | filter_1col 1 {input.chrs} >> {output}
-        """
-
-rule cnvkitheat:
-    input: lambda wildcards: expand("cns/{sample}.cns", sample=eval(wildcards.which))
-    singularity: HROOT+"/cnvkit/cnvkit.img"
-    output: "{which}_cnvkit_heatmap.pdf"
-    shell:
-        """
-            cnvkit heatmap {input} -d -o {output}
-        """
-
-####
 def find_pair_bulk(wildcards):
     get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
     regex = r"^" + re.escape(wildcards.bsample) + r"-"

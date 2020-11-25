@@ -188,26 +188,6 @@ rule intersect:
             bedtools intersect -a {input[0]} -b {params.bbed} -c | bawk '$5=={params.all}' | gzip > {output}
         """
 
-#### heatmap sequenza -> cnvkit
-rule seqtocns:
-    input: sequenza=SDATA+"/{sample}_segments.txt", chrs=DATA+"/chrs"
-    output: "cns/{sample}.cns"
-    shell: 
-        """    
-            {output}
-            sed 1d {input.sequenza} | bawk '{{print $1, $2, $3, "geneplh", log($10/3)/log(2)}}' | filter_1col 1 {input.chrs} >> {output}
-        """
-
-rule cnvkitheat:
-    input: lambda wildcards: expand("cns/{sample}.cns", sample=eval(wildcards.which))
-    singularity: HROOT+"/cnvkit/cnvkit.img"
-    output: "{which}_cnvkit_heatmap.pdf"
-    params: tool=CNVKIT
-    shell:
-        """
-            {params.tool} heatmap {input} -d -o {output}
-        """
-
 ################ binomial to get only those produced in the expansion
 rule all_binomialexp:
     input: [expand("{sample}.bexpcalls.multianno.txt", sample=SAMPLES), expand("{sample}.cn2.png", sample=SAMPLES)]
