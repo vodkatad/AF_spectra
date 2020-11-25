@@ -31,7 +31,7 @@ SAMPLES_HIGH=["CRC0441-01","CRC0441-03","CRC0441-10"] # list comprehens TODO
 SAMPLES_ZERO=[x+'-0' for x in SAMPLES_HIGH]
 ##############################################################
 
-VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
+VCFTOBED=BIN_DIR+"/vcf_to_bed"
 VCFTOBED1=BIN_DIR+"/vcf_to_bed"
 CNLEN=BIN_DIR+"/cn_len_plot"
 CNLEN2=BIN_DIR+"/cn_len_plot2"

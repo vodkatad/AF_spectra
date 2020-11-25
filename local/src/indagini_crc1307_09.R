@@ -34,3 +34,17 @@ pdata$ldist <- cut(pdata$ldist ,breaks=c(0,5,20, max(pdata$ldist)))
 ggplot(pdata, aes(x=log2(dist), color=clone))+geom_density()
 
 ggplot(pdata, aes(x=af, fill=ldist))+geom_histogram(position="dodge")+theme_bw()+facet_wrap(~clone)
+
+plothisto <- function(fn, maxcn) {
+  data <- read.table(gzfile(fn), header=FALSE, stringsAsFactors=FALSE)
+  muts <- data
+  colnames(muts) <- c("chr","b","e","id")
+  muts$af <- as.numeric(sapply(muts$id, function(x) { strsplit(x, ":")[[1]][7]}))
+  muts$cn <- sapply(muts$id, function(x) { strsplit(x, ":")[[1]][8]})
+  muts$cn <- as.numeric(muts$cn)
+  muts <- muts[muts$cn <= maxcn,]
+  muts$cn <- factor(muts$cn, levels=seq(1, maxcn))
+  print(ggplot(data=muts, aes(x=af)) + geom_histogram()+theme_bw()+facet_wrap(~cn))
+}
+
+#data <- read.table(gzfile('/scratch/trcanmed/AF_spectra/dataset/fCRC0282/mutect_nobin/CRC0282-01-0.var_cnv.tsv.gz'), header=FALSE, stringsAsFactors=FALSE)
