@@ -1,4 +1,5 @@
 include: "./conf.sk"
+VCFTOBED=BIN_DIR+"/vcf_to_bed"
 
 rule all_tsv:
     input: expand("{sample}.tsv.gz", sample=SAMPLES)

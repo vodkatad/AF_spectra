@@ -136,6 +136,22 @@ rule overall_SNV_gained_norm_vivo:
             cat {input} | bawk '$4!=1 && $4!="class"{{print $2,$5/$6}}' > {output}
         """
         
+rule overall_SNV_gained:
+    output: "vitro_gained_{kind}"
+    input: kind_MR
+    shell:
+        """
+            cat {input} | bawk '$4==1{{print $2,$5}}' > {output}
+        """
+
+rule overall_SNV_gained_vivo:
+    output: "vivo_gained_{kind}"
+    input: kind_MR
+    shell:
+        """
+            cat {input} | bawk '$4!=1 && $4!="class"{{print $2,$5}}' > {output}
+        """
+        
 ### all dnds
 rule all_dnds:
     input: expand("{model}/platypus_nobin/all_gained_named.tsv", model=MODELS)
@@ -172,11 +188,21 @@ rule dnds_overall:
           done > {output}
         """
 
+rule dnds_voverall:
+    input: expand("{model}/platypus_nobin/dndsvitro.tsv", model=MODELS)
+    output: "dndsvitro_overall.tsv"
+    shell:
+        """
+          for f in {input}; do \\
+            n=$(echo $f | tr "\/" "\\t" | cut -f 1); \\
+            bawk -v name=$n '$1=="wall"{{print name,$3,$4,$5}}' $f; \\
+          done > {output}
+        """
 ## plots
 # single plots are from all_gained_named.tsv with also in vivo so we will keep it here
 rule dnds_global:
-    input: "dnds_overall.tsv"
-    output: "dnds_overall.png"
+    input: "{dndskind}_overall.tsv"
+    output: "{dndskind}_overall.png"
     params: tool=BIN_DIR+"/dnds_plot_overall", colors=COLORS_MODELS
     shell:
         """
@@ -238,7 +264,16 @@ rule MSS_gained_plot:
             rm {output}.tmp
         """
 
-
+rule MSS_gainednn_plot:
+    input: "{vivi}_gained_{kind}"
+    output: "{vivi}_gainedMSS_{kind}.png"
+    params: tool=BIN_DIR+"/gained_plot", colors=lambda w: MSS_MANY_COLORS_MODELS_VITRO if w.vivi == "vitro" else MSS_MANY_COLORS_MODELS_VIVO
+    shell:
+        """
+            grep -v CRC0282 {input} > {output}.tmp
+            {params.tool} {output}.tmp {output} '{params.colors}' {wildcards.vivi}
+            rm {output}.tmp
+        """
 
 ## TODO b/d
 
@@ -265,3 +300,6 @@ rule bed:
 ### QC #  TODO
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ for f in  */platypus_nobin/*ovcnokdelta.tsv.gz; do g=$(zcat $f | grep -c gain); l=$(zcat $f | grep -c loss); echo -e "$f\t$g\t$l"; done > gain_loss.snv
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ for f in  */platypus_nobin_indels/*ovcnokdelta.tsv.gz; do g=$(zcat $f | grep -c gain); l=$(zcat $f | grep -c loss); echo -e "$f\t$g\t$l"; done > gain_loss.indel
+
+### segments
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ cat CRC*/platypus_nobin/all_seg_changes.txt > pippo_all_segments_changes.txt

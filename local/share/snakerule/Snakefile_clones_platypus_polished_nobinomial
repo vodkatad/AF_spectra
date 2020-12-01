@@ -1,4 +1,5 @@
 include: "./conf.sk"
+VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
 
 rule all_tsv:
     input: expand("{sample}.tsv.gz", sample=SAMPLES)
@@ -352,7 +353,19 @@ rule dnds:
             rm {output[0]}.tmp
         """
 
-#### TODO dn/ds plot
+
+### dn/ds vitro
+rule dndsvitro:
+    input: mut="all_vitrogained_named.tsv", rda=DNDSCV_RDA
+    output: "dndsvitro.tsv", "dndsvitro.Rdata"
+    log: "dndsvitro.log"
+    params:  tool=BIN_DIR+"/dnds"
+    shell:
+        """
+            tr ":" "\\t" < {input.mut} | bawk '{{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
+            {params.tool} {output[0]}.tmp {output} {input.rda} &> {log}
+            rm {output[0]}.tmp
+        """
 
 
 #### shared
@@ -397,6 +410,15 @@ rule all_gain:
             for f in {input}; do zcat $f | bawk -v n=$f '$16=="gain"{{print n,$1}}' | sed 's/\.ovcnokdelta\.tsv\.gz//'; done > {output}
         """
 
+rule all_vitro_gain:
+    input: expand("{t1sample}_"+CLONE2[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE2[1:]), expand("{t1sample}_"+CLONE8[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE8[1:]),
+            expand("{t1sample}_"+CLONE9[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE9[1:])
+    output: "all_vitrogained_named.tsv"
+    shell:
+        """
+            for f in {input}; do zcat $f | bawk -v n=$f 'n !~ "M" && $16=="gain"{{print n,$1}}' | sed 's/\.ovcnokdelta\.tsv\.gz//'; done > {output}
+        """
+
 rule all_gain_together:
     input: "all_gained_named.tsv"
     output: "all_gained.tsv"
@@ -411,4 +433,22 @@ rule enrich_chr:
     params: TOOL="todo"
     shell:
         """
+        """
+
+### CN events naive counts 
+# if intersecting with callable they explode in number, so we don't
+rule segmentation_changes:
+    input: sequenza=SDATA+"/{sample}_segments.txt", chrs=DATA+"/chrs"
+    output: "{sample}.nsegments.txt"
+    shell:
+        """
+            sed 1d {input.sequenza} | bawk '{{print $1, $2-1, $3, $10}}' | filter_1col 1 {input.chrs} | wc -l | bawk -v n={wildcards.sample} '{{print n,$1}}' > {output}
+        """
+
+rule all_seg_changes:
+    input: expand("{sample}.nsegments.txt", sample=SAMPLES)
+    output: "all_seg_changes.txt"
+    shell:
+        """
+            cat {input} > {output}
         """
