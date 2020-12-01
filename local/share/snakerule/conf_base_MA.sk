@@ -25,7 +25,7 @@ MSS_MANY_COLORS_MODELS_VITRO="#f607b9,#fb49ce,#f998e0,#9900ff,#ad33ff,#c266ff,#1
 
 # without colors for vivo different clones
 #MSS_MANY_COLORS_MODELS_VIVO="#f607b9,#155d00,#77a003,#0829fc"
-MSS_MANY_COLORS_MODELS_VIVO="#f607b9,#fb49ce,#f998e0,#9900ff,#155d00,#77a003,#95c805,#bcfc08,#0829fc,#4a62fb,#95a3fd,#003399,#ff9900"
+MSS_MANY_COLORS_MODELS_VIVO="#f607b9,#fb49ce,#f998e0,#9900ff,#155d00,#77a003,#95c805,#bcfc08,#0829fc,#4a62fb,#95a3fd,#ff9900"
 
 # for signature analyses
 BASE_DIR_BULK='/scratch/trcanmed/AF_spectra/local/share/data/second_shipment_bulk/'
