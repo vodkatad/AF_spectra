@@ -32,7 +32,7 @@ BASE_DIR_BULK='/scratch/trcanmed/AF_spectra/local/share/data/second_shipment_bul
 BULK=['CRC0327LMO-0-B.pass.vcf.gz','CRC1078LMO-0-B.pass.vcf.gz','CRC1307LMO-0-B.pass.vcf.gz','CRC1502LMO-0-B.pass.vcf.gz','CRC0282LMO-0-B.pass.vcf.gz']
 BULK_VCF=[os.path.join(BASE_DIR_BULK,x) for x in BULK] 
 BASE_DIR_BULK2='/scratch/trcanmed/AF_spectra/local/share/data/third_shipment_bulk/'
-BULK2=['CRC0441LMO-0-B.pass.vcf.gz','CRC1599LMO-0-B','CRC1599PRO-0-B']
+BULK2=['CRC0441LMO-0-B.pass.vcf.gz','CRC1599LMO-0-B.pass.vcf.gz']#,'CRC1599PRO-0-B.pass.vcf.gz']
 BULK_VCF=BULK_VCF+[os.path.join(BASE_DIR_BULK2,x) for x in BULK2] 
 
 # and for vcf big merge
