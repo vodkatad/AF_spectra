@@ -269,9 +269,9 @@ def find_kind_vcf(wildcards):
     import re
     res = find_pairs_vcf('')
     if wildcards.kind == "vitro":
-        return [x for x in res if not re.match('.+M.+',x) ]
+        return [x for x in res if not re.match('.+-M.+',x) ]
     elif wildcards.kind == "vivo":
-        return [x for x in res if re.match('.+M.+',x) ]
+        return [x for x in res if re.match('.+-M.+',x) ]
     else:
         return res
 
@@ -292,9 +292,9 @@ def find_kind_vcf_lost(wildcards):
     import re
     res = find_pairs_lost_vcf('')
     if wildcards.kind == "vitro":
-        return [x for x in res if not re.match('.+M.+',x) ]
+        return [x for x in res if not re.match('.+-M.+',x) ]
     elif wildcards.kind == "vivo":
-        return [x for x in res if re.match('.+M.+',x) ]
+        return [x for x in res if re.match('.+-M.+',x) ]
     else:
         return res
 
@@ -416,7 +416,7 @@ rule all_vitro_gain:
     output: "all_vitrogained_named.tsv"
     shell:
         """
-            for f in {input}; do zcat $f | bawk -v n=$f 'n !~ "M" && $16=="gain"{{print n,$1}}' | sed 's/\.ovcnokdelta\.tsv\.gz//'; done > {output}
+            for f in {input}; do zcat $f | bawk -v n=$f 'n !~ "-M" && $16=="gain"{{print n,$1}}' | sed 's/\.ovcnokdelta\.tsv\.gz//'; done > {output}
         """
 
 rule all_gain_together:
