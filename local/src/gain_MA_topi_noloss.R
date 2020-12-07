@@ -45,7 +45,6 @@ MR <- sapply(unique(generation$TIPO), function(x ) get_MR(generation[generation$
 MR_time <- get_MR_time(days, gained, glen)
 
 type <- strsplit(name_num, '-')[[1]][3]
-save.image('pippo.Rdata')
 res <- data.frame(clone=clone, end=name_num, start=name_den, class=type, n_gained=gained, len_cnok=glen, MR_conte=MR[1], MR_EDU=MR[1], MR_giorni=MR_time)
 
 write.table(res, args[4], sep="\t", col.names=TRUE, row.names=FALSE, quote=FALSE)
