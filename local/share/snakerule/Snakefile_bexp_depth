@@ -66,6 +66,8 @@ rule all_sign_input:
                     sample_kind = 'bulk'
                     if re.search('1599', vcf) is None: # re remove LM from the un-needed samples. Very bad but at this point this seems the only way around this issue.
                         sample = sample[0:7]
+                if re.search('clones_2', vcf) :
+                    sample = sample + "-2nd" 
                 annotation = sample + '_' + sample_kind
                 out.write("{}\t{}".format(vcf, annotation))
                 out.write("\n")
@@ -117,7 +119,7 @@ rule overall_MR_edu_vitro:
     input: kind_MR
     shell:
         """
-            cat {input} | bawk '$4==1{{print $2,$8}}' > {output}
+            cat {input} | bawk '$4==1 || $4 == 2 {{print $2,$8}}' > {output}
         """
 
 rule overall_SNV_gained_norm:
@@ -125,7 +127,7 @@ rule overall_SNV_gained_norm:
     input: kind_MR
     shell:
         """
-            cat {input} | bawk '$4==1{{print $2,$5/$6}}' > {output}
+            cat {input} | bawk '$4==1 || $4==2 {{print $2,$5/$6}}' > {output}
         """
 
 rule overall_SNV_gained_norm_vivo:
@@ -141,7 +143,7 @@ rule overall_SNV_gained:
     input: kind_MR
     shell:
         """
-            cat {input} | bawk '$4==1{{print $2,$5}}' > {output}
+            cat {input} | bawk '$4==1 || $4==2 {{print $2,$5}}' > {output}
         """
 
 rule overall_SNV_gained_vivo:

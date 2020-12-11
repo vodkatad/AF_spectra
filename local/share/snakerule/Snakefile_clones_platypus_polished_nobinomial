@@ -1,3 +1,4 @@
+STARTIME="-0" # this is overwritten in conf.sk for 2nd round clones
 include: "./conf.sk"
 VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
 
@@ -32,7 +33,7 @@ rule intersect_cnv:
     shell:
         """
             bedtools intersect -b {input.callable} -a <(sed 1d {input.sequenza} | bawk '{{print $1, $2-1, $3, $10}}') | filter_1col 1 {input.chrs} | gzip > {output.callable};
-            bedtools intersect -wo -a {input.var} -b {output.callable} | bawk '{{print $1, $2, $3, $4":"$8}}' |  gzip > {output.var}
+            bedtools intersect -wo -a <(zcat {input.var}) -b {output.callable} | bawk '{{print $1, $2, $3, $4":"$8}}' |  gzip > {output.var}
         """
 
 rule AF_spectra_cn:
@@ -114,17 +115,41 @@ rule pair_length_ov:
         """
 
 ################ CN match
+# "-0" becomes STARTTIME
 def find_pairs_raw_ov(wildcards):
+    print(wildcards)
     # if per distinguere topi da non topi _ov or _ovTOPI
     get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
-    regex = r"^" + re.escape(wildcards.bsample) + r"-"
+    regex = r"^" + re.escape(wildcards.bsample) #+ r"-"
     idxs = get_indexes(regex, SAMPLES)
     els = [SAMPLES[i] for i in idxs]
-    els.remove(wildcards.bsample+'-0')
+    print("els:")
+    print(els)
+    t0 = None
+    if STARTTIME != "-0":
+        regex = r"^" + re.escape(wildcards.bsample) + STARTTIME
+        idxs = get_indexes(regex, els)
+        print(idxs)
+        if len(idxs) != 1:
+            print("Something bad!") # all as a wildcard as a wildcardas a wildcard  gets here then does not find the input so scales to the other rule
+            return "plh"
+        else:
+            print("time start " + els[idxs[0]])
+            t0  = els.pop(idxs[0])
+    else:
+        els.remove(wildcards.bsample+STARTTIME)
+    print("then:")
+    print(els)
     r1 = re.compile(r'-M')
     els_topi = filter(r1.search, els) 
     els_notopi = filter(lambda x: not r1.search(x), els) 
-    return [ x+'_'+wildcards.bsample+'-0.MR_ov.tsv' for x in els_notopi] + [ x+'_'+wildcards.bsample+'-0.MR_ovtopi.tsv' for x in els_topi]
+    if STARTTIME == "-0":
+        return [ x+'_'+wildcards.bsample+STARTTIME+'.MR_ov.tsv' for x in els_notopi] + [ x+'_'+wildcards.bsample+STARTTIME+'.MR_ovtopi.tsv' for x in els_topi]
+    else:
+        y = [ x+'_'+t0+'.MR_ov.tsv' for x in els_notopi] + [ x+'_'+t0+'.MR_ovtopi.tsv' for x in els_topi]
+        print(y)
+        #return [ x+'_'+t0+'.MR_ov.tsv' for x in els_notopi] + [ x+'_'+t0+'.MR_ovtopi.tsv' for x in els_topi]
+        return y
 
 rule all_pairs_raw_ov:
     input: find_pairs_raw_ov
@@ -160,7 +185,7 @@ rule raw_ov_TOPI:
     params: tool=BIN_DIR+"/gain_MA_topi_noloss"
     shell:
         """
-            {params.tool} {input.len} {input.calls} {input.gens} {output}
+            {params.tool} {input.len} {input.calls} {input.gens} {outp}
         """
 
 ################
@@ -221,9 +246,9 @@ def find_pairs_annovar(wildcards):
     regex = r"^" + re.escape(wildcards.bsample) + r"-"
     idxs = get_indexes(regex, SAMPLES)
     els = [SAMPLES[i] for i in idxs]
-    els.remove(wildcards.bsample+'-0')
+    els.remove(wildcards.bsample+STARTTIME)
     print(els)
-    return [ x+'_'+wildcards.bsample+'-0.gain.multianno.txt' for x in els]
+    return [ x+'_'+wildcards.bsample+STARTTIME+'.gain.multianno.txt' for x in els]
 
 rule class_bed:
     input: "{t1sample}_{t0sample}.ovcnokdelta.tsv.gz"

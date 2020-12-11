@@ -24,6 +24,8 @@ generation <- generation[generation$CAMPIONI==clone,]
 
 days <- unique(generation$GIORNI)
 if (length(days) != 1) {
+    print(clone)
+    print(days)
     stop("qualquadranoncosa")
 }
 
