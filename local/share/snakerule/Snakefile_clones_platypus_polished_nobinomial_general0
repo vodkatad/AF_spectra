@@ -278,9 +278,10 @@ rule class_bed:
             zcat {input} | bawk '$16=="{wildcards.class}" {{print $2,$3,$4,$7"-"$8}}' > {output}
         """
 
+# put back in wanted pairs here
+
 def find_pairs_vcf(wildcards):
     return [x+".gain.vcf.gz" for x in wanted_pairs()]
-
 
 rule all_gain_vcf:
     input: find_pairs_vcf

@@ -267,10 +267,10 @@ rule class_bed:
 # this should use find_pairs_raw_ov probably or we could have reverted to a simple man-made data structure also there...
 # let's try at least to have a generic function and not the hardcoded CLONESN TODO FIXME
 def wanted_pairs():
-    l1 = expand("{t1sample}_"+CLONE2[0], t1sample=CLONE2[1:]) 
-    l2 = expand("{t1sample}_"+CLONE8[0], t1sample=CLONE8[1:])
-    l3 = expand("{t1sample}_"+CLONE9[0], t1sample=CLONE9[1:])
-    return l1 + l2 + l3
+    res = []
+    for cl in CLONES:
+        res = res + expand("{t1sample}_"+cl[0], t1sample=cl[1:]) 
+    return res
 
 def find_pairs_vcf(wildcards):
     return [x+".gain.vcf.gz" for x in wanted_pairs()]
@@ -423,9 +423,14 @@ rule shared_clone_all:
         """
 
 #### enrichments
+def wanted_pairs_inputfun(ext):
+    res = []
+    for cl in CLONES:
+        res = res + expand("{t1sample}_"+cl[0]+ext, t1sample=cl[1:]) 
+    return res
+
 rule union_callable:
-    input: expand("{t1sample}_"+CLONE2[0]+".callable.bed.gz", t1sample=CLONE2[1:]), expand("{t1sample}_"+CLONE8[0]+".callable.bed.gz", t1sample=CLONE8[1:]),
-            expand("{t1sample}_"+CLONE9[0]+".callable.bed.gz", t1sample=CLONE9[1:])
+    input: lambda w: wanted_pairs_inputfun('.callable.bed.gz')
     output: "union_callable.bed.gz"
     shell:
         """
@@ -435,22 +440,20 @@ rule union_callable:
         """
 
 rule all_gain:
-    input: expand("{t1sample}_"+CLONE2[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE2[1:]), expand("{t1sample}_"+CLONE8[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE8[1:]),
-            expand("{t1sample}_"+CLONE9[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE9[1:])
-    output: "all_gained_named.tsv"
-    shell:
-        """
-            for f in {input}; do zcat $f | bawk -v n=$f '$16=="gain"{{print n,$1}}' | sed 's/\.ovcnokdelta\.tsv\.gz//'; done > {output}
-        """
+     input: lambda w: wanted_pairs_inputfun('.ovcnokdelta.tsv.gz')
+     output: "all_gained_named.tsv"
+     shell:
+         """
+             for f in {input}; do zcat $f | bawk -v n=$f '$16=="gain"{{print n,$1}}' | sed 's/\.ovcnokdelta\.tsv\.gz//'; done > {output}
+         """
 
 rule all_vitro_gain:
-    input: expand("{t1sample}_"+CLONE2[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE2[1:]), expand("{t1sample}_"+CLONE8[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE8[1:]),
-            expand("{t1sample}_"+CLONE9[0]+".ovcnokdelta.tsv.gz", t1sample=CLONE9[1:])
-    output: "all_vitrogained_named.tsv"
-    shell:
-        """
-            for f in {input}; do zcat $f | bawk -v n=$f 'n !~ "-M" && $16=="gain"{{print n,$1}}' | sed 's/\.ovcnokdelta\.tsv\.gz//'; done > {output}
-        """
+     input: lambda w: wanted_pairs_inputfun('.ovcnokdelta.tsv.gz')
+     output: "all_vitrogained_named.tsv"
+     shell:
+         """
+             for f in {input}; do zcat $f | bawk -v n=$f 'n !~ "-M" && $16=="gain"{{print n,$1}}' | sed 's/\.ovcnokdelta\.tsv\.gz//'; done > {output}
+         """
 
 rule all_gain_together:
     input: "all_gained_named.tsv"
