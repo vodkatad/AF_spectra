@@ -170,7 +170,7 @@ rule pair_length_ov:
 
 ################ CN match
 rule all_pairs_raw_ov:
-    input: find_pairs_raw_ov_stupid
+    input: FUN_OV
     output: "{bsample}.MR_ov"
     shell: "head -n 1 {input[0]} > {output}; grep -h -v conte {input} >> {output}"
 
