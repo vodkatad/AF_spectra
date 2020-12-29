@@ -114,6 +114,12 @@ rule pair_length_ov:
         """
 
 ################ CN match
+def find_pairs_raw_ov_stupid(wildcards): # TODO MAYBE using the info in CLONES?
+    res = []
+    for cl in CLONES:
+        res = res + expand("{t1sample}_"+cl[0]+ext, t1sample=cl[1:]) 
+    return res
+
 # "-0" becomes STARTTIME
 def find_pairs_raw_ov(wildcards):
     print(wildcards)
