@@ -1,4 +1,4 @@
-STARTIME="-0" # this is overwritten in conf.sk for 2nd round clones
+STARTTIME="-0" # this is overwritten in conf.sk for 2nd round clones
 include: "./conf.sk"
 VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
 
@@ -117,7 +117,7 @@ rule pair_length_ov:
 ################ CN match
 # "-0" becomes STARTTIME
 def find_pairs_raw_ov(wildcards):
-    print(wildcards)
+    print(wildcards.bsample)
     # if per distinguere topi da non topi _ov or _ovTOPI
     get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
     regex = r"^" + re.escape(wildcards.bsample) #+ r"-"
@@ -127,19 +127,25 @@ def find_pairs_raw_ov(wildcards):
     print(els)
     t0 = None
     if STARTTIME != "-0":
-        regex = r"^" + re.escape(wildcards.bsample) + STARTTIME
-        idxs = get_indexes(regex, els)
+        # here we need a new logic to find the right startime clone
+        #regex = r"^" + re.escape(wildcards.bsample) + STARTTIME
+        start = SAMPLES_ORIG_T1[wildcards.bsample] # exception gets swallowed for all since there is another rule to make it but for completeness we add a wildcard contstraint on bsample
+        print(start)
+        idxs = get_indexes(start, els)
         print(idxs)
         if len(idxs) != 1:
-            print("Something bad!") # all as a wildcard as a wildcardas a wildcard  gets here then does not find the input so scales to the other rule
+            print("Something bad!")
             return "plh"
         else:
             print("time start " + els[idxs[0]])
-            t0  = els.pop(idxs[0])
+            t0  = els.pop(idxs[0]) # we remove our starting clone
+            # then need to keep only the T2 ones
+            t2_r = re.compile(TIME) # do we need to get it more precise for 
+            els = list(filter(t2_r.search, els))
     else:
         els.remove(wildcards.bsample+STARTTIME)
     print("then:")
-    print(els)
+    print([x for x in els])
     r1 = re.compile(r'-M')
     els_topi = filter(r1.search, els) 
     els_notopi = filter(lambda x: not r1.search(x), els) 
@@ -185,7 +191,7 @@ rule raw_ov_TOPI:
     params: tool=BIN_DIR+"/gain_MA_topi_noloss"
     shell:
         """
-            {params.tool} {input.len} {input.calls} {input.gens} {outp}
+            {params.tool} {input.len} {input.calls} {input.gens} {output}
         """
 
 ################
@@ -258,6 +264,8 @@ rule class_bed:
             zcat {input} | bawk '$16=="{wildcards.class}" {{print $2,$3,$4,$7"-"$8}}' > {output}
         """
 
+# this should use find_pairs_raw_ov probably or we could have reverted to a simple man-made data structure also there...
+# let's try at least to have a generic function and not the hardcoded CLONESN TODO FIXME
 def wanted_pairs():
     l1 = expand("{t1sample}_"+CLONE2[0], t1sample=CLONE2[1:]) 
     l2 = expand("{t1sample}_"+CLONE8[0], t1sample=CLONE8[1:])
