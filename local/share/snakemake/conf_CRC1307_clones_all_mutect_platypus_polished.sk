@@ -22,16 +22,29 @@ MULTI="nomulti"
 ### sample variable portion #############################################
 DATA=PRJ_ROOT+"/local/share/data/CRC1307_clones_all"
 SDATA=DATA
-SAMPLES=['CRC1307-08-1-D', 'CRC1307-02-1-B' ,'CRC1307-08D-2-3', 'CRC1307-08D-2-4', 'CRC1307-08D-2-5', 'CRC1307-02B-2-2', 'CRC1307-02B-2-5']#, 'CRC1307-02-0', 'CRC1307-02-1-A', 'CRC1307-02-1-E']
-# TODO FIXME
-CLONE8=['CRC1307-08-1-D', 'CRC1307-08D-2-3', 'CRC1307-08D-2-4', 'CRC1307-08D-2-5']
-CLONE2=['CRC1307-02-1-B' ,'CRC1307-02B-2-2', 'CRC1307-02B-2-5']
-#CLONE9=['CRC1307-02-0', 'CRC1307-02-1-A', 'CRC1307-02-1-B', 'CRC1307-02-1-E']
-CLONE9=['']
-SAMPLES_HIGH=["CRC1307-08","CRC1307-02"] # list comprehens TODO
+SAMPLES=['CRC1307-08-1-D', 'CRC1307-02-1-B' ,'CRC1307-09E-2-3', 'CRC1307-09E-2-4', 'CRC1307-09E-2-5', 'CRC1307-08D-2-2', 'CRC1307-08D-2-5']
+SAMPLES=SAMPLES+['CRC1307-02-0', 'CRC1307-08-0', 'CRC1307-09-0', 'CRC1307-02-1-A', 'CRC1307-02-1-B', 'CRC1307-02-1-E', 'CRC1307-08-1-B', 'CRC1307-08-1-D', 'CRC1307-08-1-E', 'CRC1307-09-1-B', 'CRC1307-09-1-C', 'CRC1307-09-1-E', 'CRC1307-08-MA-A', 'CRC1307-08-MA-C', 'CRC1307-08-MA-F', 'CRC1307-08-MC-D', 'CRC1307-08-MC-E', 'CRC1307-08-MC-F', 'CRC1307-08-MI-A', 'CRC1307-08-MI-B']
+SAMPLES = list(set(SAMPLES))
+#TODO
+CLONE8=['CRC1307-08-1-D', 'CRC1307-08D-2-2', 'CRC1307-08D-2-5']
+CLONE9=['CRC1307-09-1-E' ,'CRC1307-09E-2-3', 'CRC1307-09E-2-4', 'CRC1307-09E-2-5']
+CLONES=[CLONE8, CLONE9]
+STARTTIME='-1' # placeholders
+TIME='-2-'
+FUN_OV=find_pairs_raw_ov_stupid
+
+SAMPLES_ORIG_T1= {
+    'CRC1307-08': 'CRC1307-08-1-D',
+    'CRC1307-09': 'CRC1307-09-1-E',
+}
+
+SAMPLES_TREE= {
+    'CRC1307-09': CLONE9,
+    'CRC1307-08': CLONE8
+}
+SAMPLES_HIGH=list(SAMPLES_ORIG_T1.keys())
 SAMPLES_ZERO=[x+'-1' for x in SAMPLES_HIGH]
 VCF_DIR=PRJ_ROOT+"/dataset/CRC1307_clones_all/platypus_nobin"
-STARTTIME="-1"
 ##############################################################
 
 VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
@@ -53,7 +66,9 @@ wildcard_constraints:
 wildcard_constraints:
     t1sample="[a-zA-Z0-9]+-[0-9A-Z]+-[A-Z0-9]+-?[A-Z0-9]?"
 wildcard_constraints:
-    t0sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+    t0sample="[a-zA-Z0-9]+-[0-9A-Z]+-[A-Z0-9]+-?[A-Z0-9]?"
+wildcard_constraints:
+    bsample="[a-zA-Z0-9]+-[0-9]+"
 
 
 # rule process_vcf_special:

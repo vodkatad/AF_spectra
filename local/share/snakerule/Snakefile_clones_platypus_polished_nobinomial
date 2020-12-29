@@ -52,7 +52,7 @@ def find_pairs_raw_ov(wildcards):
         #return [ x+'_'+t0+'.MR_ov.tsv' for x in els_notopi] + [ x+'_'+t0+'.MR_ovtopi.tsv' for x in els_topi]
         return y
 
-FUN_OV=find_pairs_raw_ov_stupid
+FUN_OV=find_pairs_raw_ov
 include: "./conf.sk"
 VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
 ######################################################################
