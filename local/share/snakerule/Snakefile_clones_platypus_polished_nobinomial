@@ -434,6 +434,19 @@ rule shared_clone_all:
             {params.tool} '*' {output}
         """
 
+#for f in *.calls.tsv.gz; do zcat $f | bawk -v N=$f '$13==1{print $1,N}'; done | sed 's/\.calls\.tsv\.gz//1' 
+rule upsetR:
+    input: expand("{sample}.calls.tsv.gz", sample=SAMPLES)
+    output: "upsetr.svg"
+    params: tool=BIN_DIR+"/upsetr"
+    shell:
+        """
+            for f in {input}; do \\
+                zcat $f | bawk -v N=$f '$13==1{{print $1,N}}'; done | sed 's/\.calls\.tsv\.gz//1' > {output}.tmp; 
+            {params.tool} {output}.tmp {output}
+            rm {output}.tmp
+        """
+
 #### enrichments
 def wanted_pairs_inputfun(ext):
     res = []

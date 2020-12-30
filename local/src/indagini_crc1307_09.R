@@ -48,3 +48,5 @@ plothisto <- function(fn, maxcn) {
 }
 
 #data <- read.table(gzfile('/scratch/trcanmed/AF_spectra/dataset/fCRC0282/mutect_nobin/CRC0282-01-0.var_cnv.tsv.gz'), header=FALSE, stringsAsFactors=FALSE)
+
+
