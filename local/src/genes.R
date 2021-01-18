@@ -1,0 +1,6 @@
+> d <- read.table(gzfile('/scratch/trcanmed/AF_spectra/dataset/SNV_nonsyn.binary.tsv.gz'), sep="\t",header=TRUE, row.names = 1)
+> genes_n <- colSums(d)
+> hist(genes_n, n = 15)
+> library(pheatmap)
+> pheatmap(d)
+> pheatmap(t(d), show_rownames = FALSE, legend = FALSE)
