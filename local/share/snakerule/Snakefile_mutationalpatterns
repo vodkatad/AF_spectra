@@ -1,3 +1,58 @@
+STARTTIME="-0" # this is overwritten in conf.sk for 2nd round clones
+def find_pairs_raw_ov_stupid(wildcards): 
+    # We use info from conf.sk instead of patching info together from SAMPLES and STARTTIME
+    # still not clear which is best, this is more flexible but the other solution is safer (if correct :))
+    branch = SAMPLES_TREE[wildcards.bsample]
+    start = branch.pop(0)
+    r1 = re.compile(r'-M')
+    els_topi = filter(r1.search, branch) 
+    els_notopi = filter(lambda x: not r1.search(x), branch)
+    return [ c+'_'+start+'.MR_ov.tsv' for c in els_notopi] + [ c+'_'+start+'.MR_ovtopi.tsv' for x in els_topi]
+
+
+# "-0" becomes STARTTIME
+def find_pairs_raw_ov(wildcards):
+    print(wildcards.bsample)
+    # if per distinguere topi da non topi _ov or _ovTOPI
+    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
+    regex = r"^" + re.escape(wildcards.bsample) #+ r"-"
+    idxs = get_indexes(regex, SAMPLES)
+    els = [SAMPLES[i] for i in idxs]
+    print("els:")
+    print(els)
+    t0 = None
+    if STARTTIME != "-0":
+        # here we need a new logic to find the right startime clone
+        #regex = r"^" + re.escape(wildcards.bsample) + STARTTIME
+        start = SAMPLES_ORIG_T1[wildcards.bsample] # exception gets swallowed for all since there is another rule to make it but for completeness we add a wildcard contstraint on bsample
+        print(start)
+        idxs = get_indexes(start, els)
+        print(idxs)
+        if len(idxs) != 1:
+            print("Something bad!")
+            return "plh"
+        else:
+            print("time start " + els[idxs[0]])
+            t0  = els.pop(idxs[0]) # we remove our starting clone
+            # then need to keep only the T2 ones
+            t2_r = re.compile(TIME) # do we need to get it more precise for 
+            els = list(filter(t2_r.search, els))
+    else:
+        els.remove(wildcards.bsample+STARTTIME)
+    print("then:")
+    print([x for x in els])
+    r1 = re.compile(r'-M')
+    els_topi = filter(r1.search, els) 
+    els_notopi = filter(lambda x: not r1.search(x), els) 
+    if STARTTIME == "-0":
+        return [ x+'_'+wildcards.bsample+STARTTIME+'.MR_ov.tsv' for x in els_notopi] + [ x+'_'+wildcards.bsample+STARTTIME+'.MR_ovtopi.tsv' for x in els_topi]
+    else:
+        y = [ x+'_'+t0+'.MR_ov.tsv' for x in els_notopi] + [ x+'_'+t0+'.MR_ovtopi.tsv' for x in els_topi]
+        print(y)
+        #return [ x+'_'+t0+'.MR_ov.tsv' for x in els_notopi] + [ x+'_'+t0+'.MR_ovtopi.tsv' for x in els_topi]
+        return 
+
+FUN_OV=find_pairs_raw_ov
 include: "conf.sk"
 
 def getbedname(wildcards):
@@ -20,10 +75,10 @@ rule bed_enrich:
         """
 ####
 def wanted_pairs():
-    l1 = expand("{t1sample}_"+CLONE2[0], t1sample=CLONE2[1:]) 
-    l2 = expand("{t1sample}_"+CLONE8[0], t1sample=CLONE8[1:])
-    l3 = expand("{t1sample}_"+CLONE9[0], t1sample=CLONE9[1:])
-    return l1 + l2 + l3
+    res = []
+    for cl in CLONES:
+        res = res + expand("{t1sample}_"+cl[0], t1sample=cl[1:]) 
+    return res
 
 def find_pairs_vcf(wildcards):
     return [VCF_DIR+"/"+x+".gain.vcf.gz" for x in wanted_pairs()]
@@ -46,4 +101,32 @@ rule mut_pat_baseinfo:
         """
             mkdir -p {output}
             {params.tool} {params.input} {output}
+        """
+
+# single model signatures all! TODO
+rule all_sign_input:
+    input: find_pairs_vcf
+    output: "signinput"
+    run:
+        import re
+        with open(output[0],'w') as out:
+            for vcf in input:
+                crc =  re.search('/(CRC\d{4}[^/]+)\.gain', vcf) # 1599 have LM/PR and we need to keep it
+                sample_kind = "NA"
+                sample = crc.group(1)
+                if re.search('-M', vcf) is not None:
+                    sample_kind = 'vivo'
+                else:
+                    sample_kind = 'vitro'
+                annotation = sample + '_' + sample_kind
+                out.write("{}\t{}".format(vcf, annotation))
+                out.write("\n")
+
+rule all_sign:
+    input: "signinput"
+    output: heat="heatmap_cosmic.png", cosine="cosine_cosmic.png"
+    params: tool=BIN_DIR+"/mut_pat_signatures_fit", colors='#0829fc'
+    shell:
+        """
+            {params.tool} {input} {output.heat} {output.cosine} '{params.colors}'
         """

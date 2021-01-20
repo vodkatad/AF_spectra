@@ -7,10 +7,15 @@ infile <- args[1]
 outfile <- args[2]
 colors <- args[3]
 vivi <- args[4]
+norm <- args[5]
 
 our <- read.table(infile, sep="\t", header=FALSE, stringsAsFactors=FALSE)
 colnames(our) <- c('sample','gained')
-our$gained <- our$gained * 1000000
+ylab <- 'N'
+if (norm == "norm") {
+  our$gained <- our$gained * 1000000
+  ylab <- 'mut/Mpb'
+}
 our$model <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
 our$clone <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][2]; return(y[1])})
 our$clone2 <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][4]; return(y[1])})
@@ -46,15 +51,16 @@ if (!is.na(vivi) && vivi == "vivo") {
 n <- length(levels(as.factor(our$model_clone)))
 cbPalette <- unlist(strsplit(colors, ','))
 
+our$time <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][3]; return(y[1])})
 if (n <= length(cbPalette)) {
 ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
-  geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('Gained muts')+ylab('mut/Mbp')+
-  geom_point(data=our, aes(x=model, y=gained, color=model_clone), stat="identity", shape=18, size=4, position=position_dodge(0.2))+
-  theme(axis.text.x = element_text(size=15), legend.position="none",axis.title.y=element_text(size=15))+scale_color_manual(values=cbPalette)
+  geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('Gained muts')+ylab(ylab)+
+  geom_point(data=our, aes(x=model, y=gained, color=model_clone, shape=time), stat="identity", size=4, position=position_dodge(0.2))+
+  theme(axis.text.x = element_text(size=15, angle=90, vjust=0.5, hjust=1), legend.position="none",axis.title.y=element_text(size=15))+scale_color_manual(values=cbPalette)+scale_shape_manual(values=c(18,20))
 } else {
 ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
-  geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('Gained muts')+ylab('mut/Mbp')+
-  geom_point(data=our, aes(x=model, y=gained, color=model_clone), stat="identity", shape=18, size=4, position=position_dodge(0.2))+
-  theme(axis.text.x = element_text(size=15), legend.position="none",axis.title.y=element_text(size=15))
+  geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('Gained muts')+ylab(ylab)+
+  geom_point(data=our, aes(x=model, y=gained, color=model_clone, shape=time), stat="identity", size=4, position=position_dodge(0.2))+
+  theme(axis.text.x = element_text(size=15, angle=90, vjust=0.5, hjust=1), legend.position="none",axis.title.y=element_text(size=15))+scale_shape_manual(values=c(18,20))
 }
 ggsave(outfile)

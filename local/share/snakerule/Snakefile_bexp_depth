@@ -66,8 +66,10 @@ rule all_sign_input:
                     sample_kind = 'bulk'
                     if re.search('1599', vcf) is None: # re remove LM from the un-needed samples. Very bad but at this point this seems the only way around this issue.
                         sample = sample[0:7]
-                if re.search('clones_2', vcf) :
+                if re.search('clones_all', vcf) :
                     sample = sample + "-2nd" 
+                if re.search('clones_2', vcf) :
+                    continue
                 annotation = sample + '_' + sample_kind
                 out.write("{}\t{}".format(vcf, annotation))
                 out.write("\n")
@@ -262,7 +264,7 @@ rule MSS_gained_plot:
     shell:
         """
             grep -v CRC0282 {input} > {output}.tmp
-            {params.tool} {output}.tmp {output} '{params.colors}' {wildcards.vivi}
+            {params.tool} {output}.tmp {output} '{params.colors}' {wildcards.vivi} norm
             rm {output}.tmp
         """
 
@@ -273,7 +275,7 @@ rule MSS_gainednn_plot:
     shell:
         """
             grep -v CRC0282 {input} > {output}.tmp
-            {params.tool} {output}.tmp {output} '{params.colors}' {wildcards.vivi}
+            {params.tool} {output}.tmp {output} '{params.colors}' {wildcards.vivi} nonorm
             rm {output}.tmp
         """
 
@@ -304,4 +306,49 @@ rule bed:
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ for f in  */platypus_nobin_indels/*ovcnokdelta.tsv.gz; do g=$(zcat $f | grep -c gain); l=$(zcat $f | grep -c loss); echo -e "$f\t$g\t$l"; done > gain_loss.indel
 
 ### segments
-#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ cat CRC*/platypus_nobin/all_seg_changes.txt > pippo_all_segments_changes.txt
+#grassi@godot:/scratch/trcanmed/AF_spectra/dataset$ cat CRC*/platypus_nobin/all_seg_changes.txt > pippo_all_segments_changes.txt
+
+
+#### gained non syn muts
+# Do we keep or remove in vivo? ASK FIXME TODO 
+def all_nonsyn(wildcards):
+    if wildcards.kind == "SNV":
+        return expand("{model}/platypus_nobin/nonsyn.binary.tsv.gz", model=MODELS_NOREP)
+    else:
+        return expand("{model}/platypus_nobin_indels/nonsyn.binary.tsv.gz", model=MODELS_NOREP)
+
+rule merge_binary_nonsyn:
+    output: res="{kind}_nonsyn.binary.tsv.gz"
+    input: all_nonsyn
+    run:
+        import pandas as pd
+        d = pd.read_table(input.pop(0), sep='\t', compression="gzip", index_col=0, header=0)
+        for i in input:
+            x = pd.read_table(i, sep='\t', compression="gzip", index_col=0, header=0)
+            d = d.append(x, sort=True).fillna(0)
+        d.to_csv(output.res, sep='\t', index=True, compression='gzip')
+
+
+rule gene_onco:
+    input: d="{kind}_nonsyn.binary.tsv.gz", filter=PRJ_ROOT+"/local/share/data/intogen_symbols"
+    output: "{kind}_onco_nonsyn.tsv"
+    shell:
+        """
+            zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | filter_1col 1 {input.filter} > {output}
+        """
+
+#cut -f13,14 /mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt  |grep cmpl | sort | uniq | filter_1col 1 ../local/share/data/intogen_symbols | wc -l
+#566
+
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ cut -f13,14 /mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt  |grep cmpl | sort | uniq | filter_1col 1 ../local/share/data/common_iorio_crisp_essential | wc -l
+#956
+
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ cut -f13,14 /mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt  |grep cmpl | sort | uniq | wc -l
+#19561
+rule gene_essential:
+    input: d="{kind}_nonsyn.binary.tsv.gz", filter=PRJ_ROOT+"/local/share/data/common_iorio_crisp_essential"
+    output: "{kind}_essential_nonsyn.tsv"
+    shell:
+        """
+            zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | filter_1col 1 {input.filter} > {output}
+        """
