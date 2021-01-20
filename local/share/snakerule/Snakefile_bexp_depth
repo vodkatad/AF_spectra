@@ -337,6 +337,25 @@ rule gene_onco:
             zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | filter_1col 1 {input.filter} > {output}
         """
 
+def all_cosmic(wildcards):
+    if wildcards.kind == "SNV":
+        return expand("{model}/platypus_nobin/cosmic.binary.tsv.gz", model=MODELS_NOREP)
+    else:
+        return expand("{model}/platypus_nobin_indels/cosmic.binary.tsv.gz", model=MODELS_NOREP)
+
+rule merge_binary_cosmic:
+    output: res="{kind}_cosmic.binary.tsv.gz"
+    input: all_cosmic
+    run:
+        import pandas as pd
+        d = pd.read_table(input.pop(0), sep='\t', compression="gzip", index_col=0, header=0)
+        for i in input:
+            x = pd.read_table(i, sep='\t', compression="gzip", index_col=0, header=0)
+            d = d.append(x, sort=True).fillna(0)
+        d.to_csv(output.res, sep='\t', index=True, compression='gzip')
+
+
+
 #cut -f13,14 /mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt  |grep cmpl | sort | uniq | filter_1col 1 ../local/share/data/intogen_symbols | wc -l
 #566
 

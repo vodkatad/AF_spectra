@@ -396,6 +396,22 @@ rule binary_nonsyn:
         pi.to_csv(output.res, sep='\t', index=True, compression='gzip')
 
 
+rule binary_cosmic:
+    input: data="all.annovar.gz"
+    output: res="cosmic.binary.tsv.gz"
+    run:
+        import pandas as pd
+        d = pd.read_table(input.data, sep='\t', index_col=None, header=None)
+        #df.drop(df.columns[[1, 2]], axis=1, inplace=True)
+        d = d.iloc[:, [0,12]] 
+        d.columns = ['sample','cosmic']
+        d = d[d['cosmic'] != '.']
+        #pi = d.pivot(index="sample", columns="gene", values="value") # cumbersome cmq
+        pi = pd.pivot_table(d, index=['sample'], columns='cosmic', aggfunc=lambda x: 1, fill_value=0)
+        pi.to_csv(output.res, sep='\t', index=True, compression='gzip')
+
+
+
 ####  dn/ds
 
 rule dnds:

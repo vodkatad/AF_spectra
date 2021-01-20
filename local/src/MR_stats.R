@@ -85,3 +85,4 @@ lm_model <- function(model,data) {
   sm <- summary(lm(data=da, formula(MR~clone)))
   lmp(sm)
 }
+
