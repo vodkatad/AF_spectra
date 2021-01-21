@@ -71,6 +71,9 @@ d <- read.table(gzfile('/scratch/trcanmed/AF_spectra/dataset/SNV_cosmic.binary.t
 
 genes_n <- colSums(d)
 
-
+hist(rowSums(d), n=30)
 hist(genes_n, n = 15)
 pheatmap(t(d), show_rownames = FALSE, legend = FALSE)
+
+##
+d <- read.table(gzfile('/scratch/trcanmed/AF_spectra/dataset/CRC1502/platypus_nobin_indels/nonsyn.binary.tsv.gz'), sep="\t", header=TRUE, row.names = 1)

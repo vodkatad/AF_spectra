@@ -343,7 +343,21 @@ rule gene_onco:
             zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | filter_1col 1 {input.filter} > {output}
         """
 
+rule gene_oncog:
+    input: d="{kind}_nonsyn.binary.tsv.gz", filter=PRJ_ROOT+"/local/share/data/oncog"
+    output: "{kind}_oncog_nonsyn.tsv"
+    shell:
+        """
+            zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | filter_1col 1 {input.filter} > {output}
+        """
 
+rule gene_tsg:
+    input: d="{kind}_nonsyn.binary.tsv.gz", filter=PRJ_ROOT+"/local/share/data/tsb"
+    output: "{kind}_tsg_nonsyn.tsv"
+    shell:
+        """
+            zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | filter_1col 1 {input.filter} > {output}
+        """
 CMODELS_NOREP=['CRC0282','CRC0327','CRC0441','CRC1078','CRC1307','CRC1307_clones_all','CRC1502','CRC1502_clones_all','CRC1599LM']
 # 1599PR has no cosmic muts, bad fix for now
 def all_cosmic(wildcards):
