@@ -1,4 +1,5 @@
 include: "conf.sk"
+
 #### first data for Orso on bexp on 30x
 DEPTHS = ['10x','20x','30x','40x','50x']
 
@@ -310,7 +311,7 @@ rule bed:
 
 
 #### gained non syn muts
-# Do we keep or remove in vivo? ASK FIXME TODO 
+# Do we keep or remove in vivo? Only in vitro!
 def all_nonsyn(wildcards):
     if wildcards.kind == "SNV":
         return expand("{model}/platypus_nobin/nonsyn.binary.tsv.gz", model=MODELS_NOREP)
@@ -323,8 +324,13 @@ rule merge_binary_nonsyn:
     run:
         import pandas as pd
         d = pd.read_table(input.pop(0), sep='\t', compression="gzip", index_col=0, header=0)
+        d = d[~ d.index.str.contains('-M')]
+        d = d.loc[:, (d != 0).any(axis=0)]
         for i in input:
             x = pd.read_table(i, sep='\t', compression="gzip", index_col=0, header=0)
+            #x = x[x.sample.str.contains('-M')]
+            x = x[~ x.index.str.contains('-M')]
+            x = x.loc[:, (x != 0).any(axis=0)]
             d = d.append(x, sort=True).fillna(0)
         d.to_csv(output.res, sep='\t', index=True, compression='gzip')
 
@@ -337,11 +343,14 @@ rule gene_onco:
             zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | filter_1col 1 {input.filter} > {output}
         """
 
+
+CMODELS_NOREP=['CRC0282','CRC0327','CRC0441','CRC1078','CRC1307','CRC1307_clones_all','CRC1502','CRC1502_clones_all','CRC1599LM']
+# 1599PR has no cosmic muts, bad fix for now
 def all_cosmic(wildcards):
     if wildcards.kind == "SNV":
-        return expand("{model}/platypus_nobin/cosmic.binary.tsv.gz", model=MODELS_NOREP)
+        return expand("{model}/platypus_nobin/cosmic.binary.tsv.gz", model=CMODELS_NOREP)
     else:
-        return expand("{model}/platypus_nobin_indels/cosmic.binary.tsv.gz", model=MODELS_NOREP)
+        return expand("{model}/platypus_nobin_indels/cosmic.binary.tsv.gz", model=CMODELS_NOREP)
 
 rule merge_binary_cosmic:
     output: res="{kind}_cosmic.binary.tsv.gz"
@@ -349,8 +358,12 @@ rule merge_binary_cosmic:
     run:
         import pandas as pd
         d = pd.read_table(input.pop(0), sep='\t', compression="gzip", index_col=0, header=0)
+        d = d[~ d.index.str.contains('-M')]
+        d = d.loc[:, (d != 0).any(axis=0)]
         for i in input:
             x = pd.read_table(i, sep='\t', compression="gzip", index_col=0, header=0)
+            x = x[~ x.index.str.contains('-M')]
+            x = x.loc[:, (x != 0).any(axis=0)]
             d = d.append(x, sort=True).fillna(0)
         d.to_csv(output.res, sep='\t', index=True, compression='gzip')
 
@@ -371,3 +384,23 @@ rule gene_essential:
         """
             zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | filter_1col 1 {input.filter} > {output}
         """
+
+
+
+rule vi_merge_binary_nonsyn:
+    output: res="{kind}_vinonsyn.binary.tsv.gz"
+    input: all_nonsyn
+    run:
+        import pandas as pd
+        d = pd.read_table(input.pop(0), sep='\t', compression="gzip", index_col=0, header=0)
+        d = d.loc[:, (d != 0).any(axis=0)]
+        for i in input:
+            x = pd.read_table(i, sep='\t', compression="gzip", index_col=0, header=0)
+            x = x.loc[:, (x != 0).any(axis=0)]
+            d = d.append(x, sort=True).fillna(0)
+        d.to_csv(output.res, sep='\t', index=True, compression='gzip')
+
+# egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ zcat */platypus_nobin/all.annovar.gz |  cut -f 1  | wc -l
+# 838624
+# egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ zcat */platypus_nobin/all.annovar.gz |  cut -f 1  | grep -v '\-M' | wc -l
+# 681758

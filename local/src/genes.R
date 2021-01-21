@@ -61,4 +61,16 @@ all <- colSums(CRC1502)
 aall <- colSums(d)
 all[names(all) %in% list_all_mut(CRC1502_base)]
 aall[names(aall) %in% list_all_mut(CRC1502_base)]
+##
+# phyper(33, 566, 19561-566, 800, lower.tail=FALSE)
 
+#
+
+
+d <- read.table(gzfile('/scratch/trcanmed/AF_spectra/dataset/SNV_cosmic.binary.tsv.gz'), sep="\t",header=TRUE, row.names = 1)
+
+genes_n <- colSums(d)
+
+
+hist(genes_n, n = 15)
+pheatmap(t(d), show_rownames = FALSE, legend = FALSE)
