@@ -36,11 +36,11 @@ graphics.off()
 mut_mat <- mut_matrix(vcf_list = vcfs, ref_genome = ref_genome)
 
 
-garb <- sapply(base_clone, function(x) { 
+#garb <- sapply(base_clone, function(x) { 
   #pdf(paste0(x, ".96_profile.pdf"))
-  ggsave(file=paste0(x, ".96_profile.pdf"), plot=plot_96_profile(mut_mat[,grepl(x, colnames(mut_mat))]))
+ # ggsave(file=paste0(x, ".96_profile.pdf"), plot=plot_96_profile(mut_mat[,grepl(x, colnames(mut_mat))]))
   #graphics.off()
-} )
+#} )
 
 
 ### Transcriptional effects - strand bias

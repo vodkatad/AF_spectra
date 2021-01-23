@@ -77,3 +77,7 @@ pheatmap(t(d), show_rownames = FALSE, legend = FALSE)
 
 ##
 d <- read.table(gzfile('/scratch/trcanmed/AF_spectra/dataset/CRC1502/platypus_nobin_indels/nonsyn.binary.tsv.gz'), sep="\t", header=TRUE, row.names = 1)
+
+
+phyper(18, 222, 19561-222, 800, lower.tail=FALSE)
+phyper(6, 231, 19561-231, 800, lower.tail=FALSE)

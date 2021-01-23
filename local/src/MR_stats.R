@@ -86,3 +86,58 @@ lm_model <- function(model,data) {
   lmp(sm)
 }
 
+lm_s_model <- function(model, data) {
+  da <- data[data$model==model,]
+  da$MR <- sample(da$MR)
+  sm <- summary(lm(data=da, formula(MR~clone)))
+  lmp(sm)
+}
+
+###
+vivo <- read.table('/scratch/trcanmed/AF_spectra/dataset/vivo_gained_SNV', header=F, sep="\t", stringsAsFactors=FALSE)
+vitro <- read.table('/scratch/trcanmed/AF_spectra/dataset/MR_edu_SNV', header=F, sep="\t", stringsAsFactors=FALSE)
+colnames(vivo) <- c('sample','n')
+colnames(vitro) <- c('sample','MR')
+
+add_info <- function(our) {
+  our$model <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
+  our$clone <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][2]; return(y[1])})
+  our$clone2 <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][4]; return(y[1])})
+  our$modelclone <- paste0(our$model, '-', our$clone)
+  return(our)
+}
+
+vivo <- add_info(vivo)
+vitro <- add_info(vitro)
+
+# now need to average on modelclone
+
+
+vitro_mean <- as.data.frame(sapply(unique(vitro$modelclone), function(x) { mean(vitro[vitro$modelclone==x,'MR']) }))
+vivo_mean <- as.data.frame(sapply(unique(vivo$modelclone), function(x) { mean(vivo[vivo$modelclone==x,'n']) }))
+colnames(vivo_mean)[1] <- 'n'
+colnames(vitro_mean)[1] <- 'MR'
+m <- merge(vitro_mean, vivo_mean, by="row.names")
+plot(m$MR, m$n)
+cor.test(m$MR, m$n)
+cor.test(m$MR, m$n, method="spearman")
+m$model <- sapply(m$Row.names, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
+ggplot(m, aes(x=MR, y=n, color=model)) +  geom_point()
+
+
+##
+
+vitro_mean <- as.data.frame(sapply(unique(vitro$model), function(x) { mean(vitro[vitro$model==x,'MR']) }))
+vivo_mean <- as.data.frame(sapply(unique(vivo$model), function(x) { mean(vivo[vivo$model==x,'n']) }))
+colnames(vivo_mean)[1] <- 'n'
+colnames(vitro_mean)[1] <- 'MR'
+m <- merge(vitro_mean, vivo_mean, by="row.names")
+plot(m$MR, m$n)
+cor.test(m$MR, m$n)
+cor.test(m$MR, m$n, method="spearman")
+m$model <- sapply(m$Row.names, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
+
+ggplot(m, aes(x=MR, y=n, color=model)) +  geom_point(size=3)+theme_bw()+scale_color_manual(values=c(TODO))
+
+
+
