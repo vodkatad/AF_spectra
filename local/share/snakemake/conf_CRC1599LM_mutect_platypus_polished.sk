@@ -69,3 +69,4 @@ wildcard_constraints:
 
 ## bbad llama
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/CRC0441/platypus_nobin$ mv CRC0441-01-MI-B_CRC0441-01-0.gain.vcf.gz  vivo.merged.vcf.gz
+BULKNAME="CRC1599LMO-0-B"

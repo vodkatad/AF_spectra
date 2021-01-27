@@ -368,7 +368,7 @@ rule bed:
 # Do we keep or remove in vivo? Only in vitro!
 def all_nonsyn(wildcards):
     if wildcards.kind == "SNV":
-        return expand("{model}/platypus_nobin/nonsyn.binary.tsv.gz", model=MODELS_NOREP)
+        return expand("{model}/platypus_nobin/.binary.tsv.gz", model=MODELS_NOREP)
     else:
         return expand("{model}/platypus_nobin_indels/nonsyn.binary.tsv.gz", model=MODELS_NOREP)
 
@@ -498,3 +498,36 @@ rule n_crc:
             cut -f13,14 {input.annovar}  |grep -w cmpl | sort | uniq | filter_1col 1 <(bawk '$2=="LoF"{{print $1}}' {input.genes}) | wc -l | bawk '{{print "tsg",$0}}' >> {output}
             cut -f13,14 {input.annovar}  |grep -w cmpl | sort | uniq | filter_1col 1 <(bawk '$2=="Act"{{print $1}}' {input.genes}) | wc -l | bawk '{{print "oncog",$0}}' >> {output}
         """
+
+### n. of common muts in t0 clones
+
+rule all_neutralQ:
+    input: expand("{model}/tree/0_common.matrix.tsv.gz", model=MODELS_NOREP_TRUE)
+    output: "neutralQ.tsv"
+    shell:
+        """
+            echo -e "model\\tmean" > {output}
+            for f in {input}; do
+                echo -en "$f\\t" | tr "\/" "\\t" | cut -f 1 | tr "\\n" "\\t"  >> {output}
+                zcat $f | sed 1d | wc -l >> {output}
+            done;
+        """
+
+
+rule correlation_snv_neutralqburden:
+    input: x='MR_edu_SNV_averaged.tsv', y='neutralQ.tsv'
+    output: 'neutralqburden_SNV.pdf'
+    params: tool=BIN_DIR+'/corrplot', toremove='CRC0282', palette=COLORS_MODELS_NOMSI
+    shell:
+        """
+            {params.tool} {params.toremove} '{params.palette}' {input} {output} mean MR_SNV bulk_burden no
+        """
+
+# rule correlation_indel_neutralqburden:
+#     input: x='MR_edu_indel_averaged.tsv', y=PRJ_ROOT+'/local/share/data/bulkburdens_indel'
+#     output: 'neutralqburden_indel.pdf'
+#     params: tool=BIN_DIR+'/corrplot', toremove='plh', palette=COLORS_MODELS_2
+#     shell:
+#         """
+#             {params.tool} {params.toremove} '{params.palette}' {input} {output} mean MR_indel bulk_burden no
+#         """
