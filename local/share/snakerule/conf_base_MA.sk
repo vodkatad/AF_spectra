@@ -15,6 +15,7 @@ MODELS_NOREP=['CRC0282','CRC0327','CRC0441','CRC1078','CRC1307','CRC1307_clones_
 
 #COLORS_MODELS="#cc3300,#f607b9,#9900ff,#155d00,#77a003,#0829fc,#ff9900,#ffff00"
 COLORS_MODELS="#cc3300,#f607b9,#9900ff,#155d00,#77a003,#77a003,#0829fc,#0829fc,#ff9900,#ffff00"
+COLORS_MODELS_NOMSI="#f607b9,#9900ff,#155d00,#77a003,#0829fc,#ff9900,#ffff00" # without 2nd round, aggregated
 #MANY_COLORS_MODELS="#ff5733,#ff7433,#ff8d33,#f607b9,#fb49ce,#f998e0,#155d00,#239203,#2fc603,#77a003,#95c805,#bcfc08,#0829fc,#4a62fb,#95a3fd"
 #now 1502 has a new T0 clone:
 #                         282     282       282     327    327      327     441     441     441     1078    1078   1078     1307    1307    1307   1307_2B(now8D) 1307_8D(now9E) 1502    1502    1502    1502   1502_3A 1502_9C 1502_10B 1502_8d 1599LM  1599LM   1599PR 1599PR

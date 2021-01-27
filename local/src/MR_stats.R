@@ -140,4 +140,12 @@ m$model <- sapply(m$Row.names, function(x) {y<-strsplit(x, '-')[[1]][1]; return(
 ggplot(m, aes(x=MR, y=n, color=model)) +  geom_point(size=3)+theme_bw()+scale_color_manual(values=c(TODO))
 
 
+###############
+plotd <- data.frame(model=colnames(snv_ic), SNV_MR=snv_ic[3,], indel_MR=indel_ic[3,])
+plotd <- plotd[plotd$model!="CRC0282",]
+ci <- cor.test(plotd$SNV_MR, plotd$indel_MR)
+
+ggplot(plotd, aes(x=SNV_MR, y=indel_MR)) +  geom_point(aes(color=model), size=3)+geom_smooth(method='lm')+
+  theme_bw()+labs(caption=paste0('pearson=', ci$estimate, ' pval=',round(ci$p.value, 4)))
+# fare con gained normalizzate
 

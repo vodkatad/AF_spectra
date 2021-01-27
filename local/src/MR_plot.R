@@ -76,4 +76,3 @@ geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()
   theme(axis.text.x = element_text(size=15, angle=90, vjust=0.5, hjust=1), legend.position="none", axis.title.y=element_text(size=15))+scale_shape_manual(values=c(18,20))
 }
 ggsave(outfile)
-save.image('pluto.Rdata')

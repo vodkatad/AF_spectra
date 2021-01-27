@@ -156,7 +156,42 @@ rule overall_SNV_gained_vivo:
         """
             cat {input} | bawk '$4!=1 && $4!="class"{{print $2,$5}}' > {output}
         """
-        
+
+rule average_model:
+    input: '{any}'
+    output: '{any}_averaged.tsv'
+    params: tool=BIN_DIR+'/average_model'
+    shell:
+        """
+            {params.tool} {input} {output}
+        """
+
+rule correlation_snv_indel:
+    input: x='MR_edu_SNV_averaged.tsv', y='MR_edu_indel_averaged.tsv'
+    output: 'MR_SNV_indel.pdf'
+    params: tool=BIN_DIR+'/corrplot', toremove="CRC0282", palette=COLORS_MODELS_NOMSI
+    shell:
+        """
+            {params.tool} {params.toremove} '{params.palette}' {input} {output} mean MR_SNV MR_indel yes
+        """
+
+rule correlation_snv_indel_n:
+    input: x='vitro_gained_norm_SNV_averaged.tsv', y='vitro_gained_norm_indel_averaged.tsv'
+    output: 'gainednorm_SNV_indel.pdf'
+    params: tool=BIN_DIR+'/corrplot', toremove="CRC0282", palette=COLORS_MODELS_NOMSI
+    shell:
+        """
+            {params.tool} {params.toremove} '{params.palette}' {input} {output} mean gainedMB_SNV gainedMB_indel no
+        """
+
+rule correlation_snv_indel_nn:
+    input: x='vitro_gained_SNV_averaged.tsv', y='vitro_gained_indel_averaged.tsv'
+    output: 'gained_SNV_indel.pdf'
+    params: tool=BIN_DIR+'/corrplot', toremove="CRC0282", palette=COLORS_MODELS_NOMSI
+    shell:
+        """
+            {params.tool} {params.toremove} '{params.palette}' {input} {output} mean gained_SNV gained_indel no
+        """
 ### all dnds
 rule all_dnds:
     input: expand("{model}/platypus_nobin/all_gained_named.tsv", model=MODELS)
@@ -358,6 +393,7 @@ rule gene_tsg:
         """
             zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | filter_1col 1 {input.filter} > {output}
         """
+
 CMODELS_NOREP=['CRC0282','CRC0327','CRC0441','CRC1078','CRC1307','CRC1307_clones_all','CRC1502','CRC1502_clones_all','CRC1599LM']
 # 1599PR has no cosmic muts, bad fix for now
 def all_cosmic(wildcards):
@@ -391,6 +427,9 @@ rule merge_binary_cosmic:
 
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ cut -f13,14 /mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt  |grep cmpl | sort | uniq | wc -l
 #19561
+
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ cut -f13,14 /mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt  |grep -w cmpl | sort | uniq | wc -l
+#19462
 rule gene_essential:
     input: d="{kind}_nonsyn.binary.tsv.gz", filter=PRJ_ROOT+"/local/share/data/common_iorio_crisp_essential"
     output: "{kind}_essential_nonsyn.tsv"
@@ -418,3 +457,25 @@ rule vi_merge_binary_nonsyn:
 # 838624
 # egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ zcat */platypus_nobin/all.annovar.gz |  cut -f 1  | grep -v '\-M' | wc -l
 # 681758
+
+#data@rotpunkt:~/work/def_targeted_sanger672_iorio/cn_drivers$ sed 1d  IntOGen_Compendium_Cancer_Genes_19062020.txt  | bawk '$4=="COREAD"{print $1,$10}' | sort |uniq > intogen_crc/all
+rule gene_crc_onco_crc:
+    input: d="{kind}_nonsyn.binary.tsv.gz", filter=PRJ_ROOT+"/local/share/data/intogen_crc"
+    output: "{kind}_oncocrc_nonsyn.tsv"
+    shell:
+        """
+            zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | translate -k -a {input.filter} 1 > {output}
+        """
+
+# is cmpl the right filter for annovar TODO
+# seems so...should use -w to remove incmpl
+#https://www.biostars.org/p/152555/
+rule n_crc:
+    input: genes=PRJ_ROOT+"/local/share/data/intogen_crc", annovar='/mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt' 
+    output: "crc_n"
+    shell:
+        """
+            cut -f13,14 {input.annovar}  |grep -w cmpl | sort | uniq | filter_1col 1 <(cut -f 1 {input.genes}) | wc -l | bawk '{{print "all",$0}}'> {output}
+            cut -f13,14 {input.annovar}  |grep -w cmpl | sort | uniq | filter_1col 1 <(bawk '$2=="LoF"{{print $1}}' {input.genes}) | wc -l | bawk '{{print "tsg",$0}}' >> {output}
+            cut -f13,14 {input.annovar}  |grep -w cmpl | sort | uniq | filter_1col 1 <(bawk '$2=="Act"{{print $1}}' {input.genes}) | wc -l | bawk '{{print "oncog",$0}}' >> {output}
+        """
