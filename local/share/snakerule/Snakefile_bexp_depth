@@ -138,7 +138,7 @@ rule overall_SNV_gained_norm_vivo:
     input: kind_MR
     shell:
         """
-            cat {input} | bawk '$4!=1 && $4!="class"{{print $2,$5/$6}}' > {output}
+            cat {input} | bawk '$4!=1 && $4!=2 && $4!="class"{{print $2,$5/$6}}' > {output}
         """
         
 rule overall_SNV_gained:
@@ -154,7 +154,7 @@ rule overall_SNV_gained_vivo:
     input: kind_MR
     shell:
         """
-            cat {input} | bawk '$4!=1 && $4!="class"{{print $2,$5}}' > {output}
+            cat {input} | bawk '$4!=1 && $4 != 2 && $4!="class"{{print $2,$5}}' > {output}
         """
 
 rule average_model:
@@ -210,6 +210,34 @@ rule correlation_indel_bulkburden:
     shell:
         """
             {params.tool} {params.toremove} '{params.palette}' {input} {output} mean MR_indel bulk_burden no
+        """
+
+rule correlation_vitrovivo:
+    input: x='vitro_gained_norm_{kind}_averaged.tsv', y='vivo_gained_norm_{kind}_averaged.tsv'
+    output: 'gainednorm_vivo_{kind}.pdf'
+    params: tool=BIN_DIR+'/corrplot', toremove="CRC0282", palette=COLORS_MODELS_NOMSI
+    shell:
+        """
+            {params.tool} {params.toremove} '{params.palette}' {input} {output} mean gainedMB_{wildcards.kind}_vitro gainedMB_{wildcards.kind}_vivo no
+        """
+
+rule correlation_vitrovivo_msi:
+    input: x='vitro_gained_norm_{kind}_averaged.tsv', y='vivo_gained_norm_{kind}_averaged.tsv'
+    output: 'gainednorm_vivoall_{kind}.pdf'
+    params: tool=BIN_DIR+'/corrplot', toremove="plh", palette=COLORS_MODELS_2
+    shell:
+        """
+            {params.tool} {params.toremove} '{params.palette}' {input} {output} mean gainedMB_{wildcards.kind}_vitro gainedMB_{wildcards.kind}_vivo no
+        """
+
+
+rule correlation_vitrovivo_nn:
+    input: x='vitro_gained_{kind}_averaged.tsv', y='vivo_gained_{kind}_averaged.tsv'
+    output: 'gained_vivo_{kind}.pdf'
+    params: tool=BIN_DIR+'/corrplot', toremove="CRC0282", palette=COLORS_MODELS_NOMSI
+    shell:
+        """
+            {params.tool} {params.toremove} '{params.palette}' {input} {output} mean gained_{wildcards.kind}_vitro gained_{wildcards.kind}_vivo no
         """
 ### all dnds
 rule all_dnds:
