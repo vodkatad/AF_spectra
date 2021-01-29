@@ -559,3 +559,52 @@ rule correlation_snv_neutralqburden:
 #         """
 #             {params.tool} {params.toremove} '{params.palette}' {input} {output} mean MR_indel bulk_burden no
 #         """
+
+
+### bulk annovar
+def find_bulk(wildcards):
+    regex = '.+'+wildcards.b+'.+'
+    res = [x for x in BULK_VCF if re.match(regex, x)]
+    if len(res) == 1:
+        return res[0]
+    else:
+        print("Something murky in bulk!")
+        print(res)
+        print(wildcards.b)
+        print(BULK_VCF)
+
+
+rule annovar:
+    input: find_bulk, ANNOVAR
+    output: "{b}.multianno.txt"
+    log: "{b}.multianno.log"
+    params: ver="hg38"
+    shell:
+        """
+        table_annovar.pl {input[0]} {input[1]} --otherinfo -buildver {params.ver} -out merged -remove -protocol refGene,avsnp150,cosmic87_coding -vcfinput -operation g,f,f -nastring . -polish &> {log}
+        bawk '{{print "{wildcards.b}", $0}}' < merged.hg38_multianno.txt > {output}
+        rm merged.hg38_multianno.txt
+        """
+
+rule all_all_annovar:
+    input: expand("{b}.multianno.txt", b=MODELS_NOREP_TRUE[:-1])
+    output: "all.annovar.gz"
+    shell: "cat {input} | sed 1d | gzip >  {output}"
+    
+
+rule binary_nonsyn:
+    input: data="all.annovar.gz", wanted=PRJ_ROOT+"/local/share/data/nonsyn"
+    output: res="nonsyn.binary.tsv.gz"
+    run:
+        import pandas as pd
+        d = pd.read_table(input.data, sep='\t', index_col=None, header=None)
+        wanted = pd.read_table(input.wanted, sep='\t', index_col=None, header=None)
+        #df.drop(df.columns[[1, 2]], axis=1, inplace=True)
+        d = d.iloc[:, [0,7,9]] 
+        d.columns = ['sample','gene','class']
+        wanted.columns = ['class']
+        d = d[d['class'].isin(wanted['class'])]
+        d.drop(columns=['class'], inplace=True)
+        #pi = d.pivot(index="sample", columns="gene", values="value") # cumbersome cmq
+        pi = pd.pivot_table(d, index=['sample'], columns='gene', aggfunc=lambda x: 1, fill_value=0)
+        pi.to_csv(output.res, sep='\t', index=True, compression='gzip')
