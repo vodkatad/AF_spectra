@@ -251,6 +251,18 @@ rule all_dnds:
             {params.tool} {output[0]}.tmp {output} {params.rda} &> {log}
             rm {output[0]}.tmp
         """
+ 
+rule all_dnds_vitroMSS:
+    input: expand("{model}/platypus_nobin/all_gained_named.tsv", model=MODELS[1:])
+    output: "dnds_vitroMSS.tsv", "dnds_vitroMSS.Rdata"
+    log: "dnds_vitroMSS.log"
+    params:  tool=BIN_DIR+"/dnds", rda=DNDSCV_RDA
+    shell:
+        """
+            cat {input} | tr ":" "\\t" | bawk '$1 !~ /-M/ {{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
+            {params.tool} {output[0]}.tmp {output} {params.rda} &> {log}
+            rm {output[0]}.tmp
+        """
 
 rule dnds_vitro:
     input: expand("{model}/platypus_nobin/all_gained_named.tsv", model=MODELS)
@@ -296,6 +308,15 @@ rule dnds_global:
             {params.tool} {input} {output} '{params.colors}'
         """
 
+rule dnds_plot_MSIMSS:
+    input: msi="CRC0282/platypus_nobin/dndsvitro.tsv", mss="dnds_vitroMSS.tsv"
+    output: "dnds_MSIMSS.png"
+    params: tool=BIN_DIR+"/dnds_plot_all", colors='#cc3300,#6666ff'
+    shell:
+        """
+            {params.tool} {input} {output} '{params.colors}'
+        """
+
 rule dnds_onebyone: # TODO
     input: expand("{model}/platypus_nobin/dnds.tsv", model=MODELS)
     output: "dnds_onebyone.png"
@@ -305,8 +326,6 @@ rule dnds_onebyone: # TODO
             {params.tool} {input} {output}
         """
 
-#egrassi@godot:/scratch/trcanmed/AF_spectra/local/bin$ ln -s ../src/MR_plot.R MR_plot
-#egrassi@godot:/scratch/trcanmed/AF_spectra/local/bin$ ln -s ../src/gained_plot.R gained_plot
 rule MR_edu_plot:
     input: "MR_edu_{kind}"
     output: "MR_edu_{kind}.png"
@@ -361,9 +380,6 @@ rule MSS_gainednn_plot:
             {params.tool} {output}.tmp {output} '{params.colors}' {wildcards.vivi} nonorm
             rm {output}.tmp
         """
-
-## TODO b/d
-
 
 
 ### MutationalPatterns bed
