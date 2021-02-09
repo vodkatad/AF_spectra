@@ -71,12 +71,13 @@ select <- which(rowSums(ff$contribution) > 10)
 plot_contribution_heatmap(ff$contribution,cluster_samples = TRUE,method = "complete")
 
 ############### private of regions
-path <- '/scratch/trcanmed/AF_spectra/local/share/data/clevers/private_clones/'
+path <- '/scratch/trcanmed/AF_spectra/local/share/data/clevers/private_sections/'
 f <- c("P1T1.vcf.gz","P1T2.vcf.gz","P1T3.vcf.gz","P1T4.vcf.gz","P2T1.vcf.gz","P2T2.vcf.gz","P2T4.vcf.gz","P2T5.vcf.gz","P2T6.vcf.gz","P3T1.vcf.gz","P3T2.vcf.gz","P3T3.vcf.gz","P3T4.vcf.gz")
 
 files <- paste0(path, f)
-sample_names <- c("P1.T1.1","P1.T1.4","P1.T2.4","P1.T3.2","P1.T3.3","P1.T4.3","P1.T4.4","P2.T1.1","P2.T1.3","P2.T2.5","P2.T4.2","P2.T4.3","P2.T5.1","P2.T5.4","P2.T6.2","P2.T6.6","P3.T1.1","P3.T1.4","P3.T2.1","P3.T2.2","P3.T3.2","P3.T3.4","P3.T4.1","P3.T4.2")
-
+#sample_names <- c("P1.T1.1","P1.T1.4","P1.T2.4","P1.T3.2","P1.T3.3","P1.T4.3","P1.T4.4","P2.T1.1","P2.T1.3","P2.T2.5","P2.T4.2","P2.T4.3","P2.T5.1","P2.T5.4","P2.T6.2","P2.T6.6","P3.T1.1","P3.T1.4","P3.T2.1","P3.T2.2","P3.T3.2","P3.T3.4","P3.T4.1","P3.T4.2")
+sample_names <-  sapply(f, function(x) {y<-strsplit(x, '.')[[1]][1]; return(y[1])})
+sample_names <- names(sample_names)
 
 vcfs <- read_vcfs_as_granges(files, sample_names, ref_genome)
 # from tcga multiple alternative alleles/indels are removed, some samples (MSI?) many more indels (15-30 vs 1000+)
