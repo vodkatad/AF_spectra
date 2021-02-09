@@ -11,6 +11,10 @@ DNDSCV_RDA=PRJ_ROOT+"/local/share/data/RefCDS_human_GRCh38.p12.rda"
 BIN_DIR=PRJ_ROOT+"/local/bin"
 SNAKE_ROOT="/mnt/trcanmed/snaketree"
 
+
+B=PRJ_ROOT+'/local/share/data/birth_rates_up3.txt'
+B_D=PRJ_ROOT+'/local/share/data/birthmdeath_rates_up3.txt'
+
 ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
 
 MODELS=['CRC0282','CRC0327','CRC0441','CRC1078','CRC1307','CRC1307_clones_all','CRC1502', 'CRC1502_clones_all','CRC1599LM', 'CRC1599PR']
