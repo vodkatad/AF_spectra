@@ -676,11 +676,22 @@ rule birth_plot:
             {params.tool} {input} {output} '{params.colors}' birth
         """
 
-rule birthdeath_plot:
-    input: B_D
-    output: "birthdeath_clones.png"
-    params: tool=BIN_DIR+"/generic_clones_plot", colors=MANY_COLORS_MODELS_VITRO
+
+
+rule correlation_snvn_birthrate:
+    input: x='vitro_{gained}_{mut}_averaged.tsv', y='birth_averaged.tsv'
+    output: 'birth_{gained}_{mut}.pdf'
+    params: tool=BIN_DIR+'/corrplot', toremove='CRC0282', palette=COLORS_MODELS_NOMSI
     shell:
         """
-            {params.tool} {input} {output} '{params.colors}' birth-death
+            {params.tool} {params.toremove} '{params.palette}' {input} {output} mean MR_{wildcards.mut} birth_rate no
+        """
+
+rule correlation_snvn_bdeathrate:
+    input: x='vitro_{gained}_{mut}_averaged.tsv', y='birthdeath_averaged.tsv'
+    output: 'birthdeath_{gained}_{mut}.pdf'
+    params: tool=BIN_DIR+'/corrplot', toremove='CRC0282', palette=COLORS_MODELS_NOMSI
+    shell:
+        """
+            {params.tool} {params.toremove} '{params.palette}' {input} {output} mean MR_{wildcards.mut} birthdeath_rate no
         """
