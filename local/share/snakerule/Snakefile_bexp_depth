@@ -695,3 +695,28 @@ rule correlation_snvn_bdeathrate:
         """
             {params.tool} {params.toremove} '{params.palette}' {input} {output} mean {wildcards.gained}_{wildcards.mut} birthdeath_rate no
         """
+
+### quick and dirty correlation between n. of subclonal and MR
+def kind_subclonal(wildcards):
+    if wildcards.kind == "SNV":
+        return expand("{model}/platypus_nobin/n_subclonal_norm.txt", model=MODELS_NOREP_TRUE)
+    else:
+        return expand("{model}/platypus_nobin_indels/n_subclonal_norm.txt", model=MODELS_NOREP_TRUE)
+
+rule tot_SNV_subclonal:
+    output: "subclonal_{kind}"
+    input: kind_subclonal
+    shell:
+        """
+            cat {input} > {output}
+        """
+
+rule correlation_snv_subclonal:
+    input: x='MR_edu_SNV_averaged.tsv', y='subclonal_SNV_averaged.tsv'
+    output: 'MR_SNV_subclonal.pdf'
+    params: tool=BIN_DIR+'/corrplot', toremove="CRC0282", palette=COLORS_MODELS_NOMSI
+    shell:
+        """
+            {params.tool} {params.toremove} '{params.palette}' {input} {output} mean MR_SNV n_subclonal_norm no
+        """
+
