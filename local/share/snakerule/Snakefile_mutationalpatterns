@@ -1,4 +1,4 @@
-STARTTIME="-0" # this is overwritten in conf.sk for 2nd round clones
+STARTTIME="-0" # this is ov
 def find_pairs_raw_ov_stupid(wildcards): 
     # We use info from conf.sk instead of patching info together from SAMPLES and STARTTIME
     # still not clear which is best, this is more flexible but the other solution is safer (if correct :))

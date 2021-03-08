@@ -699,9 +699,9 @@ rule correlation_snvn_bdeathrate:
 ### quick and dirty correlation between n. of subclonal and MR
 def kind_subclonal(wildcards):
     if wildcards.kind == "SNV":
-        return expand("{model}/platypus_nobin/n_subclonal_norm.txt", model=MODELS_NOREP_TRUE)
+        return expand("{model}/mutect_nobin/n_subclonal_norm.txt", model=MODELS_NOREP_TRUE)
     else:
-        return expand("{model}/platypus_nobin_indels/n_subclonal_norm.txt", model=MODELS_NOREP_TRUE)
+        return expand("{model}/mutect_nobin_indels/n_subclonal_norm.txt", model=MODELS_NOREP_TRUE)
 
 rule tot_SNV_subclonal:
     output: "subclonal_{kind}"
@@ -720,3 +720,19 @@ rule correlation_snv_subclonal:
             {params.tool} {params.toremove} '{params.palette}' {input} {output} mean MR_SNV n_subclonal_norm no
         """
 
+#### other bed files
+rule bed_simplerepeat:
+    input: SNAKE_ROOT+'/task/annotations/local/share/data/hg38_simpleRepeat.txt.gz'
+    output: 'simpleRepeat.bed'
+    shell: 
+        """
+            zcat {input} | cut -f 2,3,4 |sort -k1,1 -k2,2n |uniq | bedtools merge -i -  > {output}
+        """
+
+rule bed_repeatmask:
+    input: SNAKE_ROOT+'/task/annotations/local/share/data/hg38_rmsk.txt.gz'
+    output: 'rmsk.bed'
+    shell: 
+        """
+            zcat {input} | cut -f 6,7,8 |sort -k1,1 -k2,2n |uniq | bedtools merge -i - > {output}
+        """

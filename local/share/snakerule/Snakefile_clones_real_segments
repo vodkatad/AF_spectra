@@ -506,3 +506,68 @@ rule all_rogue:
         """
             cat {input} > {output}
         """
+
+
+######################## subclonal
+rule fake_binomial:
+    input: vars="{sample}.var_cnv.tsv.gz", header=SRC_DIR+"/binomheader.tsv"
+    output: "{sample}.fbcalls.tsv.gz"
+    log: "{sample}.fbcalls.tsv.log"
+    params: cn=WANTED_CN
+    shell:
+        """
+            zcat {input.vars} | tr ":" "\\t" > {output}.tmp
+            cat {input.header} > {output}.3tmp
+            echo {params.cn} | tr "," "\\n" > {output}.2tmp
+            cat {output}.tmp | filter_1col 11 {output}.2tmp | bawk '{{print $4":"$5":"$6":"$7,$0, 1, 0, 1}}' >> {output}.3tmp
+            cat {output}.tmp | filter_1col -v 11 {output}.2tmp | bawk '{{print $4":"$5":"$6":"$7,$0, 0, 0, 1}}' >> {output}.3tmp
+            gzip -c {output}.3tmp > {output}
+            rm {output}.*tmp
+        """
+
+rule subclonal:
+    input: "{sample}.fbcalls.tsv.gz"
+    output: "{sample}.subclonal_n.tsv"
+    shell:
+        """
+            zcat {input} | sed 1d | bawk '$12==2 && $11 < 0.3 {{print $1}} $12==3 && $11 < 0.1 {{print $1}}' | sort | uniq | wc -l > {output}
+        """
+
+rule n_subclonal:
+    input: expand("{sample}.subclonal_n.tsv", sample=SAMPLES)
+    output: "all_subclonal_n.tsv"
+    shell:
+        """
+            for f in {input}; do
+                cat <(echo -en "$f\\t") <(cat $f) | sed 's/\.subclonal_n\.tsv//1';
+            done > {output}
+        """
+
+rule subclonal_len:
+    input: "{sample}.callable.bed.gz"
+    output: barplot="{sample}.cn23.png", len="{sample}.length23.txt", cumplot="{sample}.cumcn23.png"
+    params: cns='2,3', tool=CNLEN
+    shell:
+        """
+            {params.tool} {input} {params.cns} {output.barplot} {output.cumplot} {output.len}
+        """
+
+rule all_len23:
+    input: expand("{sample}.length23.txt", sample=SAMPLES)
+    output: "all_len23.txt"
+    shell:
+        """
+            for f in {input}; do
+                cat <(echo -en "$f\\t") <(cat $f) | sed 's/\.length23\.txt//1';
+            done > {output}
+        """
+
+rule subclonal_corr:
+    input: len="all_len23.txt", sub="all_subclonal_n.tsv"
+    output: "n_subclonal_norm.txt"
+    shell:
+        """
+            join -t $'\\t' <(sort -k1,1 {input.len}) <(sort -k1,1 {input.sub}) | bawk '{{print $1,$3/$2}}' > {output}
+        """
+
+#######################

@@ -506,3 +506,51 @@ rule all_rogue:
         """
             cat {input} > {output}
         """
+
+########################
+rule subclonal:
+    input: "{sample}.calls.tsv.gz"
+    output: "{sample}.subclonal_n.tsv"
+    shell:
+        """
+            zcat {input} | sed 1d | bawk '$12==2 && $11 < 0.3 {{print $1}} $12==3 && $11 < 0.1 {{print $1}}' | sort | uniq | wc -l > {output}
+        """
+
+rule n_subclonal:
+    input: expand("{sample}.subclonal_n.tsv", sample=SAMPLES)
+    output: "all_subclonal_n.tsv"
+    shell:
+        """
+            for f in {input}; do
+                cat <(echo -en "$f\\t") <(cat $f) | sed 's/\.subclonal_n\.tsv//1';
+            done > {output}
+        """
+
+rule subclonal_len:
+    input: "{sample}.callable.bed.gz"
+    output: barplot="{sample}.cn23.png", len="{sample}.length23.txt", cumplot="{sample}.cumcn23.png"
+    params: cns='2,3', tool=CNLEN
+    shell:
+        """
+            {params.tool} {input} {params.cns} {output.barplot} {output.cumplot} {output.len}
+        """
+
+rule all_len23:
+    input: expand("{sample}.length23.txt", sample=SAMPLES)
+    output: "all_len23.txt"
+    shell:
+        """
+            for f in {input}; do
+                cat <(echo -en "$f\\t") <(cat $f) | sed 's/\.length23\.txt//1';
+            done > {output}
+        """
+
+rule subclonal_corr:
+    input: len="all_len23.txt", sub="all_subclonal_n.tsv"
+    output: "n_subclonal_norm.txt"
+    shell:
+        """
+            join -t $'\\t' <(sort -k1,1 {input.len}) <(sort -k1,1 {input.sub}) | bawk '{{print $1,$3/$2}}' > {output}
+        """
+
+#######################
