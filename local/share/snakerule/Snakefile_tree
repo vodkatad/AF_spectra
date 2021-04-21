@@ -1,4 +1,13 @@
+include: "../platypus_nobin/Snakefile"
 include: "./conf.sk"
+
+MODEL=SAMPLES[1].split('-')[0]
+rule base_phangorn:
+    input: vcf=DATA+"/platypus_filtered.vcf.gz", chrs=DATA+"/chrs"
+    output: nexus="tree.nexus", pdf="tree.pdf", rimage="tree.Rdata"
+    params: model=MODEL
+    script: SRC_DIR+"/phangorn.R"
+
 
 rule vcf_to_matrix:
     input: vcf=DATA+"/platypus_filtered.vcf.gz", chrs=DATA+"/chrs"
@@ -34,16 +43,26 @@ rule remove_private:
 
 
 rule bulk:
-    input: DATA+"/../second_shipment_bulk/"+BULKNAME+".pass.vcf.gz"
+    input: DATA+'/../' + SHIPMENT + '/'+BULKNAME+'.pass.vcf.gz'
     output: "bulk.list"
     shell:
         """
-            echo "ID" > {output}
+            echo "ID" > {output}l
             zgrep -v "^#" {input} | bawk 'length($5)==1 && length($4)==1{{print $1":"$2":"$4":"$5}}' | sort | uniq>> {output}
         """
 
+rule produce_binary_bulk_platy:
+    input: bulk="bulk.list", platy="binary_matrix.tsv.gz"
+    output: "binary_tree_bulk_platy.tsv.gz"
+    params: tool=BIN_DIR+"/merge_bulk_binary"
+    shell:
+        """
+            {params.tool} {input} {output}
+        """
 
-rule process_vcf:
+#rule count_and_remove_private:
+
+rule process_vcf_tree:
     output: "plh"
     shell: "touch {output}"
 
