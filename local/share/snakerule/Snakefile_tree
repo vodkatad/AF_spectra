@@ -69,7 +69,7 @@ rule process_vcf_tree:
 #../../../local/src/overlap_column.R 0_common.matrix.tsv.gz ../../CRC1307/tree/0_common.matrix.tsv.gz T0_common_1078 T0_common_1307 ID 1307_1078_T0_clones
 #1307_1078_T0_clones.n1.ids.tsv
 rule vcf_from_list:
-    input: muts="1307_1078_T0_clones.{n}.ids.tsv", vcf=DATA+"/../second_shipment_bulk/"+BULKNAME+".pass.vcf.gz"
+    input: muts="1307_1078_T0_clones.{n}.ids.tsv", vcf=DATA+"/../les/"+BULKNAME+".pass.vcf.gz"
     output: "{n}.vcf.gz"
     shell:
         """

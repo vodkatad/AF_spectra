@@ -21,10 +21,10 @@ patient = snakemake@params[["model"]]
 #patient = 'CRC1307'
 # vaf threshold
 #vt = snakemake@params[["vaf_threshold"]]
-outimage = snakemake@input[['rimage']]
+outimage = snakemake@output[['rimage']]
 vt = 0.1
-#bs = 1000 #10000
 bs = 10000
+#bs = 1
 
 # Read in the vcf
 vcf = read.vcfR(vaf_path)
