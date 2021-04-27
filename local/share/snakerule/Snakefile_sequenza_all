@@ -1,6 +1,7 @@
-SAMPLES=['CRC1307','CRC0282','CRC1502','CRC1078','CRC0327']
+#SAMPLES=['CRC1307','CRC0282','CRC1502','CRC1078','CRC0327']
+SAMPLES=['CRC0282','CRC0327','CRC0441','CRC1078','CRC1307_clones_all','CRC1502_clones_all','CRC1599LM','CRC1599PR']
 rule alltobin_merged:
-    input: "../CRC1307_sequenza/merged.tsv.gz", expand("../{model}/sequenza/merged.tsv.gz", model=SAMPLES[1:]) # "../CRC1502/sequenza/merged.tsv.gz"#, "../CRC0282/sequenza/merged.tsv.gz", 
+    input: expand("../{model}/sequenza/merged.tsv.gz", model=SAMPLES) 
     output: m="merged.tsv.gz"
     run:
         import pandas as pd
@@ -136,7 +137,7 @@ rule vitro_alltobin_merged:
         import pandas as pd
         res = pd.read_csv(input.all, sep="\t") 
         cols = res.columns
-        vitro_cols = [i for i, x in enumerate(cols) if not re.match('.+M.+',x)]
+        vitro_cols = [i for i, x in enumerate(cols) if not re.match('.+\-M.+',x)]
         #vitro_cols = [i for i, x in enumerate(cols) if not re.match('CRC1502-03.+',x) and not re.match('.+M.+',x)] # Giorgia
         n_v_c = cols[vitro_cols]
         res = res[[c for c in res.columns if c in n_v_c]]
@@ -189,7 +190,7 @@ rule vitro_heatmap:
         samples = p['m'].tolist()
         # Create a categorical palette to identify the samples
         #sample_pal = sns.color_palette("bright", len(np.unique(samples)))
-        sample_pal = sns.color_palette(["#ff5733","#f607b9","#155d00","#77a003","#0829fc"])
+        sample_pal = sns.color_palette(["#cc3300","#f607b9","#9900ff","#155d00","#77a003","#0829fc","#ff9900","#ffff00"])
         #sample_pal = sns.husl_palette(len(samples), h=.5)
         sample_lut = dict(zip(map(str, np.unique(samples)), sample_pal))
         # Convert the palette to vectors that will be drawn on the side of the matrix
@@ -257,7 +258,7 @@ rule vitro_heatmap:
         ax.xaxis.set_major_locator(ticker.FixedLocator((pos_list)))
         ax.xaxis.set_major_formatter(ticker.FixedFormatter((chrN_list)))
         ax.tick_params(axis='x', rotation=0, labelsize=20)
-        ax.tick_params(axis='y', rotation=0, labelsize=15)
+        #ax.tick_params(axis='y', rotation=125, labelsize=15)
     
         ax.xaxis.set_minor_locator(ticker.FixedLocator(chr_boundaries))
         ax.tick_params(axis='x', length=20, which='minor')
@@ -323,7 +324,9 @@ rule all_heatmap:
         samples = p['m'].tolist()
         # Create a categorical palette to identify the samples
         #sample_pal = sns.color_palette("bright", len(np.unique(samples)))
-        sample_pal = sns.color_palette(["#ff5733","#f607b9","#155d00","#77a003","#0829fc"])
+        #sample_pal = sns.color_palette(["#ff5733","#f607b9","#155d00","#77a003","#0829fc"])
+        #sample_pal = sns.color_palette(["#cc3300","#f607b9","#9900ff","#155d00","#77a003","#77a003","#0829fc","#0829fc","#ff9900","#ffff00"])
+        sample_pal = sns.color_palette(["#cc3300","#f607b9","#9900ff","#155d00","#77a003","#0829fc","#ff9900","#ffff00"])
         #sample_pal = sns.husl_palette(len(samples), h=.5)
         sample_lut = dict(zip(map(str, np.unique(samples)), sample_pal))
         # Convert the palette to vectors that will be drawn on the side of the matrix
@@ -391,7 +394,7 @@ rule all_heatmap:
         ax.xaxis.set_major_locator(ticker.FixedLocator((pos_list)))
         ax.xaxis.set_major_formatter(ticker.FixedFormatter((chrN_list)))
         ax.tick_params(axis='x', rotation=0, labelsize=20)
-        ax.tick_params(axis='y', rotation=0, labelsize=15)
+        ax.tick_params(axis='y', rotation=0, labelsize=10)
     
         ax.xaxis.set_minor_locator(ticker.FixedLocator(chr_boundaries))
         ax.tick_params(axis='x', length=20, which='minor')
