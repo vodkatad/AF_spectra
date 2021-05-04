@@ -70,3 +70,4 @@ SAMPLES_ZERO=[x+'-0' for x in SAMPLES_HIGH]
 
 # ruleorder: process_vcf_special > process_vcf
 BULKNAME="CRC0282LMO-0-B"
+NORMAL="CRC0282NMH0000000000D07000"

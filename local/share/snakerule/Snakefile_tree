@@ -79,3 +79,23 @@ rule vcf_from_list:
             bgzip -c {output}.tmp > {output}
             rm {output}.tmp
         """
+
+
+rule merge_vcf:
+    input: bulk=DATA+'/../' + SHIPMENT + '/'+BULKNAME+'.pass.vcf.gz', vcf=DATA+"/platypus_filtered.vcf.gz"
+    output: "merged_bulk.vcf.gz"
+    shell:
+        """
+            bcftools merge -0 -O z -o {output} {input.bulk} {input.vcf}
+        """
+# does not work: 
+# egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/CRC1502_clones_all/tree$ zgrep -w 25245350  merged_bulk.vcf.gz 
+# chr12   25245350        .       C       T       2965    PASS    BRF=0.11;FR=0.5;HP=1;HapScore=2;MGOF=8;MMLQ=20;MQ=60;NF=258;NR=225;PP=2965;QD=20;SC=GCCTACGCCACCAGCTCCAAC;SbPval=0.61;Source=File;TC=1419;TCF=743;TCR=676;TR=483;WE=25245358;WS=25245340        GT:GL:GOF:GQ:NR:NV      0/0:.:.:.:.:.   0/0:.:.:.:.:.   0/1:-19.97,0,-62.77:1:99:33:10 0/1:-39.59,0,-54.79:3:99:37:16  0/1:-16.38,0,-48.28:0:99:25:7   0/1:-13.68,0,-72.08:2:99:34:7   0/1:-30.27,0,-52.27:0:99:37:13  0/1:-33.07,0,-56.77:0:99:36:14  0/1:-17.79,0,-76.99:1:99:47:14  0/1:-34.07,0,-43.57:3:99:31:13  0/1:-40.36,0,-77.56:1:99:49:16  0/1:-74.25,0,-69.55:2:99:59:30  0/1:-20.33,0,-70.13:3:99:39:11 0/1:-18.47,0,-67.67:1:99:44:12  0/1:-33.33,0,-75.93:3:99:48:15  0/1:-65.4,0,-60.3:4:99:52:27    0/1:-42.95,0,-87.85:3:99:58:19  0/1:-29.94,0,-76.94:2:99:47:17  0/1:-20.31,0,-71.21:3:99:40:11  0/1:-19.02,0,-62.52:1:99:36:11  0/1:-31.47,0,-54.17:3:99:36:14  0/1:-22.6,0,-55.1:1:99:31:9     0/1:-29.67,0,-50.47:2:99:33:130/1:-37.57,0,-46.57:8:99:36:16   0/1:-27.46,0,-71.36:2:99:41:11  0/1:-14.86,0,-88.56:1:99:44:8   0/1:-40.55,0,-92.55:2:99:52:17  0/1:-21.76,0,-65.06:4:99:39:13  0/1:-29.5,0,-65.2:5:99:36:12    0/1:-23.09,0,-76.29:3:99:43:10  0/1:-30.28,0,-38.28:2:99:29:12  0/1:-30.66,0,-76.96:5:99:46:17  0/1:-30.38,0,-70.88:3:99:45:14  0/1:-28.66,0,-77.36:1:99:44:14 0/1:-22.1,0,-65.2:1:99:42:10    0/1:-31.27,0,-56.77:0:99:43:18  0/1:-27.47,0,-40.57:0:99:27:12
+# egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/CRC1502_clones_all/tree$ zgrep -w 25245350  ../../../local/share/data/second_shipment_bulk/CRC1502LMO-0-B.pass.vcf.gz
+# chr12   25245350        .       C       T       .       PASS    CONTQ=93;DP=68;ECNT=1;GERMQ=93;MBQ=31,33;MFRL=355,375;MMQ=60,60;MPOS=50;NALOD=1.63;NLOD=12.32;POPAF=6.00;ROQ=64;SEQQ=74;STRANDQ=32;TLOD=12.84   GT:AD:AF:DP:F1R2:F2R1:SB        0/1:21,5:0.214:26:9,3:12,2:12,9,4,1     0/0:41,0:0.023:41:21,0:20,0:24,17,0,0
+
+rule phangorn_bulk:
+    input:  bulk=DATA+'/../' + SHIPMENT + '/'+BULKNAME+'.pass.vcf.gz', vcf=DATA+"/platypus_filtered.vcf.gz"
+    output: nexus="tree_bulk_{vv}.nexus", pdf="tree_bulk_{vv}.pdf", rimage="tree_bulk_{vv}.Rdata"
+    params: model=MODEL, normal=NORMAL, chrs=','.join(['chr'+str(x) for x in list(range(1,23)) + ['X','Y']])
+    script: SRC_DIR+"/phangorn2.R"

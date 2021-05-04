@@ -54,6 +54,7 @@ SAMPLES_HIGH=list(SAMPLES_ORIG_T1.keys())
 SAMPLES_ZERO=[x+'-1' for x in SAMPLES_HIGH]
 VCF_DIR=PRJ_ROOT+"/dataset/CRC1502_clones_all/platypus_nobin"
 BULKNAME="CRC1502LMO-0-B"
+NORMAL="CRC1502NLH0000000000D03000"
 SHIPMENT="second_shipment_bulk"
 ##############################################################
 
