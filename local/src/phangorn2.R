@@ -76,6 +76,12 @@ if (vivi == "vitro") {
   bvafs_bin <- bvafs_bin[, !grepl('-M', cnames, fixed=T)]
 }
 
+#MA: note that I am not removing all 0 muts but an empiric check for 1502 showed that there are no differences (as expected) doing so, just slightly different bs percentages.
+#ss <- rowSums(vafs_bin)
+#length(ss)
+#nss <- names(ss[ss==0])
+#length(nss)
+#v <- vafs_bin[!rownames(vafs_bin) %in% nss,]
 
 # remove unwanted chrs
 rn <- rownames(bvafs_bin)

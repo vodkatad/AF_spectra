@@ -70,3 +70,4 @@ wildcard_constraints:
 #         """
 
 # ruleorder: process_vcf_special > process_vcf
+NORMAL='CRC1078NLH0000000000D08000'

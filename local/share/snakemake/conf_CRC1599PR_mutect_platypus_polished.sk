@@ -72,3 +72,4 @@ wildcard_constraints:
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/CRC0441/platypus_nobin$ mv CRC0441-01-MI-B_CRC0441-01-0.gain.vcf.gz  vivo.merged.vcf.gz
 BULKNAME="CRC1599PRO-0-B"
 SHIPMENT="third_shipment_bulk"
+NORMAL="CRC1599NLH0000000000D03000"
