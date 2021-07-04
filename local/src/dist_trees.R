@@ -86,3 +86,56 @@ summary(lm(data=m_g, formula="gained~distances"))
 
 cor.test(m_g$gained,m_g$distances)
 
+####
+
+
+setwd('/scratch/trcanmed/AF_spectra/dataset/CRC0327/tree')
+load('tree_bulk_vitro.Rdata')
+library(ape)
+di <- cophenetic(NexusTree)
+
+names <-rowNames(di)
+
+# TODO automagicate (from conf?)
+names_tree <- list(
+'CRC0327-02-1-A'=  'CRC0327-02-0' ,
+'CRC0327-02-1-E'= 'CRC0327-02-0',
+'CRC0327-02-1-I'= 'CRC0327-02-0',
+'CRC0327-04-1-A'= 'CRC0327-04-0',
+'CRC0327-04-1-B'= 'CRC0327-04-0',
+'CRC0327-04-1-C'= 'CRC0327-04-0',
+'CRC0327-08-1-A'= 'CRC0327-08-0',
+'CRC0327-08-1-C'= 'CRC0327-08-0',
+'CRC0327-08-1-F'= 'CRC0327-08-0'
+) 
+
+distances <- sapply(names(names_tree), function(x) { di[rownames(di)==x, colnames(di)==names_tree[[x]]]} )
+
+tree_di <- as.data.frame(distances)
+
+mr <- read.table('/scratch/trcanmed/AF_spectra/dataset/MR_edu_SNV', sep="\t", header=FALSE, row.names = 1)
+colnames(mr) <- c('MR')
+
+m_mr <- merge(tree_di, mr, by="row.names")
+
+p1 <- ggplot(data=m_mr, aes(x=distances, y=MR))+geom_point()+current_theme+stat_smooth(method="lm")
+
+g <- read.table('/scratch/trcanmed/AF_spectra/dataset/vitro_gained_SNV', sep="\t", header=FALSE, row.names = 1)
+colnames(g) <- c('gained')
+m_g <- merge(tree_di, g, by="row.names")
+p2 <- ggplot(data=m_g, aes(x=distances, y=gained))+geom_point()+current_theme+stat_smooth(method="lm")
+
+
+
+
+gn <- read.table('/scratch/trcanmed/AF_spectra/dataset/vitro_gained_norm_SNV', sep="\t", header=FALSE, row.names = 1)
+colnames(gn) <- c('gainednorm')
+m_gn <- merge(tree_di, gn, by="row.names")
+p3 <- ggplot(data=m_gn, aes(x=distances, y=gainednorm))+geom_point()+current_theme+stat_smooth(method="lm")
+
+p2
+
+summary(lm(data=m_g, formula="gained~distances"))
+
+cor.test(m_g$gained,m_g$distances)
+

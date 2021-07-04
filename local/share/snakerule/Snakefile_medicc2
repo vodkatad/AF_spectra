@@ -55,8 +55,10 @@ def find_pairs_raw_ov(wildcards):
 FUN_OV=find_pairs_raw_ov
 include: "./conf.sk"
 
+MEDICC=DATA+"/medicc"
+SAMPLES=["CRC0327_02_0","CRC0327_02_1_A","CRC0327_02_1_E","CRC0327_02_1_I","CRC0327_04_0","CRC0327_04_1_A","CRC0327_04_1_B","CRC0327_04_1_C","CRC0327_08_0","CRC0327_08_1_A","CRC0327_08_1_C","CRC0327_08_1_F","CRC0327_LMO_0_B"]
 rule seqtobin:
-    input: sequenza=DATA+"/{sample}_segments.txt", chrs=DATA+"/chrs"
+    input: sequenza=MEDICC+"/{sample}_segments.txt", chrs=DATA+"/chrs"
     output: "{sample}.{bin}.tsv.gz"
     params: tool=BIN_DIR+"/project_bin"
     shell: 
@@ -71,10 +73,9 @@ rule alltobin:
 # TODO R with heatmap/correlations
 # TODO bedtools merge to check that sequenza gives us a segmentation
 # TODO bedtools intersect and then script to get projected weighted cn to test project_bin.py
-SAMPLES=["CRC0327-02-0","CRC0327-02-1-A","CRC0327-02-1-E","CRC0327-02-1-I","CRC0327-04-0","CRC0327-04-1-A","CRC0327-04-1-B","CRC0327-04-1-C","CRC0327-08-0","CRC0327-08-1-A","CRC0327-08-1-C","CRC0327-08-1-F"]
 
 rule alltobin_merged:
-    input: expand("{sample}.50000.tsv.gz", sample=SAMPLES)
+    input: expand(MEDICC+"/{sample}_segments.txt", sample=SAMPLES)
     output: m="merged.tsv.gz"
     run:
         import pandas as pd
@@ -115,7 +116,14 @@ rule heatmap:
         metric = 'euclidean'
         method = 'ward'
 
-        chr_limits = boundaries.index[boundaries['e'].isin(boundaries.groupby('chr', sort=False)['e'].max().values)].tolist()
+        table1 = boundaries[['chr','e']]   
+        table2 = boundaries.groupby('chr', sort=False)[['chr','e']].last()
+        # https://stackoverflow.com/questions/50645297/how-to-use-isin-while-ignoring-index meh
+        chr_limits = boundaries.index[(table1.apply(tuple, 1).isin(table2.apply(tuple, 1)))]
+        print(chr_limits)
+    
+        # there are identical max so old code did not work
+        
         chr_boundaries = np.append(0, chr_limits)
         chr_list = boundaries['chr'].unique().tolist()
         chrN_list = []

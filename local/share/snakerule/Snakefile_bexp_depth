@@ -347,6 +347,15 @@ rule gained_plot:
             {params.tool} {input} {output} '{params.colors}'
         """
 
+rule gained_nn_plot:
+    input: "{vivi}_gained_{kind}"
+    output: "{vivi}_gained_{kind}.png"
+    params: tool=BIN_DIR+"/gained_plot", colors=lambda w: MANY_COLORS_MODELS_VITRO if w.vivi == "vitro" else MANY_COLORS_MODELS_VIVO
+    shell:
+        """
+            {params.tool} {input} {output} '{params.colors}' {wildcards.vivi} nonorm
+        """
+        
 ### quick and dirty remove 282
 rule MSS_MR_edu_plot:
     input: "MR_edu_{kind}"

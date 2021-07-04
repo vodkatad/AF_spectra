@@ -12,47 +12,44 @@ PRJ_ROOT=find_prj_root()
 BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
 SNAKE_ROOT=os.getenv('SNAKE_ROOT')
 ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
+
 HROOT='/home/egrassi'
+DATA=PRJ_ROOT+"/local/share/data/CRC0327"
+SDATA=DATA
 BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
 
-###################################################################
+PLOIDY=2
+
 KIND="SNV" # | indel
 MULTI="nomulti"
-### sample variable portion #############################################
-DATA=PRJ_ROOT+"/local/share/data/CRC1599PR"
-SDATA=DATA
-SAMPLES=['CRC1599PR-01-0', 'CRC1599PR-10-0', 'CRC1599PR-01-1-L', 'CRC1599PR-01-1-F', 'CRC1599PR-01-1-E', 'CRC1599PR-10-1-F', 'CRC1599PR-10-1-E', 'CRC1599PR-10-1-G']
-# TODO FIXME
-CLONE2=['CRC1599PR-01-0', 'CRC1599PR-01-1-L', 'CRC1599PR-01-1-F', 'CRC1599PR-01-1-E']
-CLONE8=['CRC1599PR-10-0','CRC1599PR-10-1-F', 'CRC1599PR-10-1-E', 'CRC1599PR-10-1-G']
-CLONE9=[""]
-CLONES=[CLONE2, CLONE8]
-SAMPLES_HIGH=["CRC1599PR-01","CRC1599PR-10"] # list comprehens TODO
-SAMPLES_ZERO=[x+'-0' for x in SAMPLES_HIGH]
-VCF_DIR=PRJ_ROOT+"/dataset/CRC1599PR/platypus_nobin"
-##############################################################
 
-VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
+VCFTOBED=BIN_DIR+"/vcf_to_bed"
 VCFTOBED1=BIN_DIR+"/vcf_to_bed"
 CNLEN=BIN_DIR+"/cn_len_plot"
 CNLEN2=BIN_DIR+"/cn_len_plot2"
 
 DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
 CALLABLE=DATA+"/callable_covered.bed.gz"
+#SAMPLES=['CRC0327-08-0', 'CRC0327-02-0', 'CRC0327-04-0', 'CRC0327-02-1-A', 'CRC0327-02-1-E', 'CRC0327-02-1-I', 'CRC0327-04-1-A', 'CRC0327-04-1-B', 'CRC0327-04-1-C', 'CRC0327-08-1-A', 'CRC0327-08-1-C', 'CRC0327-08-1-F']# 'CRC0327-02-MA-B', 'CRC0327-02-MA-C', 'CRC0327-02-MC-B', 'CRC0327-02-MA-E', 'CRC0327-02-MC-C', 'CRC0327-02-MC-D', 'CRC0327-02-MI-C', 'CRC0327-02-MI-E']
+SAMPLES=['CRC0327-08-0', 'CRC0327-02-0', 'CRC0327-04-0', 'CRC0327-02-1-A', 'CRC0327-02-1-E', 'CRC0327-02-1-I', 'CRC0327-04-1-A', 'CRC0327-04-1-B', 'CRC0327-04-1-C', 'CRC0327-08-1-A', 'CRC0327-08-1-C', 'CRC0327-08-1-F', 'CRC0327-02-MA-B', 'CRC0327-02-MA-C', 'CRC0327-02-MC-B', 'CRC0327-02-MA-E', 'CRC0327-02-MC-C', 'CRC0327-02-MC-D', 'CRC0327-02-MI-C', 'CRC0327-02-MI-E']
 
-DNDSCV_RDA=DATA+"/../RefCDS_human_GRCh38.p12.rda"
+
+BULK=['']
+# TODO FIXME
+CLONE8=['CRC0327-08-0', 'CRC0327-08-1-A', 'CRC0327-08-1-C', 'CRC0327-08-1-F']
+CLONE2=['CRC0327-02-0', 'CRC0327-02-1-A', 'CRC0327-02-1-E', 'CRC0327-02-1-I']# 'CRC0327-02-MA-B', 'CRC0327-02-MA-C', 'CRC0327-02-MC-B', 'CRC0327-02-MA-E', 'CRC0327-02-MC-C', 'CRC0327-02-MC-D', 'CRC0327-02-MI-C', 'CRC0327-02-MI-E']
+CLONE9=['CRC0327-04-0', 'CRC0327-04-1-A', 'CRC0327-04-1-B', 'CRC0327-04-1-C']
+
 
 ALL_SAMPLES=SAMPLES
 SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
 WANTED_CN = "1,2,3"
 
 wildcard_constraints:
-    sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"   
-wildcard_constraints:
-    t1sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
-wildcard_constraints:
-    t0sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+    sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+
+SAMPLES_HIGH=["CRC0327-08","CRC0327-02","CRC0327-04"] # list comprehens TODO
 
 
 # rule process_vcf_special:
@@ -67,9 +64,3 @@ wildcard_constraints:
 #         """
 
 # ruleorder: process_vcf_special > process_vcf
-
-## bbad llama
-#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/CRC0441/platypus_nobin$ mv CRC0441-01-MI-B_CRC0441-01-0.gain.vcf.gz  vivo.merged.vcf.gz
-BULKNAME="CRC1599PRO-0-B"
-SHIPMENT="third_shipment_bulk"
-NORMAL="CRC1599NLH0000000000D03000"
