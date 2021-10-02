@@ -200,7 +200,6 @@ rule pair_ov_nobcnok:
             rm {input.t1}.*tmp
             rm {output.binom}.tmp
         """
-
 # casino per avere overlap misto tra i due campioni
 # 1tmp e` t1, 2tmp e` t0 -> l'R usa la prima colonna per il calcolo della lunghezza ma filtra per cn giuste in tutte e due
 rule pair_length_ov:
@@ -303,6 +302,36 @@ rule plot_cn2_len:
     shell:
         """
             {params.tool} {input} {params.cns} {output.barplot} {output.cumplot} {output.len}
+        """
+
+######### signature input
+rule all_sign_mat_toplevel:
+    input: expand("{hsample}.signin.tsv", hsample=SAMPLES_HIGH)
+    output: "all_signin.tsv"
+    shell: "cat {input} > {output}"
+
+# Since the structure to compute all ovcnok is done we rely on its output in a lazy way - risky cause we can have produced
+# by hand other ovcnokdeltas for checks...from CLONES get all matching up to CRCxyz-0X then remove -0
+# Works only for first level, probably will need to look at initial functions and call them since they should always work.
+def get_toplevel_children_ovnock(wildcards):
+    res = FUN_OV(wildcards)
+    res = [x.replace('.MR_ov.tsv','.ovcnokdelta.tsv.gz') for x in res] # paciug here to remove in vivo/in vitro or split
+    return [x.replace('.MR_ovtopi.tsv','.ovcnokdelta.tsv.gz') for x in res]
+
+# FIXME remove header
+rule signature_mat_toplevel:
+    input: ovcnok = get_toplevel_children_ovnock
+    output: ss="{bsample}.signin.tsv", sp="{bsample}.signin.vcf"
+    shell:
+        """
+            rm -f {output.ss}.tmp
+            for f in {input.ovcnok}; do
+                s=`echo $f | tr "_" "\\t" | cut -f 1 | tr "-" "\\t" | bawk '{{print $1"-"$2}}'`;
+                zcat $f | bawk -v S=$s '$16=="gain" {{print S,$2,$3,$3,$7,$8}}' | sed 's/\\tchr/\\t/1' >> {output.ss}.tmp;
+            done
+            cat {output.ss}.tmp | sort | uniq > {output.ss}
+            echo -e "#CHROM\\tPOS\\tFILTER\\tREF\\tALT" > {output.sp}
+            cat {output.ss} | bawk '{{print $2,$3,"PASS",$5,$6}}' >> {output.sp}
         """
 
 ########  not required for dn/ds... but I can't be that lazy and covered by junk work always :(

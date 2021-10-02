@@ -344,7 +344,7 @@ rule gained_plot:
     params: tool=BIN_DIR+"/gained_plot", colors=lambda w: MANY_COLORS_MODELS_VITRO if w.vivi == "vitro" else MANY_COLORS_MODELS_VIVO
     shell:
         """
-            {params.tool} {input} {output} '{params.colors}'
+            {params.tool} {input} {output} '{params.colors}' {wildcards.vivi} norm
         """
 
 rule gained_nn_plot:
@@ -744,4 +744,41 @@ rule bed_repeatmask:
     shell: 
         """
             zcat {input} | cut -f 6,7,8 |sort -k1,1 -k2,2n |uniq | bedtools merge -i - > {output}
+        """
+
+#### Rule new de novo signature input
+## SparseSignatures
+def kind_signin(wildcards):
+    if wildcards.kind == "MSS":
+        return expand("{model}/platypus_nobin/all_signin.tsv", model=MODELS[1:])
+    else:
+        return expand("{model}/platypus_nobin/all_signin.tsv", model=MODELS)
+
+rule sparsesign_input:
+    input: kind_signin
+    output: "{kind}_signin.tsv"
+    shell:  
+        """
+            echo -e "sample\\tchrom\\tstart\\tend\\tref\\talt" > {output}
+            cat {input} | grep -v -w sample >> {output}  
+        """
+
+## SparseSignatures
+def kind_sigprof_input(wildcards):
+    import glob
+    res = []
+    if wildcards.kind == "MSS":
+        for m in MODELS_NOREP_TRUE[1:]:
+            f = glob.glob(m+"/platypus_nobin/*signin.vcf")
+            res.append(f)
+    flat_list = [item for sublist in res for item in sublist]
+    return flat_list
+
+rule sigprofiler_input_dir:
+    input: kind_sigprof_input
+    output: directory("{kind}_sigprof")
+    shell:  
+        """
+            mkdir -p {output}
+            cp {input} {output}
         """
