@@ -335,6 +335,24 @@ rule signature_mat_toplevel:
             cat {output.ss} | bawk '{{print $2,$3,"PASS",$5,$6}}' >> {output.sp}
         """
 
+rule all_sign_vcf_toplevel:
+    input: expand("{hsample}.mutpatin.vcf", hsample=SAMPLES_HIGH)
+
+def get_toplevel_children_vcf(wildcards):
+    res = FUN_OV(wildcards)
+    res = [x.replace('.MR_ov.tsv','.gain.vcf.gz') for x in res] # paciug here to remove in vivo/in vitro or split
+    return [x.replace('.MR_ovtopi.tsv','.gain.vcf.gz') for x in res]
+
+
+rule signature_vcf_toplevel:
+    input: vcf = get_toplevel_children_vcf
+    output: vcf="{bsample}.mutpatin.vcf"
+    shell:
+        """
+            bcftools merge -m none --missing-to-ref {input.vcf} > {output.vcf}
+        """
+
+
 ########  not required for dn/ds... but I can't be that lazy and covered by junk work always :(
 ### annovar
 def find_pairs_annovar(wildcards):

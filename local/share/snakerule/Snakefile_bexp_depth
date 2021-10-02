@@ -782,3 +782,17 @@ rule sigprofiler_input_dir:
             mkdir -p {output}
             cp {input} {output}
         """
+
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/MSS_mutpat$ for f in ../MSS_sigprof/*vcf; do b=`basename $f`; cat $f| bawk 'NR==1{print $1,$2,"ID",$4,$5} NR!=1 {print $1,$2,NR,$4,$5}'> $b ; done 
+
+## MutPat
+rule mutpat_input:
+    run:
+        import glob
+        res = []
+        for m in MODELS_NOREP_TRUE[1:]:
+            f = glob.glob(m+"/platypus_nobin/*mutpatin.vcf")
+            print('\n'.join(f))
+
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ nsnakemake mutpat_input > meh
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ paste meh <(tr "/" "\t" < meh| cut -f 3 | sed 's/\.mutpatin\.vcf//g') > mehh
