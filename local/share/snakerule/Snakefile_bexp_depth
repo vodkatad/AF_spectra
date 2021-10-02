@@ -763,7 +763,7 @@ rule sparsesign_input:
             cat {input} | grep -v -w sample >> {output}  
         """
 
-## SparseSignatures
+## sigProfilerExtractor
 def kind_sigprof_input(wildcards):
     import glob
     res = []
@@ -783,16 +783,64 @@ rule sigprofiler_input_dir:
             cp {input} {output}
         """
 
+# failed test cause sigprofiler vcf wtf?
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/MSS_mutpat$ for f in ../MSS_sigprof/*vcf; do b=`basename $f`; cat $f| bawk 'NR==1{print $1,$2,"ID",$4,$5} NR!=1 {print $1,$2,NR,$4,$5}'> $b ; done 
 
-## MutPat
-rule mutpat_input:
+# MutPat
+def kind_mutpatstarting_input(wildcards):
+    import glob
+    res = []
+    if wildcards.kind == "MSS":
+        ms = MODELS_NOREP_TRUE[1:]
+    else:
+        ms = MODELS_NOREP_TRUE
+    for m in ms:
+        f = glob.glob(m+"/platypus_nobin/*mutpatin.vcf")
+        res.append(f)
+    flat_list = [item for sublist in res for item in sublist]
+    return flat_list
+
+rule mutpat_input_startingclones:
+    input: kind_mutpatstarting_input
+    output: "{kind}_mutpatin_startingclones.tsv"
     run:
-        import glob
-        res = []
-        for m in MODELS_NOREP_TRUE[1:]:
-            f = glob.glob(m+"/platypus_nobin/*mutpatin.vcf")
-            print('\n'.join(f))
+        import os
+        with open(output[0],'w') as o:
+            for i in input:
+                bn = os.path.basename(i)
+                bns = bn.split('.')
+                o.write('{}\t{}\n'.format(i, bns[0]))
+                
 
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ nsnakemake mutpat_input > meh
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ paste meh <(tr "/" "\t" < meh| cut -f 3 | sed 's/\.mutpatin\.vcf//g') > mehh
+
+rule modelmerged_nobulk:
+    input: 'signinput_vitrovivobulk_merged'
+    output: 'all_signinput_vitrovivo_merged'
+    shell: "grep -v _bulk {input} > {output}"
+
+rule modelmerged_nobulk_MSS:
+    input: 'all_signinput_vitrovivo_merged'
+    output: 'MSS_signinput_vitrovivo_merged'
+    shell: "grep -v CRC0282 {input} > {output}"
+
+rule sign_1:
+    input: "{kind}_mutpatin_startingclones.tsv"
+    output: directory("{k}_{kind}_mutpat_denovo")
+    params: tool=BIN_DIR+"/mut_pat_signatures_denovo", colors=COLORS_MODELS
+    shell:
+        """
+            mkdir -p {output}
+            {params.tool} {input} {output} '{params.colors}' {wildcards.k} mutpat.Rdata
+        """
+        
+rule sign_2:
+    input: "{kind}_signinput_vitrovivo_merged"
+    output: directory("{k}_{kind}_mutpat2_denovo")
+    params: tool=BIN_DIR+"/mut_pat_signatures_denovo", colors=COLORS_MODELS
+    shell:
+        """
+            mkdir -p {output}
+            {params.tool} {input} {output} '{params.colors}' {wildcards.k} mutpat.Rdata
+        """
