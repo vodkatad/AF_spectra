@@ -844,3 +844,55 @@ rule sign_2:
             mkdir -p {output}
             {params.tool} {input} {output} '{params.colors}' {wildcards.k} mutpat.Rdata
         """
+
+# gain all merged then pcgr, to get a MAF
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ for f in */*/vitro.merged.vcf.gz; do tabix $f; done
+rule merge_all:
+    input: expand("{model}/platypus_nobin/vitro.merged.vcf.gz", model=MODELS[1:])
+    output: "all_vitro_merged_gained.vcf.gz"
+    shell:
+        """
+            bcftools merge -m none --missing-to-ref {input} | bgzip > {output}
+            tabix {output}
+        """
+
+rule bed_all:
+    input: "all_vitro_merged_gained.vcf.gz"
+    output: "all_vitro_merged_gained.bed"
+    shell:
+        """
+            zcat {input} | grep -v "^#" | bawk '{{print $1,$2-1,$2,$3}}' > {output}
+        """
+
+PCGR='/mnt/trcanmed/snaketree/prj/snakegatk/local/src/pcgr/'
+rule pcgr:
+    input: "all_vitro_merged_gained.vcf.gz"
+    output: "pcgr/all_gained.pcgr_acmg.grch38.snvs_indels.tiers.tsv"
+    params: pcgr=PCGR, assay='WGS', mdir='pcgr'
+    shell:
+        """
+            mkdir -p {params.mdir}
+            python3 {params.pcgr}/pcgr.py --pcgr_dir {params.pcgr} \
+            --output_dir {params.mdir} \
+            --sample_id all_gained \
+            --genome_assembly grch38 \
+            --conf {params.pcgr}/examples/example_COAD.toml \
+            --input_vcf {input} \
+            --tumor_site 9 \
+            --tumor_purity 1 \
+            --include_trials \
+            --assay {params.assay} \
+            --estimate_msi_status \
+            --estimate_tmb \
+            --no_vcf_validate
+        """
+
+#--input-vcf WD4086.vcf --output-maf WD4086.maf 
+#--inhibit-vep
+#--ncbi-build  GRCh38
+#--ref-fasta
+
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/pcgr$ perl ~/depth/mskcc-vcf2maf-754d68a/vcf2maf.pl --input-vcf all_gained.pcgr_acmg.grch38.pass.vcf --output-maf test.maf --inhibit-vep --ncbi-build GRCh38 --ref-fasta /mnt/trcanmed/snaketree/task/annotations/dataset/gnomad/GRCh38.d1.vd1.fa
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/pcgr$ grep "^#" all_gained.pcgr_acmg.grch38.pass.vcf > all.vcf
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/pcgr$ grep -v "^#" all_gained.pcgr_acmg.grch38.pass.vcf  | bawk '{print "chr"$0}'>> all.vcf
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/pcgr$ perl ~/depth/mskcc-vcf2maf-754d68a/vcf2maf.pl --input-vcf all.vcf --output-maf test.maf --inhibit-vep --ncbi-build GRCh38 --ref-fasta /mnt/trcanmed/snaketree/task/annotations/dataset/gnomad/GRCh38.d1.vd1.fa
