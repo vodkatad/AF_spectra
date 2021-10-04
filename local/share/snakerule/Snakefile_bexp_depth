@@ -800,16 +800,20 @@ def kind_mutpatstarting_input(wildcards):
     flat_list = [item for sublist in res for item in sublist]
     return flat_list
 
+
+# we still have 2nd round clones as separate samples...keep only first round to start with, then FIXME TODO HOW
 rule mutpat_input_startingclones:
     input: kind_mutpatstarting_input
     output: "{kind}_mutpatin_startingclones.tsv"
     run:
         import os
+        import re
         with open(output[0],'w') as o:
             for i in input:
                 bn = os.path.basename(i)
                 bns = bn.split('.')
-                o.write('{}\t{}\n'.format(i, bns[0]))
+                if not re.match('.+clones_all.+', i):
+                    o.write('{}\t{}\n'.format(i, bns[0]))
                 
 
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ nsnakemake mutpat_input > meh
@@ -845,6 +849,7 @@ rule sign_2:
             {params.tool} {input} {output} '{params.colors}' {wildcards.k} mutpat.Rdata
         """
 
+# risky with glob, FIXME TODO
 def kind_mutpatstarting_input3(wildcards):
     import glob
     res = []
@@ -863,12 +868,25 @@ rule sign_3_input:
     output: "{kind}_signinput3.tsv"
     shell:
         """
-            ls {input} | tr "\/" "\\t" | tr "_" "\\t" | cut -f 4 > {output}.tmp
-            ls {input} > {output}.tmp2
+            echo {input} | tr " " "\\n" | sort | perl -ane 'if ($_ =~ /\/(CRC\d+.*?)_/) {{print $1."\\n"}}' > {output}.tmp
+            echo {input} | tr " " "\\n" | sort > {output}.tmp2
             paste {output}.tmp2 {output}.tmp > {output}
-            rm {output}.tmp*
         """
 
+# wtf?
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ tail all_signinput3.tsv
+#CRC1599LM/platypus_nobin/CRC1599LM-03-1-E_CRC1599LM-03-0.gain.vcf.gz    CRC1599LM-07-MI-D
+#CRC1599LM/platypus_nobin/CRC1599LM-07-MI-C_CRC1599LM-07-0.gain.vcf.gz   CRC1599LM-07-MI-E
+#CRC1599LM/platypus_nobin/CRC1599LM-07-MI-D_CRC1599LM-07-0.gain.vcf.gz   CRC1599PR-01-1-E
+#CRC1599LM/platypus_nobin/CRC1599LM-07-MI-E_CRC1599LM-07-0.gain.vcf.gz   CRC1599PR-01-1-F
+#CRC1599PR/platypus_nobin/CRC1599PR-01-1-E_CRC1599PR-01-0.gain.vcf.gz    CRC1599PR-01-1-L
+#CRC1599PR/platypus_nobin/CRC1599PR-01-1-F_CRC1599PR-01-0.gain.vcf.gz    CRC1599PR-10-1-E
+#CRC1599PR/platypus_nobin/CRC1599PR-01-1-L_CRC1599PR-01-0.gain.vcf.gz    CRC1599PR-10-1-F
+#CRC1599PR/platypus_nobin/CRC1599PR-10-1-E_CRC1599PR-10-0.gain.vcf.gz    CRC1599PR-10-1-G
+#CRC1599PR/platypus_nobin/CRC1599PR-10-1-F_CRC1599PR-10-0.gain.vcf.gz
+#CRC1599PR/platypus_nobin/CRC1599PR-10-1-G_CRC1599PR-10-0.gain.vcf.gz
+
+#rm {output}.tmp*
 rule sign_3:
     input:  "kind_signinput3.tsv"
     output: directory("{k}_{kind}_mutpat3_denovo")
