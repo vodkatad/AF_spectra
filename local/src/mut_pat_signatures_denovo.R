@@ -37,7 +37,9 @@ nrun <- 150
 seed <- 123456
 mut_mat2 <- mut_mat + 0.0001
 estimate <- nmf(mut_mat2, rank=2:5, method="brunet", nrun=nrun_estimate, seed=seed)
+png('nmf_k.png')
 plot(estimate)
+graphics.off()
 
 nmf_res <- extract_signatures(mut_mat, rank = nsign, nrun = nrun)
 

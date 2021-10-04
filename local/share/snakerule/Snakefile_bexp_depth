@@ -791,9 +791,9 @@ def kind_mutpatstarting_input(wildcards):
     import glob
     res = []
     if wildcards.kind == "MSS":
-        ms = MODELS_NOREP_TRUE[1:]
+        ms = MODELS[1:]
     else:
-        ms = MODELS_NOREP_TRUE
+        ms = MODELS
     for m in ms:
         f = glob.glob(m+"/platypus_nobin/*mutpatin.vcf")
         res.append(f)
@@ -838,6 +838,40 @@ rule sign_1:
 rule sign_2:
     input: "{kind}_signinput_vitrovivo_merged"
     output: directory("{k}_{kind}_mutpat2_denovo")
+    params: tool=BIN_DIR+"/mut_pat_signatures_denovo", colors=COLORS_MODELS
+    shell:
+        """
+            mkdir -p {output}
+            {params.tool} {input} {output} '{params.colors}' {wildcards.k} mutpat.Rdata
+        """
+
+def kind_mutpatstarting_input3(wildcards):
+    import glob
+    res = []
+    if wildcards.kind == "MSS":
+        ms = MODELS[1:]
+    else:
+        ms = MODELS
+    for m in ms:
+        f = glob.glob(m+"/platypus_nobin/*gain.vcf.gz")
+        res.append(f)
+    flat_list = [item for sublist in res for item in sublist]
+    return flat_list
+
+rule sign_3_input:
+    input:  kind_mutpatstarting_input3
+    output: "{kind}_signinput3.tsv"
+    shell:
+        """
+            ls {input} | tr "\/" "\\t" | tr "_" "\\t" | cut -f 4 > {output}.tmp
+            ls {input} > {output}.tmp2
+            paste {output}.tmp2 {output}.tmp > {output}
+            rm {output}.tmp*
+        """
+
+rule sign_3:
+    input:  "kind_signinput3.tsv"
+    output: directory("{k}_{kind}_mutpat3_denovo")
     params: tool=BIN_DIR+"/mut_pat_signatures_denovo", colors=COLORS_MODELS
     shell:
         """

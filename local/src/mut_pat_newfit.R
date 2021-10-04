@@ -112,8 +112,9 @@ plot_cosine_heatmap(cos_sim_samples_signatures,col_order = cosmic_order,cluster_
 us <- nmf_res$signatures
 colnames(us) <- names_sign
 hclust_cosmic_us = cluster_signatures(cbind(us, cancer_signatures), method = "average") # store signatures in new order
+png('hcust.png')
 plot(hclust_cosmic_us)
-
+graphics.off()
 # put together vitro-vivo of each starting clone and redo (to get more power in reconstructing signatures?)
 
 
