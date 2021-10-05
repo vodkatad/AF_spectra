@@ -295,7 +295,7 @@ rule dnds_voverall:
           for f in {input}; do \\
             n=$(echo $f | tr "\/" "\\t" | cut -f 1); \\
             bawk -v name=$n '$1=="wall"{{print name,$3,$4,$5}}' $f; \\
-          done > {output}
+          done | sed 's/clones_all/2nd/i'> {output}
         """
 ## plots
 # single plots are from all_gained_named.tsv with also in vivo so we will keep it here
@@ -305,7 +305,7 @@ rule dnds_global:
     params: tool=BIN_DIR+"/dnds_plot_overall", colors=COLORS_MODELS
     shell:
         """
-            {params.tool} {input} {output} '{params.colors}'
+            {params.tool} {input} {output} '{params.colors}' {output}.Rimage
         """
 
 rule dnds_plot_MSIMSS:

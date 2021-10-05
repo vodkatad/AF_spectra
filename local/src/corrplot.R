@@ -14,7 +14,6 @@ name_y <- args[8]
 rate <- args[9]
 
 cbPalette <- unlist(strsplit(colors, ','))
-save.image('pluto.Rdata')
 dx <- read.table(infile_x, sep="\t", header=TRUE, stringsAsFactors=FALSE)
 dy <- read.table(infile_y, sep="\t", header=TRUE, stringsAsFactors=FALSE)
 dx <- dx[, colnames(dx) %in% c('model',column), drop=FALSE]
@@ -28,8 +27,21 @@ if (rate == "yes") {
 }
 ci <- cor.test(m[, name_x], m[, name_y])
 
+
+ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_text(size=15), 
+                axis.title.y=element_text(size=20), axis.text.y=element_text(size=15),  axis.title.x=element_text(size=20),
+                plot.title = element_text(face = "bold", size = 20, hjust = 0.5), legend.position='none'
+)
+
+
 ggplot(m, aes_string(x=name_x, y=name_y)) +  geom_point(aes(color=model), size=3) + geom_smooth(method='lm')+
-  theme_bw()+labs(caption=paste0('pearson=', round(ci$estimate,2), ' pval=',round(ci$p.value, 4))) + scale_color_manual(values=cbPalette)+theme(text = element_text(size = 15))
+  ctheme+labs(caption=paste0('pearson=', round(ci$estimate,2), ' pval=',round(ci$p.value, 4))) + scale_color_manual(values=cbPalette)
 #ggplot(m, aes(x=MR_SNV, y=MR_indel)) +  geom_point(aes(color=model), size=3) + geom_smooth(method='lm', se=TRUE)+
 #  theme_bw()+labs(caption=paste0('pearson=', ci$estimate, ' pval=',round(ci$p.value, 4))) + scale_color_manual(values=cbPalette)
 ggsave(outfile)
+save.image(paste0(outfile, '.Rdata'))
+
+ggplot(m, aes_string(x=name_x, y=name_y)) +  geom_point(aes(color=model), size=3) + geom_smooth(method='lm')+
+  ctheme+labs(caption=paste0('pearson=', round(ci$estimate,2), ' pval=',round(ci$p.value, 4))) + scale_color_manual(values=cbPalette)+xlab('MR')+ylab('Neutral Queue Burden')
+
+ggsave('neutralqburden_SNV2.pdf')
