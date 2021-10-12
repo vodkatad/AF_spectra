@@ -56,3 +56,52 @@ rule dir_and_call:
            o2=$(basename {output.bexp})
            snakemake $o1 $o2
         """
+
+### overlap between pileups and regions with ploidy = 3 ################################
+SAMPLES=['CRC1502-03-1-A','CRC1502-03-0']
+PILEUPS_D='/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1502_120x/varscan_paired' # CRC1307-02-1-E.mpileup.gz
+#CN_D='./mutect_nobin_10x/' # mutect_nobin_100x/CRC1307-02-1-E.callable.bed.gz # this has depth included and we want to be as generic as possible now
+GNOMAD_TASK_DIR='/mnt/trcanmed/snaketree/task/annotations/dataset/gnomad'
+CALLABLE_BED=GNOMAD_TASK_DIR+'/wgs_calling_regions.hg38.bed.gz'
+
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
+
+HROOT='/home/egrassi'
+DATA=PRJ_ROOT+"/local/share/data/CRC1502_150x"
+SDATA=DATA
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+
+## we guess sequenza is 1 based cause it starts from pileups...end...included? Looked around in code, sic, going with "assumptions".
+rule intersect_cnv:
+    input: sequenza=SDATA+"/{sample}_segments.txt", callable=CALLABLE_BED, chrs=DATA+"/chrs"
+    output: callable="{sample}.callable.bed.gz"
+    shell:
+        """
+            bedtools intersect -b {input.callable} -a <(sed 1d {input.sequenza} | bawk '{{print $1, $2-1, $3, $10}}') | filter_1col 1 {input.chrs} | gzip > {output.callable}
+        """
+
+rule intersect_mpileup:
+    input: callable="{sample}.callable.bed.gz", pileup=PILEUPS_D+'/{sample}.mpileup.gz'
+    output: "{sample}.callable_ploidy-{p}_pseudompileup.gz"
+    shell:
+        """
+            bedtools intersect -b <(zcat {input.callable} | bawk '$4=={wildcards.p}') -a <(zcat {input.pileup} | bawk '{{print $1, $2-1, $2, $3, $4, $5}}') | gzip > {output}
+        """
+
+rule all_int_mpileup:
+    input: expand("{sample}.callable_ploidy-{p}_pseudompileup.gz", sample=SAMPLES, p=3)
+

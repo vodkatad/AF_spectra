@@ -17,20 +17,41 @@ BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
 
 ###################################################################
-KIND="SNV" # | indel
+KIND="indel"
 MULTI="nomulti"
 ### sample variable portion #############################################
-DATA=PRJ_ROOT+"/local/share/data/CRC1599PR"
+DATA=PRJ_ROOT+"/local/share/data/CRC0282_clones_all"
 SDATA=DATA
-SAMPLES=['CRC1599PRO-0-B', 'CRC1599PR-01-0', 'CRC1599PR-10-0', 'CRC1599PR-01-1-L', 'CRC1599PR-01-1-F', 'CRC1599PR-01-1-E', 'CRC1599PR-10-1-F', 'CRC1599PR-10-1-E', 'CRC1599PR-10-1-G']
-# TODO FIXME
-CLONE2=['CRC1599PR-01-0', 'CRC1599PR-01-1-L', 'CRC1599PR-01-1-F', 'CRC1599PR-01-1-E']
-CLONE8=['CRC1599PR-10-0','CRC1599PR-10-1-F', 'CRC1599PR-10-1-E', 'CRC1599PR-10-1-G']
-CLONE9=[""]
-CLONES=[CLONE2, CLONE8]
-SAMPLES_HIGH=["CRC1599PR-01","CRC1599PR-10"] # list comprehens TODO
-SAMPLES_ZERO=[x+'-0' for x in SAMPLES_HIGH]
-VCF_DIR=PRJ_ROOT+"/dataset/CRC1599PR/platypus_nobin"
+SAMPLES=['CRC0282-07E-2-4', 'CRC0282-07E-2-3', 'CRC0282-07E-2-2', 'CRC0282-01A-2-4', 'CRC0282-01A-2-3', 'CRC0282-01A-2-2']
+SAMPLES=SAMPLES+['CRC0282-01-0','CRC0282-07-0', 'CRC0282-01-1-A', 'CRC0282-07-1-E']
+
+SAMPLES = list(set(SAMPLES))
+SAMPLES.sort()
+
+CLONE1=['CRC0282-01-1-A',  'CRC0282-01A-2-4', 'CRC0282-01A-2-3', 'CRC0282-01A-2-2']
+CLONE7=['CRC0282-07-1-E', 'CRC0282-07E-2-4', 'CRC0282-07E-2-3', 'CRC0282-07E-2-2']
+
+CLONES=[CLONE1, CLONE7]
+
+STARTTIME='-1'
+TIME='-2-'
+FUN_OV=find_pairs_raw_ov_stupid
+
+SAMPLES_ORIG_T1= {
+    'CRC0282-01': 'CRC0282-01-1-A',
+    'CRC0282-07': 'CRC0282-07-1-E'
+}
+
+SAMPLES_TREE= {
+    'CRC0282-01': CLONE1,
+    'CRC0282-07': CLONE7
+}
+SAMPLES_HIGH=list(SAMPLES_ORIG_T1.keys())
+SAMPLES_ZERO=[x+'-1' for x in SAMPLES_HIGH]
+VCF_DIR=PRJ_ROOT+"/dataset/CRC0282_clones_all/platypus_nobin"
+BULKNAME="CRC0282LMO-0-B"
+NORMAL="CRC0282NMH0000000000D07000"
+SHIPMENT="second_shipment_bulk"
 ##############################################################
 
 VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
@@ -48,11 +69,13 @@ SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for m
 WANTED_CN = "1,2,3"
 
 wildcard_constraints:
-    sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"   
+    sample="[a-zA-Z0-9]+-[0-9A-Z]+-[A-Z0-9]+-?[A-Z0-9]?"   
 wildcard_constraints:
-    t1sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+    t1sample="[a-zA-Z0-9]+-[0-9A-Z]+-[A-Z0-9]+-?[A-Z0-9]?"
 wildcard_constraints:
-    t0sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+    t0sample="[a-zA-Z0-9]+-[0-9A-Z]+-[A-Z0-9]+-?[A-Z0-9]?"
+wildcard_constraints:
+    bsample="[a-zA-Z0-9]+-[0-9]+"
 
 
 # rule process_vcf_special:
@@ -70,6 +93,3 @@ wildcard_constraints:
 
 ## bbad llama
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/CRC0441/platypus_nobin$ mv CRC0441-01-MI-B_CRC0441-01-0.gain.vcf.gz  vivo.merged.vcf.gz
-BULKNAME="CRC1599PRO-0-B"
-SHIPMENT="third_shipment_bulk"
-NORMAL="CRC1599NLH0000000000D03000"

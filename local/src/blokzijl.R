@@ -84,3 +84,26 @@ ggplot(cos_sim_ori_rec, aes(y=cos_sim, x=sample)) +
   ylab("Cosine similarity\n original VS reconstructed") + 
   xlab("") + xlim(rev(levels(factor(cos_sim_ori_rec$sample)))) +theme_bw()+
   theme(panel.grid.minor.y=element_blank(), panel.grid.major.y=element_blank()) +geom_hline(aes(yintercept=.95))
+############
+
+
+ff <- fit_to_signatures(mut_mat, cancer_signatures)
+ff$contribution
+which(rowSums(ff$contribution) > 10)
+select <- which(rowSums(ff$contribution) > 10)
+plot_contribution_heatmap(ff$contribution,cluster_samples = TRUE,method = "complete")
+
+data <- as.matrix(ff$contribution)
+#select <- which(rowSums(data) > 10)
+data = t(data)
+data = data/rowSums(data)
+#select <- which(colSums(data)>1)
+#data <- data[,select]
+annot_rows <- data.frame(row.names=rownames(data))
+annot_rows$tissue <- ifelse(grepl('Intestine',rownames(data)), 'Intestine', 'Liver')
+
+colnames(data) <- seq(1, 30)
+
+data <- data[order(rownames(data)),]
+pheatmap(t(data), fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE, annotation_col=annot_rows, color=brewer.pal(9, 'PuBu'), filename="block2.png")
+

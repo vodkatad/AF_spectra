@@ -231,3 +231,48 @@ ggplot(cos_sim_ori_rec, aes(y=cos_sim, x=sample)) +
   xlab("") + xlim(rev(levels(factor(cos_sim_ori_rec$sample)))) +theme_bw()+
   theme(panel.grid.minor.y=element_blank(), panel.grid.major.y=element_blank()) +geom_hline(aes(yintercept=.95))
 
+## trees
+
+
+f <- c("P2.T1.1.vcf","P2.T1.3.vcf","P2.T2.5.vcf","P2.T4.2.vcf","P2.T4.3.vcf","P2.T5.1.vcf","P2.T5.4.vcf","P2.T6.2.vcf","P2.T6.6.vcf","P3.T1.1.vcf","P3.T1.4.vcf","P3.T2.1.vcf","P3.T2.2.vcf","P3.T3.2.vcf","P3.T3.4.vcf","P3.T4.1.vcf","P3.T4.2.vcf")
+path <- '/scratch/trcanmed/AF_spectra/local/share/data/clevers/trees/'
+
+files <- paste0(path, f)
+sample_names <- c("P2.T1.1","P2.T1.3","P2.T2.5","P2.T4.2","P2.T4.3","P2.T5.1","P2.T5.4","P2.T6.2","P2.T6.6","P3.T1.1","P3.T1.4","P3.T2.1","P3.T2.2","P3.T3.2","P3.T3.4","P3.T4.1","P3.T4.2")
+
+vcfs <- read_vcfs_as_granges(files, sample_names, ref_genome)
+# from tcga multiple alternative alleles/indels are removed, some samples (MSI?) many more indels (15-30 vs 1000+)
+mut_mat <- mut_matrix(vcf_list = vcfs, ref_genome = ref_genome)
+type_occurrences <- mut_type_occurrences(vcfs, ref_genome)
+plot_spectrum(type_occurrences, CT = TRUE, by=sample_names)
+
+cosmic <- paste("https://cancer.sanger.ac.uk/cancergenome/assets/","signatures_probabilities.txt", sep = "") # ???
+sp_url <- paste(cosmic, sep = "")
+cancer_signatures = read.table(sp_url, sep = "\t", header = TRUE)
+# Match the order of the mutation types to MutationalPatterns standard
+new_order = match(row.names(mut_mat), cancer_signatures$Somatic.Mutation.Type)
+# Reorder cancer signatures dataframe> 
+cancer_signatures = cancer_signatures[as.vector(new_order),]
+# Add trinucletiode changes names as row.names>
+row.names(cancer_signatures) = cancer_signatures$Somatic.Mutation.Type
+# Keep only 96 contributions of the signatures in matrix
+cancer_signatures = as.matrix(cancer_signatures[,4:33])
+
+ff <- fit_to_signatures(mut_mat, cancer_signatures)
+ff$contribution
+which(rowSums(ff$contribution) > 10)
+select <- which(rowSums(ff$contribution) > 10)
+plot_contribution_heatmap(ff$contribution,cluster_samples = TRUE,method = "complete")
+
+cos_sim_ori_rec <- cos_sim_matrix(mut_mat, ff$reconstructed)
+cos_sim_ori_rec <- as.data.frame(diag(cos_sim_ori_rec))
+colnames(cos_sim_ori_rec) = "cos_sim"
+cos_sim_ori_rec$sample = row.names(cos_sim_ori_rec)
+
+ggplot(cos_sim_ori_rec, aes(y=cos_sim, x=sample)) +
+  geom_bar(stat="identity", fill = "skyblue4") +
+  coord_cartesian(ylim=c(0.7, 1)) +
+  coord_flip(ylim=c(0.7,1)) +
+  ylab("Cosine similarity\n original VS reconstructed") + 
+  xlab("") + xlim(rev(levels(factor(cos_sim_ori_rec$sample)))) +theme_bw()+
+  theme(panel.grid.minor.y=element_blank(), panel.grid.major.y=element_blank()) +geom_hline(aes(yintercept=.95))

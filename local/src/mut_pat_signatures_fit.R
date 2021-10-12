@@ -75,6 +75,7 @@ data = data/rowSums(data)
 #select <- which(colSums(data)>1)
 #data <- data[,select]
 annot_rows <- data.frame(row.names=rownames(data))
+
 #annot_rows[grepl('M',rownames(annot_rows)), 'sample'] <- 'vivo'
 annot_rows$sample <-  as.factor(unlist(lapply(strsplit(rownames(annot_rows),'_'), function(x){ x[length(x)] })))
 annot_rows$model <- unlist(lapply(strsplit(rownames(annot_rows),'-'), function(x){ x[1] }))
@@ -90,3 +91,27 @@ cbPalette2 <- unlist(strsplit(palette, ','))
 names(cbPalette2) <- levels(annot_rows$model)
 annot_colors <- list(sample=col, model=cbPalette2)
 pheatmap(data, fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE,  annotation_row=annot_rows, annotation_colors = annot_colors,  color=brewer.pal(9, 'PuBu'), filename=outputheat)
+
+############# manual AIRC
+save.image('sign.Rdata')
+
+q()
+load('sign.Rdata')
+annot_rows <- annot_rows[order(annot_rows$sample, annot_rows$model),]
+data2 <- data[match(rownames(annot_rows), rownames(data)), ]
+
+pheatmap(data2, fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE, annotation_row=annot_rows, annotation_colors = annot_colors,  color=brewer.pal(9, 'PuBu'), filename="sign_cosmic_order1.pdf")
+
+
+annot_rows <- annot_rows[order(annot_rows$model, annot_rows$sample),]
+data3 <- data[match(rownames(annot_rows), rownames(data)), ]
+pheatmap(data3, fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE, annotation_row=annot_rows, annotation_colors = annot_colors,  color=brewer.pal(9, 'PuBu'), filename="sign_cosmic_order2.pdf")
+
+pheatmap(t(data3), fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE, annotation_col=annot_rows, annotation_colors = annot_colors,  color=brewer.pal(9, 'PuBu'), file="t_signature_cosmic_order2.pdf" )
+
+#data4 <- data3[grepl('vitroMA', rownames(data3)),]
+data4 <- data3[!grepl('2nd', rownames(data3)),]
+annotation_rows2 <- annotation_rows2
+annotation_rows$sample <- NULL
+data4 <- data4[,colnames(data4) %in% c(1,6,8,18)]
+pheatmap(data4, fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE, annotation_row=annot_rows, annotation_colors = annot_colors,  color=brewer.pal(9, 'PuBu'), filename="signzoom_cosmic_order2.pdf")

@@ -1,3 +1,58 @@
+STARTTIME="-0" # this is overwritten in conf.sk for 2nd round clones
+def find_pairs_raw_ov_stupid(wildcards): 
+    # We use info from conf.sk instead of patching info together from SAMPLES and STARTTIME
+    # still not clear which is best, this is more flexible but the other solution is safer (if correct :))
+    branch = SAMPLES_TREE[wildcards.bsample]
+    start = branch.pop(0)
+    r1 = re.compile(r'-M')
+    els_topi = filter(r1.search, branch) 
+    els_notopi = filter(lambda x: not r1.search(x), branch)
+    return [ c+'_'+start+'.MR_ov.tsv' for c in els_notopi] + [ c+'_'+start+'.MR_ovtopi.tsv' for x in els_topi]
+
+
+# "-0" becomes STARTTIME
+def find_pairs_raw_ov(wildcards):
+    print(wildcards.bsample)
+    # if per distinguere topi da non topi _ov or _ovTOPI
+    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
+    regex = r"^" + re.escape(wildcards.bsample) #+ r"-"
+    idxs = get_indexes(regex, SAMPLES)
+    els = [SAMPLES[i] for i in idxs]
+    print("els:")
+    print(els)
+    t0 = None
+    if STARTTIME != "-0":
+        # here we need a new logic to find the right startime clone
+        #regex = r"^" + re.escape(wildcards.bsample) + STARTTIME
+        start = SAMPLES_ORIG_T1[wildcards.bsample] # exception gets swallowed for all since there is another rule to make it but for completeness we add a wildcard contstraint on bsample
+        print(start)
+        idxs = get_indexes(start, els)
+        print(idxs)
+        if len(idxs) != 1:
+            print("Something bad!")
+            return "plh"
+        else:
+            print("time start " + els[idxs[0]])
+            t0  = els.pop(idxs[0]) # we remove our starting clone
+            # then need to keep only the T2 ones
+            t2_r = re.compile(TIME) # do we need to get it more precise for 
+            els = list(filter(t2_r.search, els))
+    else:
+        els.remove(wildcards.bsample+STARTTIME)
+    print("then:")
+    print([x for x in els])
+    r1 = re.compile(r'-M')
+    els_topi = filter(r1.search, els) 
+    els_notopi = filter(lambda x: not r1.search(x), els) 
+    if STARTTIME == "-0":
+        return [ x+'_'+wildcards.bsample+STARTTIME+'.MR_ov.tsv' for x in els_notopi] + [ x+'_'+wildcards.bsample+STARTTIME+'.MR_ovtopi.tsv' for x in els_topi]
+    else:
+        y = [ x+'_'+t0+'.MR_ov.tsv' for x in els_notopi] + [ x+'_'+t0+'.MR_ovtopi.tsv' for x in els_topi]
+        print(y)
+        #return [ x+'_'+t0+'.MR_ov.tsv' for x in els_notopi] + [ x+'_'+t0+'.MR_ovtopi.tsv' for x in els_topi]
+        return y
+
+FUN_OV=find_pairs_raw_ov
 include: "./conf.sk"
 VCFTOBED=BIN_DIR+"/vcf_to_bed"
 
