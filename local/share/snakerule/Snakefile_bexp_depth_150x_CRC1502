@@ -59,7 +59,8 @@ rule dir_and_call:
 
 ### overlap between pileups and regions with ploidy = 3 ################################
 SAMPLES=['CRC1502-03-1-A','CRC1502-03-0']
-PILEUPS_D='/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1502_120x/varscan_paired' # CRC1307-02-1-E.mpileup.gz
+#PILEUPS_D='/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1502_120x/varscan_paired' # CRC1307-02-1-E.mpileup.gz
+PILEUPS_D='/scratch/trcanmed/AF_spectra/local/share/data/mpile1502'
 #CN_D='./mutect_nobin_10x/' # mutect_nobin_100x/CRC1307-02-1-E.callable.bed.gz # this has depth included and we want to be as generic as possible now
 GNOMAD_TASK_DIR='/mnt/trcanmed/snaketree/task/annotations/dataset/gnomad'
 CALLABLE_BED=GNOMAD_TASK_DIR+'/wgs_calling_regions.hg38.bed.gz'
@@ -91,9 +92,10 @@ rule intersect_cnv:
     output: callable="{sample}.callable.bed.gz"
     shell:
         """
-            bedtools intersect -b {input.callable} -a <(sed 1d {input.sequenza} | bawk '{{print $1, $2-1, $3, $10}}') | filter_1col 1 {input.chrs} | gzip > {output.callable}
+            bedtools intersect -b {input.callable} -a <(sed 1d {input.sequenza} | bawk '{{print $1, $2-1, $3, $10, $11,$12}}') | filter_1col 1 {input.chrs} | gzip > {output.callable}
         """
 
+# we keep also A and B from sequenza to remove LOH regions
 rule intersect_mpileup:
     input: callable="{sample}.callable.bed.gz", pileup=PILEUPS_D+'/{sample}.mpileup.gz'
     output: "{sample}.callable_ploidy-{p}_pseudompileup.gz"
@@ -103,5 +105,36 @@ rule intersect_mpileup:
         """
 
 rule all_int_mpileup:
-    input: expand("{sample}.callable_ploidy-{p}_pseudompileup.gz", sample=SAMPLES, p=3)
+    input: expand("{sample}.callable_ploidy-{p}_pseudompileup.gz", sample=SAMPLES, p=2)
 
+#input: expand("{sample}.callable_ploidy-{p}_pseudompileup.gz", sample=SAMPLES, p=[2,3])
+
+###################### Mobster input
+
+# seg to bed
+# why decoy are in callable interval list?? let's start with chr1-22 only, sequenza is on 1-22-X-Y only right now
+
+# vcf intersect on CN=2
+rule vcf_cn_2:
+    input: callable="{sample}.callable.bed.gz", vcf=DATA+'/{sample}.pass.vcf.gz'
+    output: '{sample}_cn{cn}.vcf.gz'
+    shell:
+        """
+            bedtools intersect -header -wa -b <(zcat {input.callable} | bawk '$4=={wildcards.cn} && $6!=0') -a {input.vcf} | bgzip > {output}
+        """
+
+rule vcf_cn_2_noloh:
+    input: callable="{sample}.callable.bed.gz", vcf=DATA+'/{sample}.pass.vcf.gz'
+    output: '{sample}_nolohcn{cn}.vcf.gz'
+    shell:
+        """
+            bedtools intersect -header -wa -b <(zcat {input.callable} | bawk '$4=={wildcards.cn} && $6!=0') -a {input.vcf} | bgzip > {output}
+        """
+
+rule vcf_single:
+    input: vcf="{sample}_nolohcn{cn}.vcf.gz"
+    output: "my_{sample}_nolohcn{cn}.vcf.gz"
+    shell:
+        """
+            bcftools view -s {wildcards.sample} {input.vcf} | bgzip > {output}
+        """

@@ -106,8 +106,6 @@ rule heatmap:
         import matplotlib.transforms as transforms
 
         cnvs = pd.read_csv(input[0], sep="\t") 
-        #divnorm = colors.Normalize(vmin=0, vmax=12)
-        #divnorm = colors.Normalize(vmin=0, vmax=12)
         boundaries = cnvs[['chr','b','e']].copy()
         cnvs = cnvs.drop(columns=['chr','b','e']).transpose()
         clusters = False

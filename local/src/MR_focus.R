@@ -101,7 +101,7 @@ our <- our[our$model %in% grepps,]
 our$time <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][3]; return(y[1])})
 
                 #1078_2  1078_7      1078_9   1307_02   1307_08   1307_09    1599LM1,1599lm3,  1599lm7, 1599pr1,1599pr10
-cbPalette <- c('#155d00','#239203','#2fc603','#77a003','#95c805','#95c805','#ffff99', '#ffff00','#ffff66','#ff9900','#ffad33')
+cbPalette <- c('#155d00','#239203','#2fc603','#77a003','#95c805','#bcfc08','#ffff99', '#ffff00','#ffff66','#ff9900','#ffad33')
 
 
 pdata$model <- factor(pdata$model, levels=c('CRC1078','CRC1307','CRC1599PR','CRC1599LM'))

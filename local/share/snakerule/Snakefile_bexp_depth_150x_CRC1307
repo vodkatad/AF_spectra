@@ -59,10 +59,12 @@ rule dir_and_call:
 
 
 ### overlap between pileups and regions with ploidy = 3 ################################
-SAMPLES=['CRC1307-02-1-E','CRC1307-09-1-B']
-PILEUPS_D='/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1307_120x/varscan_paired' # CRC1307-02-1-E.mpileup.gz
+SAMPLES=['CRC1307-02-1-E','CRC1307-09-1-B', 'CRC1307-09-0', 'CRC1307-02-0']
+#PILEUPS_D='/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1307_120x/varscan_paired' # CRC1307-02-1-E.mpileup.gz
+PILEUPS_D='/scratch/trcanmed/AF_spectra/local/share/data/mpile1307' # CRC1307-02-1-E.mpileup.gz
 #CN_D='./mutect_nobin_10x/' # mutect_nobin_100x/CRC1307-02-1-E.callable.bed.gz # this has depth included and we want to be as generic as possible now
-GNOMAD_TASK_DIR='/mnt/trcanmed/snaketree/task/annotations/dataset/gnomad'
+#GNOMAD_TASK_DIR='/mnt/trcanmed/snaketree/task/annotations/dataset/gnomad'
+GNOMAD_TASK_DIR='/scratch/trcanmed/task/annotations/dataset/gnomad'
 CALLABLE_BED=GNOMAD_TASK_DIR+'/wgs_calling_regions.hg38.bed.gz'
 
 import os
@@ -81,7 +83,8 @@ SNAKE_ROOT=os.getenv('SNAKE_ROOT')
 ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
 
 HROOT='/home/egrassi'
-DATA=PRJ_ROOT+"/local/share/data/CRC1307_150x"
+#DATA=PRJ_ROOT+"/local/share/data/CRC1307_150x"
+DATA=PRJ_ROOT+"/local/share/data/CRC1307_clones_mutect"
 SDATA=DATA
 BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
@@ -104,4 +107,4 @@ rule intersect_mpileup:
         """
 
 rule all_int_mpileup:
-    input: expand("{sample}.callable_ploidy-{p}_pseudompileup.gz", sample=SAMPLES, p=3)
+    input: expand("{sample}.callable_ploidy-{p}_pseudompileup.gz", sample=SAMPLES, p=[2,3])
