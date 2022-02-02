@@ -939,6 +939,7 @@ rule pcgr:
             --no_vcf_validate
         """
 
+#
 #--input-vcf WD4086.vcf --output-maf WD4086.maf 
 #--inhibit-vep
 #--ncbi-build  GRCh38
@@ -954,3 +955,13 @@ rule pcgr:
 # 1- 24 samples, no 2nd round for technicalities right now, vitro-vivo together all children of a given t0 clone together
 # 2- 15 samples, vitro-vivo separated, 2nd round included, 1 sample for each model (1 vivo 1 vitro)
 # 3- 130 samples, but few muts, no 2nd round for technicalities now, each clone is 1 sample
+#
+rule all_MR_ov:
+    input: expand("{model}/platypus_nobin/all.MR_ov", model=MODELS)
+    output: "all_MR_ov.tsv"
+    shell:
+        """
+            cat {input} | head -n1 > {output} || 'echo ciao'
+            cat {input} | grep -w -v start >> {output}
+        """
+        
