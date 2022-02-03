@@ -64,3 +64,5 @@ for m in MODELS:
     PLATY_VCF.append(glob.glob(os.path.join(PRJ_ROOT,'local/share/data', m, 'platypus_filtered.vcf.gz')))
 
 DATA=os.path.join(PRJ_ROOT,'local/share/data/CRC0282/')
+
+GGTHEME=SNAKE_ROOT+'/prj/biobanca/dataset/V1/theme_20.Rdata'

@@ -327,12 +327,12 @@ rule dnds_onebyone: # TODO
         """
 
 rule MR_edu_plot:
-    input: "MR_edu_{kind}"
+    input: data="MR_edu_{kind}", ggtheme=GGTHEME
     output: "MR_edu_{kind}.png"
     params: tool=BIN_DIR+"/MR_plot", colors=MANY_COLORS_MODELS_VITRO
     shell:
         """
-            {params.tool} {input} {output} '{params.colors}'
+            {params.tool} {input.data} {output} '{params.colors}' {input.ggtheme}
         """
 
 wildcard_constraints:

@@ -6,6 +6,8 @@ args <- commandArgs(trailingOnly = T)
 infile <- args[1]
 outfile <- args[2]
 colors <- args[3]
+ggtheme <- args[4]
+load(ggtheme)
 
 our <- read.table(infile, sep="\t", header=FALSE, stringsAsFactors=FALSE)
 colnames(our) <- c('sample','MR_edu')
@@ -64,7 +66,6 @@ cbPalette <- unlist(strsplit(colors, ','))
 # shape clones
 our$time <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][3]; return(y[1])})
 
-save.image('pippo.Rdata')
 
 ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_text(size=15, angle=90, vjust=0.5, hjust=1), 
                 axis.title.y=element_text(size=20), axis.text.y=element_text(size=15), 
@@ -72,16 +73,41 @@ ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_tex
 )
 
 if (n == length(cbPalette)) {
-ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
-geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('MR EDU')+ylab('MR, mut/(division*bp) *10^-9')+xlab('')+
-  geom_point(data=our, aes(x=model, y=MR, color=model_clone, shape=time), stat="identity", size=4, position=position_dodge(0.2))+
-  ctheme+scale_color_manual(values=cbPalette)+scale_shape_manual(values=c(18,20))
+  ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
+    geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('MR EDU')+ylab('MR, mut/(division*bp) *10^-9')+xlab('')+
+    geom_point(data=our, aes(x=model, y=MR, color=model_clone, shape=time), stat="identity", size=4, position=position_dodge(0.2))+
+    ctheme+scale_color_manual(values=cbPalette)+scale_shape_manual(values=c(18,20))
 } else {
-ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
-geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('MR EDU')+ylab('MR, mut/(division*bp) *10^-9')+xlab('')+
-  geom_point(data=our, aes(x=model, y=MR, color=model_clone, shape=time), stat="identity", shape=18, size=4, position=position_dodge(0.2))+
-  ctheme+scale_shape_manual(values=c(18,20))
+  ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
+    geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('MR EDU')+ylab('MR, mut/(division*bp) *10^-9')+xlab('')+
+    geom_point(data=our, aes(x=model, y=MR, color=model_clone, shape=time), stat="identity", shape=18, size=4, position=position_dodge(0.2))+
+    ctheme+scale_shape_manual(values=c(18,20))
 }
 ggsave(outfile)
 
 save.image(paste0(outfile, '.Rdata'))
+
+### Reorderered svg for Andrea with theme
+basename <- substr(outfile, 1, nchar(outfile)-4)
+reordered <- paste0(basename, "_reordered.svg")
+new_order <- c('CRC0282', 'CRC0327', 'CRC0441', 'CRC1502', 'CRC1599PR', 'CRC1599LM', 'CRC1078', 'CRC1307')
+if (n == length(cbPalette)) {
+  # We need to keep colors in track, we do this adding it to our before setting factors.
+  ordered <- our$model_clone[order(our$model_clone)]
+  palette_df <- data.frame(palette=cbPalette, model_clone=unique(ordered), stringsAsFactors=FALSE)# unique keeps the order, gasp
+  #our <- merge(our, palette_df, by="model_clone")
+  our$model <- factor(our$model, levels=new_order)
+  pdata$model <- factor(pdata$model, levels=new_order)
+  palette_values <- c(palette_df$palette)
+  names(palette_values) <- palette_df$model_clone
+  ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
+    geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('MR EDU')+ylab('MR, mut/(division*bp) *10^-9')+xlab('')+
+    geom_point(data=our, aes(x=model, y=MR, color=model_clone, shape=time), stat="identity", size=4, position=position_dodge(0.2))+
+    unmute_theme+ctheme+scale_color_manual(values=palette_values)+scale_shape_manual(values=c(18,20))
+} else {
+  ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
+    geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('MR EDU')+ylab('MR, mut/(division*bp) *10^-9')+xlab('')+
+    geom_point(data=our, aes(x=model, y=MR, color=model_clone, shape=time), stat="identity", shape=18, size=4, position=position_dodge(0.2))+
+    unmute_theme+ctheme+scale_shape_manual(values=c(18,20))
+}
+ggsave(reordered)
