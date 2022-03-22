@@ -5,7 +5,8 @@ library(scales)
 #setwd("/mnt/trcanmed/snaketree/prj/AF_spectra/dataset/CRC1307_platypus_nobin/")
 args <- commandArgs(trailingOnly = T)
 wanted <- args[1]
-output <- args[2]
+output_plot <- args[2]
+output_n <- args[3]
 
 
 files <- list.files(path="./", pattern = paste0("*_",wanted,".ovcnokdelta.tsv.gz"), recursive = F, full.names = F)
@@ -36,7 +37,7 @@ pdata <- do.call(rbind, merged_named)
 pdata$name <- unlist(lapply(strsplit(pdata$name,'_'), function(x) {x[[1]][1]}))
 colnames(pdata) <- c("shared_by","count","sample")
 #max(as.numeric(as.character(pdata$shared_by)))
-
+save.image('pippo.Rdata')
 #pdata$shared_by <- factor(pdata$shared_by, levels = c(1,2,3,4,5,6,7,11)) 
 #order of levels need to be guaranteed:
 l <- as.numeric(as.character(levels(pdata$shared_by)))
@@ -44,8 +45,9 @@ l <- l[order(l)]
 pdata$shared_by <- factor(pdata$shared_by, levels=l)
 if (length(levels(pdata$shared_by)) < length(colo)) {
   ggplot(pdata,aes(x = sample, y = count, fill = shared_by)) +geom_bar(position = "fill",stat = "identity")+scale_fill_manual(values=colo) +scale_y_continuous(labels = percent_format())+theme_bw()+theme(text = element_text(size=15), axis.text.x = element_text(angle = 90, hjust = 1))+ggtitle(wanted)
-  ggsave(output)
+  ggsave(output_plot)
 } else {
   ggplot(pdata,aes(x = sample, y = count, fill = shared_by)) +geom_bar(position = "fill",stat = "identity")+scale_fill_manual(values=c(colo, colo)) +scale_y_continuous(labels = percent_format())+theme_bw()+theme(text = element_text(size=15), axis.text.x = element_text(angle = 90, hjust = 1))+ggtitle(wanted)
-  ggsave(output)
+  ggsave(output_plot)
 }
+write.table(pdata, file=output_n, quote=F, sep="\t")

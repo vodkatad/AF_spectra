@@ -540,11 +540,11 @@ rule dndsvitro:
 #### shared
 # right now selection of files is done inside R with list.files, this is DANGEROUS, FIXME
 rule shared_clone:
-    output: "{hsample}.shared.png"
+    output: plot="{hsample}.shared.png", n="{hsample}.shared.tsv"
     params: tool=BIN_DIR+"/private_shared_gains"
     shell: 
         """
-            {params.tool} {wildcards.hsample} {output}
+            {params.tool} {wildcards.hsample} {output.plot} {output.n}
         """
 
 rule all_shared:
