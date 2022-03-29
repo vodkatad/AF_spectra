@@ -7,6 +7,7 @@ args <- commandArgs(trailingOnly = T)
 wanted <- args[1]
 output_plot <- args[2]
 output_n <- args[3]
+output_muts <- args[4]
 
 
 files <- list.files(path="./", pattern = paste0("*_",wanted,".ovcnokdelta.tsv.gz"), recursive = F, full.names = F)
@@ -51,3 +52,10 @@ if (length(levels(pdata$shared_by)) < length(colo)) {
   ggsave(output_plot)
 }
 write.table(pdata, file=output_n, quote=F, sep="\t")
+
+
+### specific 1-2-3 muts
+n_common <- do.call(rbind, merged)
+# those found in more than 1 sample are repeated:
+u_n_common <- unique(n_common)
+write.table(u_n_common, file=output_muts, quote=F, sep="\t")
