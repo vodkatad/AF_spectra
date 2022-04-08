@@ -71,7 +71,7 @@ rule alltobin:
 # TODO R with heatmap/correlations
 # TODO bedtools merge to check that sequenza gives us a segmentation
 # TODO bedtools intersect and then script to get projected weighted cn to test project_bin.py
-SAMPLES=["CRC0327-02-0","CRC0327-02-1-A","CRC0327-02-1-E","CRC0327-02-1-I","CRC0327-04-0","CRC0327-04-1-A","CRC0327-04-1-B","CRC0327-04-1-C","CRC0327-08-0","CRC0327-08-1-A","CRC0327-08-1-C","CRC0327-08-1-F"]
+#SAMPLES=["CRC0327-02-0","CRC0327-02-1-A","CRC0327-02-1-E","CRC0327-02-1-I","CRC0327-04-0","CRC0327-04-1-A","CRC0327-04-1-B","CRC0327-04-1-C","CRC0327-08-0","CRC0327-08-1-A","CRC0327-08-1-C","CRC0327-08-1-F"]
 
 rule alltobin_merged:
     input: expand("{sample}.50000.tsv.gz", sample=SAMPLES)

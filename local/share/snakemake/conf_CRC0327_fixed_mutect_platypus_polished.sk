@@ -1,0 +1,96 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
+HROOT='/home/egrassi'
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+
+##################################################################
+DATA=PRJ_ROOT+"/local/share/data/CRC0327_fixed"
+SDATA=DATA
+KIND="SNV"
+MULTI="nomulti"
+### sample variable portion #############################################
+SAMPLES=['CRC0327-08-0', 'CRC0327-02-0', 'CRC0327-04-0', 'CRC0327-02-1-A', 'CRC0327-02-1-E', 'CRC0327-02-1-I', 'CRC0327-04-1-A', 'CRC0327-04-1-B', 'CRC0327-04-1-C', 'CRC0327-08-1-A', 'CRC0327-08-1-C', 'CRC0327-08-1-F', 'CRC0327-02-MA-B', 'CRC0327-02-MA-C', 'CRC0327-02-MC-B', 'CRC0327-02-MA-E', 'CRC0327-02-MC-C', 'CRC0327-02-MC-D', 'CRC0327-02-MI-C', 'CRC0327-02-MI-E']
+
+BULK=['']
+CLONE8=['CRC0327-08-0', 'CRC0327-08-1-A', 'CRC0327-08-1-C', 'CRC0327-08-1-F']
+CLONE2=['CRC0327-02-0', 'CRC0327-02-1-A', 'CRC0327-02-1-E', 'CRC0327-02-1-I', 'CRC0327-02-MA-B', 'CRC0327-02-MA-C', 'CRC0327-02-MC-B', 'CRC0327-02-MA-E', 'CRC0327-02-MC-C', 'CRC0327-02-MC-D', 'CRC0327-02-MI-C', 'CRC0327-02-MI-E']
+CLONE9=['CRC0327-04-0', 'CRC0327-04-1-A', 'CRC0327-04-1-B', 'CRC0327-04-1-C']
+CLONES=[CLONE8, CLONE2, CLONE9]
+ALL_SAMPLES=SAMPLES
+SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
+WANTED_CN = "1,2,3"
+
+SAMPLES_HIGH=["CRC0327-08","CRC0327-02","CRC0327-04"] # list comprehens TODO
+SAMPLES_ZERO=[x+'-0' for x in SAMPLES_HIGH]
+
+# rule process_vcf_special:
+#     input: vcf=DATA+"/"+SAMPLES[0]+".pass.vcf.gz", chrs=DATA+"/chrs"  
+#     output: SAMPLES[0]+".tsv.gz"
+#     params: tool=VCFTOBED1, multi=MULTI, kind=KIND, sample="CRC1307LMO"
+#     log: SAMPLES[0]+".multiallelic"
+#     shell:
+#         """
+#             bcftools view -s {params.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
+#             | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
+#         """
+
+# ruleorder: process_vcf_special > process_vcf
+BULKNAME="CRC0327LMO-0-B"
+NORMAL="CRC0327NLH0000000000D04000"
+SHIPMENT="second_shipment_bulk"
+VCF_DIR=PRJ_ROOT+"/dataset/CRC0327_fixed/platypus_nobin"
+
+##############################################################
+
+VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
+VCFTOBED1=BIN_DIR+"/vcf_to_bed"
+CNLEN=BIN_DIR+"/cn_len_plot"
+CNLEN2=BIN_DIR+"/cn_len_plot2"
+
+DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
+CALLABLE=DATA+"/callable_covered.bed.gz"
+
+DNDSCV_RDA=DATA+"/../RefCDS_human_GRCh38.p12.rda"
+
+ALL_SAMPLES=SAMPLES
+SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
+WANTED_CN = "1,2,3"
+
+wildcard_constraints:
+    sample="[a-zA-Z0-9]+-[0-9A-Z]+-[A-Z0-9]+-?[A-Z0-9]?"   
+wildcard_constraints:
+    t1sample="[a-zA-Z0-9]+-[0-9A-Z]+-[A-Z0-9]+-?[A-Z0-9]?"
+wildcard_constraints:
+    t0sample="[a-zA-Z0-9]+-[0-9A-Z]+-[A-Z0-9]+-?[A-Z0-9]?"
+wildcard_constraints:
+    bsample="[a-zA-Z0-9]+-[0-9]+"
+
+
+# rule process_vcf_special:
+#     input: vcf=DATA+"/"+SAMPLES[0]+".pass.vcf.gz", chrs=DATA+"/chrs"  
+#     output: SAMPLES[0]+".tsv.gz"
+#     params: tool=VCFTOBED1, multi=MULTI, kind=KIND, sample="CRC1307LMO"
+#     log: SAMPLES[0]+".multiallelic"
+#     shell:
+#         """
+#             bcftools view -s {params.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
+#             | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
+#         """
+
+# ruleorder: process_vcf_special > process_vcf
+
+## bbad llama
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/CRC0441/platypus_nobin$ mv CRC0441-01-MI-B_CRC0441-01-0.gain.vcf.gz  vivo.merged.vcf.gz

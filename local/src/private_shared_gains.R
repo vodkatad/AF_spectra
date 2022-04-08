@@ -32,13 +32,13 @@ col4 <- rev(tail(brewer.pal(n = 9, name = "Greens"), n=3))
 colo <- c(col1, col4, col2)
 
 
+save.image('pippo.Rdata')
 merged <- lapply(gains, function(x) { m <- counts[counts$ugains %in% x,]; return(m)})
 merged_named <- lapply(names(merged), function(x) { y <- merged[[x]]; counts <- as.data.frame(table(y$Freq)); counts$name <- x; return(counts) })
 pdata <- do.call(rbind, merged_named)
 pdata$name <- unlist(lapply(strsplit(pdata$name,'_'), function(x) {x[[1]][1]}))
 colnames(pdata) <- c("shared_by","count","sample")
 #max(as.numeric(as.character(pdata$shared_by)))
-save.image('pippo.Rdata')
 #pdata$shared_by <- factor(pdata$shared_by, levels = c(1,2,3,4,5,6,7,11)) 
 #order of levels need to be guaranteed:
 l <- as.numeric(as.character(levels(pdata$shared_by)))

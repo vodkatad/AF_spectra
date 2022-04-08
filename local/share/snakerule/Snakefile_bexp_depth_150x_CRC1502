@@ -138,3 +138,33 @@ rule vcf_single:
         """
             bcftools view -s {wildcards.sample} {input.vcf} | bgzip > {output}
         """
+
+
+PRJ_DIR="/scratch/trcanmed/AF_spectra"
+### vcf_cn_2_noloh Marika's 
+rule vcf_1502:
+    input: callable="../CRC1502/platypus_nobin/CRC1502-03-0.callable.bed.gz", vcf=PRJ_DIR+"/local/share/data/marika/CRC1502LMO0A04010001D02000.pass.vcf.gz"
+    output: 'CRC1502_nolohcn{cn}.vcf.gz'
+    shell:
+        """
+            bedtools intersect -header -wa -b <(zcat {input.callable} | bawk '$4=={wildcards.cn} && $6!=0') -a {input.vcf} | bgzip > {output}
+        """
+
+
+rule vcf_1307:
+    input: callable="../CRC1307_platypus_nobin/CRC1307-02-0.callable.bed.gz", vcf=PRJ_DIR+"/local/share/data/marika/CRC1307LMO0A02008004D02000.pass.vcf.gz"
+    output: 'CRC1307_nolohcn{cn}.vcf.gz'
+    shell:
+        """
+            bedtools intersect -header -wa -b <(zcat {input.callable} | bawk '$4=={wildcards.cn} && $6!=0') -a {input.vcf} | bgzip > {output}
+        """
+
+rule vcf_1078:
+    input: callable="../CRC1078/platypus_nobin/CRC1078-02-0.callable.bed.gz", vcf=PRJ_DIR+"/local/share/data/marika/CRC1078LMO0A02009002D03000.pass.vcf.gz"
+    output: 'CRC1078_nolohcn{cn}.vcf.gz'
+    shell:
+        """
+            bedtools intersect -header -wa -b <(zcat {input.callable} | bawk '$4=={wildcards.cn} && $6!=0') -a {input.vcf} | bgzip > {output}
+        """
+
+

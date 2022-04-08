@@ -55,7 +55,7 @@ def find_pairs_raw_ov(wildcards):
 FUN_OV=find_pairs_raw_ov
 include: "./conf.sk"
 VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
-
+######################################################################
 rule all_tsv:
     input: expand("{sample}.tsv.gz", sample=SAMPLES)
 
@@ -87,7 +87,7 @@ rule intersect_cnv:
     shell:
         """
             bedtools intersect -b {input.callable} -a <(sed 1d {input.sequenza} | bawk '{{print $1, $2-1, $3, $10}}') | filter_1col 1 {input.chrs} | gzip > {output.callable};
-            bedtools intersect -wo -a {input.var} -b <(zcat {output.callable}) | bawk '{{print $1, $2, $3, $4":"$8}}' |  gzip > {output.var}
+            bedtools intersect -wo -a <(zcat {input.var}) -b {output.callable} | bawk '{{print $1, $2, $3, $4":"$8}}' |  gzip > {output.var}
         """
 
 rule AF_spectra_cn:
@@ -128,6 +128,7 @@ rule fake_binomial:
             rm {output}.*tmp
         """
 
+########################
 rule subclonal:
     input: "{sample}.calls.tsv.gz"
     output: "{sample}.subclonal_n.tsv"
@@ -155,7 +156,6 @@ rule subclonal_len:
             {params.tool} {input} {params.cns} {output.barplot} {output.cumplot} {output.len}
         """
 
-
 rule all_len23:
     input: expand("{sample}.length23.txt", sample=SAMPLES)
     output: "all_len23.txt"
@@ -174,6 +174,7 @@ rule subclonal_corr:
             join -t $'\\t' <(sort -k1,1 {input.len}) <(sort -k1,1 {input.sub}) | bawk '{{print $1,$3/$2}}' > {output}
         """
 
+#######################
 
 rule pair_ov:
     input: t0="{t0sample}.calls.tsv.gz", t1="{t1sample}.calls.tsv.gz", ovbed="{t1sample}_{t0sample}.callable.bed.gz"
@@ -199,7 +200,6 @@ rule pair_ov_nobcnok:
             rm {input.t1}.*tmp
             rm {output.binom}.tmp
         """
-
 # casino per avere overlap misto tra i due campioni
 # 1tmp e` t1, 2tmp e` t0 -> l'R usa la prima colonna per il calcolo della lunghezza ma filtra per cn giuste in tutte e due
 rule pair_length_ov:
@@ -208,8 +208,8 @@ rule pair_length_ov:
     params: cns=WANTED_CN, tool=CNLEN2
     shell:
         """ 
-            bedtools intersect -b <(zcat {input.t0}) -a <(zcat {input.t1}) | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.1tmp
-            bedtools intersect -b <(zcat {input.t1}) -a <(zcat {input.t0}) | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.2tmp
+            bedtools intersect -b {input.t0} -a {input.t1} | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.1tmp
+            bedtools intersect -b {input.t1} -a {input.t0} | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.2tmp
             join -t$'\\t' {output.ovbed}.1tmp {output.ovbed}.2tmp | tr "_" "\\t" > {output.ovbed}.tmp 
             {params.tool} {output.ovbed}.tmp {params.cns} {output.barplot} {output.cumplot} {output.len} {output.ovbed};
             rm {output.ovbed}.*tmp 
@@ -310,7 +310,6 @@ rule all_sign_mat_toplevel:
     output: "all_signin.tsv"
     shell: "cat {input} > {output}"
 
-
 # Since the structure to compute all ovcnok is done we rely on its output in a lazy way - risky cause we can have produced
 # by hand other ovcnokdeltas for checks...from CLONES get all matching up to CRCxyz-0X then remove -0
 # Works only for first level, probably will need to look at initial functions and call them since they should always work.
@@ -319,7 +318,7 @@ def get_toplevel_children_ovnock(wildcards):
     res = [x.replace('.MR_ov.tsv','.ovcnokdelta.tsv.gz') for x in res] # paciug here to remove in vivo/in vitro or split
     return [x.replace('.MR_ovtopi.tsv','.ovcnokdelta.tsv.gz') for x in res]
 
-
+# FIXME remove header
 rule signature_mat_toplevel:
     input: ovcnok = get_toplevel_children_ovnock
     output: ss="{bsample}.signin.tsv", sp="{bsample}.signin.vcf"
@@ -341,17 +340,18 @@ rule all_sign_vcf_toplevel:
 def get_toplevel_children_vcf(wildcards):
     res = FUN_OV(wildcards)
     res = [x.replace('.MR_ov.tsv','.gain.vcf.gz') for x in res] # paciug here to remove in vivo/in vitro or split
+    print(res)
     return [x.replace('.MR_ovtopi.tsv','.gain.vcf.gz') for x in res]
 
-
+# needs fixing for single samples:
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/CRC0441/platypus_nobin$ zcat CRC0441-10-1-C_CRC0441-10-0.gain.vcf.gz > CRC0441-10.mutpatin.vcf
 rule signature_vcf_toplevel:
-    input: vcf = get_toplevel_children_vcf
+    input: get_toplevel_children_vcf
     output: vcf="{bsample}.mutpatin.vcf"
     shell:
         """
-            bcftools merge -m none --missing-to-ref {input.vcf} > {output.vcf}
+            bcftools merge -m none --missing-to-ref {input} > {output.vcf}
         """
-
 
 ########  not required for dn/ds... but I can't be that lazy and covered by junk work always :(
 ### annovar
@@ -366,6 +366,8 @@ rule class_bed:
             zcat {input} | bawk '$16=="{wildcards.class}" {{print $2,$3,$4,$7"-"$8}}' > {output}
         """
 
+# this should use find_pairs_raw_ov probably or we could have reverted to a simple man-made data structure also there...
+# let's try at least to have a generic function and not the hardcoded CLONESN TODO FIXME
 def wanted_pairs():
     res = []
     for cl in CLONES:
@@ -374,6 +376,7 @@ def wanted_pairs():
 
 def find_pairs_vcf(wildcards):
     return [x+".gain.vcf.gz" for x in wanted_pairs()]
+
 
 rule all_gain_vcf:
     input: find_pairs_vcf
@@ -384,7 +387,7 @@ rule class_vcf:
     shell:
         """
             zcat {input.vcf} | grep "^##" > {output}.tmp
-            zcat {input.vcf} | grep -v "^##" | grep "^#" | cut -f 1,2,3,4,5,6,7,8,9,11 >> {output}.tmp
+            zcat {input.vcf} | grep -v "^##" | grep "^#" | cut -f 11 --complement >> {output}.tmp
             zcat {input.ovcnok} | bawk '$16=="{wildcards.class}" {{print $5,$6,$5":"$6"_"$7"/"$8,$7,$8,".","PASS","CONTQ=42","GT:AF","0/1:"$11}}' >> {output}.tmp
             bgzip -c {output}.tmp > {output}
             rm {output}.tmp
@@ -488,6 +491,7 @@ rule binary_nonsyn:
         pi = pd.pivot_table(d, index=['sample'], columns='gene', aggfunc=lambda x: 1, fill_value=0)
         pi.to_csv(output.res, sep='\t', index=True, compression='gzip')
 
+
 rule binary_cosmic:
     input: data="all.annovar.gz"
     output: res="cosmic.binary.tsv.gz"
@@ -501,6 +505,7 @@ rule binary_cosmic:
         #pi = d.pivot(index="sample", columns="gene", values="value") # cumbersome cmq
         pi = pd.pivot_table(d, index=['sample'], columns='cosmic', aggfunc=lambda x: 1, fill_value=0)
         pi.to_csv(output.res, sep='\t', index=True, compression='gzip')
+
 
 
 ####  dn/ds
@@ -542,7 +547,6 @@ rule shared_clone:
             {params.tool} {wildcards.hsample} {output.plot} {output.n} {output.muts}
         """
 
-
 rule all_shared:
     input: expand("{sample}.shared.png", sample=SAMPLES_ZERO)
 
@@ -562,8 +566,8 @@ rule upsetR:
     shell:
         """
             for f in {input}; do \\
-                zcat $f | bawk -v N=$f '$13==1{{print $1,N}}'; done | sed 's/\.calls\.tsv\.gz//1' > {output}.tmp; 
-            done;
+                zcat $f | bawk -v N=$f '$13==1{{print $1,N}}' | sed 's/\.calls\.tsv\.gz//1'; \\
+            done > {output}.tmp
             {params.tool} {output}.tmp {output}
             rm {output}.tmp
         """

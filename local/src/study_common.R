@@ -41,7 +41,7 @@ ggplot(data=m_dA, aes(x=as.factor(Freq), y=cov))+geom_boxplot(outlier.shape=NULL
 ggplot(data=m_dA, aes(x=as.factor(Freq), y=af2))+geom_boxplot(outlier.shape=NULL)+geom_jitter()+theme_bw()
 ggplot(data=m_dA, aes(x=as.factor(Freq), y=altreads))+geom_boxplot(outlier.shape=NULL)+geom_jitter()+theme_bw()
 wilcox.test(m_dA[m_dA$Freq==2, 'altreads'],m_dA[m_dA$Freq==1, 'altreads'])
-
+wilcox.test(m_dA[m_dA$Freq==2, 'cov'],m_dA[m_dA$Freq==1, 'cov'])
 # let's discuss quality
 library('vcfR')
 vcf <- read.vcfR('/scratch/trcanmed/AF_spectra/local/share/data/CRC1502/platypus_filtered.vcf.gz')

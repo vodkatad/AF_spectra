@@ -1,0 +1,5 @@
+This is called 2 cause its SAMPLES do not list all clones but it's working on platypus 'all' and I did a check that it computes the same things:
+_2 and _all on AFspectra are the same if they point to the same vcf dir with platypus all (as expected):
+egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/CRC0282_clones_all/platypus_nobin$ diff  ../../CRC0282_clones_2/platypus_nobin/all.MR_ov  all.MR_ov
+
+So I keep it, will add other SAMPLES to conf.sk in the future is needed.
