@@ -44,7 +44,7 @@ SAMPLES_TREE= {
 SAMPLES_HIGH=list(SAMPLES_ORIG_T1.keys())
 SAMPLES_ZERO=[x+'-1' for x in SAMPLES_HIGH]
 VCF_DIR=PRJ_ROOT+"/dataset/CRC1078_clones_all/platypus_nobin"
-BULKNAME="CRC1078LMO-0-B.pass.vcf.gz"
+BULKNAME="CRC1078LMO-0-B"
 NORMAL="CRC1078NLH0000000000D08000"
 SHIPMENT="second_shipment_bulk"
 ##############################################################

@@ -1,5 +1,5 @@
 #SAMPLES=['CRC1307','CRC0282','CRC1502','CRC1078','CRC0327']
-SAMPLES=['CRC0282','CRC0327','CRC0441','CRC1078','CRC1307_clones_all','CRC1502_clones_all','CRC1599LM','CRC1599PR']
+SAMPLES=['CRC0282','CRC0327_clones_all','CRC0441','CRC1078_clones_all','CRC1307_clones_all','CRC1502_clones_all','CRC1599LM_clones_all','CRC1599PR']
 rule alltobin_merged:
     input: expand("../{model}/sequenza/merged.tsv.gz", model=SAMPLES) 
     output: m="merged.tsv.gz"

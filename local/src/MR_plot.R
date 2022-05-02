@@ -80,7 +80,7 @@ if (n == length(cbPalette)) {
 } else {
   ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
     geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('MR EDU')+ylab('MR, mut/(division*bp) *10^-9')+xlab('')+
-    geom_point(data=our, aes(x=model, y=MR, color=model_clone, shape=time), stat="identity", shape=18, size=4, position=position_dodge(0.2))+
+    geom_point(data=our, aes(x=model, y=MR, color=model_clone, shape=time), stat="identity", size=4, position=position_dodge(0.2))+
     ctheme+scale_shape_manual(values=c(18,20))
 }
 ggsave(outfile)
@@ -89,7 +89,7 @@ save.image(paste0(outfile, '.Rdata'))
 
 ### Reorderered svg for Andrea with theme
 basename <- substr(outfile, 1, nchar(outfile)-4)
-reordered <- paste0(basename, "_reordered.svg")
+reordered <- paste0(basename, "_reordered.png")
 new_order <- c('CRC0282', 'CRC0327', 'CRC0441', 'CRC1502', 'CRC1599PR', 'CRC1599LM', 'CRC1078', 'CRC1307')
 if (n == length(cbPalette)) {
   # We need to keep colors in track, we do this adding it to our before setting factors.
