@@ -29,7 +29,7 @@ SAMPLES=['CRC0282-01-0', 'CRC0282-05-0', 'CRC0282-07-0', 'CRC0282-01-1-A', 'CRC0
 ALL_SAMPLES=SAMPLES
 SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
 WANTED_CN = "1,2,3"
-
+CLONES=[CLONE2, CLONE8, CLONE9]
 SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
 
 # right now manually determined

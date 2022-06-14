@@ -1,6 +1,6 @@
 library(annotatr)
 #library(rtracklayer)
-bed <- '/scratch/trcanmed/AF_spectra/dataset/all_vitro_merged_gained.bed'
+bed <- '/scratch/trcanmed/AF_spectra/dataset/all_vitro_all_merged_gained.bed'
 #gained = read_regions(con = rtracklayer::import(bed, format="bed"), genome = 'hg38')
 gained = read_regions(con = bed, genome = 'hg38', format='bed')
 seqlevels(gained, pruning.mode="coarse") <- paste0('chr', seq(1,22))
@@ -18,7 +18,8 @@ gained_annotated = annotate_regions(
 
 ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_text(size=15, angle=90, vjust=0.5, hjust=1), 
                 axis.title.y=element_text(size=20), axis.text.y=element_text(size=15), 
-                plot.title = element_text(face = "bold", size = 20, hjust = 0.5), legend.text = element_text(size = 10))
+                plot.title = element_text(face = "bold", size = 20, hjust = 0.5), legend.text = element_text(size = 15),
+                legend.title = element_text(size = 15))
 
 
 
@@ -76,7 +77,7 @@ pd$annot.type <- as.factor(pd$annot.type)
 #[7] "hg38_genes_introns"              "hg38_genes_promoters"           
 levels(pd$annot.type) <- c('1to5kb','3UTRs', '5UTRs','exons','intergenic','intronexon','introns','promoters')
 pd$annot.type <- factor(pd$annot.type, levels=c('introns','intergenic','1to5kb','promoters','3UTRs','5UTRs','exons','intronexon'))
-ggplot(data=pd, aes(x=annot.type,y=n,fill=SNV))+geom_bar(stat="identity", position='dodge')+ctheme+xlab('')+ylab('#')+scale_fill_manual(values=c('darkgreen', 'darkgoldenrod'))
+ggplot(data=pd, aes(x=annot.type,y=n,fill=SNV))+geom_bar(stat="identity", position='dodge')+ctheme+xlab('')+ylab('#')+scale_fill_manual(values=c('darkgreen', 'darkgoldenrod'))+theme()
 
 library(reshape)
 large <- cast(pd, value='n', formula = "annot.type ~ SNV")

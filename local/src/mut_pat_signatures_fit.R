@@ -111,7 +111,39 @@ pheatmap(t(data3), fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  clus
 
 #data4 <- data3[grepl('vitroMA', rownames(data3)),]
 data4 <- data3[!grepl('2nd', rownames(data3)),]
-annotation_rows2 <- annotation_rows2
-annotation_rows$sample <- NULL
+#annotation_rows2 <- annot_rows
+#annotation_rows2$sample <- NULL
+pheatmap(data4, fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE, annotation_row=annot_rows, annotation_colors = annot_colors,  color=brewer.pal(9, 'PuBu'), filename="signnozoom_cosmic_order2.pdf")
+pheatmap(t(data4), fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE, annotation_col=annot_rows, annotation_colors = annot_colors,  color=brewer.pal(9, 'PuBu'), file="t_signnozoom_cosmic_order2.pdf", width=11.7, height=8.3)
+
+
+
 data4 <- data4[,colnames(data4) %in% c(1,6,8,18)]
 pheatmap(data4, fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE, annotation_row=annot_rows, annotation_colors = annot_colors,  color=brewer.pal(9, 'PuBu'), filename="signzoom_cosmic_order2.pdf")
+
+
+#
+d2 <- data2[rownames(data2)=='CRC1307_bulk', colnames(data2) %in% c(1,8)]
+d1 <- data2[rownames(data2)=='CRC1078_bulk', colnames(data2) %in% c(1,8)]
+d <- as.data.frame(rbind(d1, d2))
+d$names <- c('M1', 'M2')
+l <- melt(d)
+ggplot(data=l, aes(x=names, y=value, fill=variable))+geom_col(position="dodge")+theme_bw()+scale_fill_manual(values=c('darkgoldenrod','darkgreen'))
+
+ddd <- as.data.frame(data2[, '8']/data2[, '1'])
+colnames(ddd) <- c('SBS8_SBS1')
+ddd <- ddd[grepl('bulk',rownames(ddd)),, drop=F]
+ddd$model <- sapply(strsplit(rownames(ddd),"_"), function(x){x[[1]]})
+ggplot(data=ddd, aes(y=SBS8_SBS1, x=model))+geom_col(position="dodge")+theme_bw()
+
+colors <- "#cc3300,#f607b9,#9900ff,#155d00,#77a003,#0829fc,#ff9900,#ffff00"
+cbPalette <- unlist(strsplit(colors, ','))
+
+
+ggplot(data=ddd, aes(y=SBS8_SBS1, x=model, fill=model))+geom_col(position="dodge")+theme_bw()+scale_fill_manual(values=cbPalette)+scale_y_log10()
+
+colors <- "#155d00,#77a003,#ff9900,#ffff00"
+cbPalette <- unlist(strsplit(colors, ','))
+
+ddd2 <- ddd[ddd$model %in% c('CRC1078', 'CRC1307', 'CRC1599LM', 'CRC1599PR'),]
+ggplot(data=ddd2, aes(y=SBS8_SBS1, x=model, fill=model))+geom_col(position="dodge")+theme_bw()+scale_fill_manual(values=cbPalette)+scale_y_log10()

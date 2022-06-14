@@ -234,11 +234,13 @@ ggplot(cos_sim_ori_rec, aes(y=cos_sim, x=sample)) +
 ## trees
 
 
-f <- c("P2.T1.1.vcf","P2.T1.3.vcf","P2.T2.5.vcf","P2.T4.2.vcf","P2.T4.3.vcf","P2.T5.1.vcf","P2.T5.4.vcf","P2.T6.2.vcf","P2.T6.6.vcf","P3.T1.1.vcf","P3.T1.4.vcf","P3.T2.1.vcf","P3.T2.2.vcf","P3.T3.2.vcf","P3.T3.4.vcf","P3.T4.1.vcf","P3.T4.2.vcf")
+f <- c("P2.T1.1.vcf","P2.T1.3.vcf","P2.T2.5.vcf","P2.T4.2.vcf","P2.T4.3.vcf","P2.T5.1.vcf","P2.T5.4.vcf","P2.T6.2.vcf","P2.T6.6.vcf","P3.T1.1.vcf","P3.T1.4.vcf","P3.T2.1.vcf","P3.T2.2.vcf","P3.T3.2.vcf","P3.T3.4.vcf","P3.T4.1.vcf","P3.T4.2.vcf",
+       "P1.T1.1.vcf","P1.T1.4.vcf","P1.T2.4.vcf","P1.T3.2.vcf","P1.T3.3.vcf","P1.T4.3.vcf","P1.T4.4.vcf")
+
 path <- '/scratch/trcanmed/AF_spectra/local/share/data/clevers/trees/'
 
 files <- paste0(path, f)
-sample_names <- c("P2.T1.1","P2.T1.3","P2.T2.5","P2.T4.2","P2.T4.3","P2.T5.1","P2.T5.4","P2.T6.2","P2.T6.6","P3.T1.1","P3.T1.4","P3.T2.1","P3.T2.2","P3.T3.2","P3.T3.4","P3.T4.1","P3.T4.2")
+sample_names <- c("P2.T1.1","P2.T1.3","P2.T2.5","P2.T4.2","P2.T4.3","P2.T5.1","P2.T5.4","P2.T6.2","P2.T6.6","P3.T1.1","P3.T1.4","P3.T2.1","P3.T2.2","P3.T3.2","P3.T3.4","P3.T4.1","P3.T4.2", "P1.T1.1","P1.T1.4","P1.T2.4","P1.T3.2","P1.T3.3","P1.T4.3","P1.T4.4")
 
 vcfs <- read_vcfs_as_granges(files, sample_names, ref_genome)
 # from tcga multiple alternative alleles/indels are removed, some samples (MSI?) many more indels (15-30 vs 1000+)
@@ -276,3 +278,24 @@ ggplot(cos_sim_ori_rec, aes(y=cos_sim, x=sample)) +
   ylab("Cosine similarity\n original VS reconstructed") + 
   xlab("") + xlim(rev(levels(factor(cos_sim_ori_rec$sample)))) +theme_bw()+
   theme(panel.grid.minor.y=element_blank(), panel.grid.major.y=element_blank()) +geom_hline(aes(yintercept=.95))
+
+### better heatmap
+
+data <- as.matrix(ff$contribution)
+data = t(data)
+data = data/rowSums(data)
+annot_rows <- data.frame(row.names=rownames(data))
+
+annot_rows$patient <- unlist(lapply(strsplit(rownames(annot_rows),'.', fixed=T), function(x){ x[1] }))
+#annot_rows$clone <- as.factor(unlist(lapply(strsplit(rownames(annot_rows),'.', fixed=T), function(x){ paste0(x[2], '.', x[3]) })))
+
+#col <- brewer.pal(3,'Dark2')
+#names(col) <- levels(annot_rows$sample)
+# cosmic specific XXX WARNING
+colnames(data) <- unlist(lapply(strsplit(colnames(data),'.', fixed=TRUE), function(x){ x[length(x)] }))
+
+#cbPalette2 <- unlist(strsplit(palette, ','))
+
+#names(cbPalette2) <- levels(annot_rows$model)
+#annot_colors <- list(sample=col, model=cbPalette2)
+pheatmap(t(data), fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE,  annotation_col=annot_rows,   color=brewer.pal(9, 'PuBu'), width=6, height=8.3, filename="clevers.pdf")
