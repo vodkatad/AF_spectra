@@ -302,7 +302,7 @@ rule dnds_voverall:
 rule dnds_global:
     input: "{dndskind}_overall.tsv"
     output: "{dndskind}_overall.png"
-    params: tool=BIN_DIR+"/dnds_plot_overall", colors=COLORS_MODELS
+    params: tool=BIN_DIR+"/dnds_plot_overall", colors=COLORS_MODELS_3
     shell:
         """
             {params.tool} {input} {output} '{params.colors}' {output}.Rimage
@@ -421,7 +421,7 @@ rule bed:
 # Do we keep or remove in vivo? Only in vitro!
 def all_nonsyn(wildcards):
     if wildcards.kind == "SNV":
-        return expand("{model}/platypus_nobin/.binary.tsv.gz", model=MODELS_NOREP)
+        return expand("{model}/platypus_nobin/nonsyn.binary.tsv.gz", model=MODELS_NOREP)
     else:
         return expand("{model}/platypus_nobin_indels/nonsyn.binary.tsv.gz", model=MODELS_NOREP)
 
@@ -900,8 +900,17 @@ rule sign_3:
 # gain all merged then pcgr, to get a MAF
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ for f in */*/vitro.merged.vcf.gz; do tabix $f; done
 rule merge_all:
+    input: expand("{model}/platypus_nobin/vitro.merged.vcf.gz", model=MODELS)
+    output: "all_vitro_all_merged_gained.vcf.gz"
+    shell:
+        """
+            bcftools merge -m none --missing-to-ref {input} | bgzip > {output}
+            tabix {output}
+        """
+
+rule merge_all_mss:
     input: expand("{model}/platypus_nobin/vitro.merged.vcf.gz", model=MODELS[1:])
-    output: "all_vitro_merged_gained.vcf.gz"
+    output: "all_vitro_mss_merged_gained.vcf.gz"
     shell:
         """
             bcftools merge -m none --missing-to-ref {input} | bgzip > {output}
@@ -909,8 +918,8 @@ rule merge_all:
         """
 
 rule bed_all:
-    input: "all_vitro_merged_gained.vcf.gz"
-    output: "all_vitro_merged_gained.bed"
+    input: "all_vitro_{MSS}_merged_gained.vcf.gz"
+    output: "all_vitro_{MSS}_merged_gained.bed"
     shell:
         """
             zcat {input} | grep -v "^#" | bawk '{{print $1,$2-1,$2,$3}}' > {output}
@@ -955,7 +964,7 @@ rule pcgr:
 # 1- 24 samples, no 2nd round for technicalities right now, vitro-vivo together all children of a given t0 clone together
 # 2- 15 samples, vitro-vivo separated, 2nd round included, 1 sample for each model (1 vivo 1 vitro)
 # 3- 130 samples, but few muts, no 2nd round for technicalities now, each clone is 1 sample
-#
+#   
 rule all_MR_ov:
     input: expand("{model}/platypus_nobin/all.MR_ov", model=MODELS)
     output: "all_MR_ov.tsv"
