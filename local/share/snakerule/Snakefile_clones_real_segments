@@ -626,3 +626,58 @@ rule subclonal_corr:
         """
 
 #######################
+# TODO REASON WHY I had to manage differently T0 and T1
+rule overlap_calls:
+    input: t0="{t0sample}.var_cnv.tsv.gz", t1="{t1sample}.var_cnv.tsv.gz", ovbed="{t1sample}_{t0sample}.callable3.bed.gz"
+    output: t0="{t0sample}_{t1sample}.callsov3.tsv.gz", t1="{t1sample}_{t0sample}.callsov3.tsv.gz"
+    shell:
+        """
+            bedtools intersect -a <(zcat {input.t0} | sed 1d) -b {input.ovbed} | cut -f4 | tr ":" "\\t" | bawk '{{print $1":"$2":"$3":"$4, $1, $2, $3, $4, $5, $6, $6/($6+$5), $8}}' |  gzip > {output.t0}
+            bedtools intersect -a <(zcat {input.t1} | sed 1d) -b {input.ovbed} | cut -f4 | tr ":" "\\t" | bawk '{{print $1":"$2":"$3":"$4, $1, $2, $3, $4, $5, $6, $6/($6+$5), $8}}' |  gzip > {output.t1}
+        """
+
+
+rule subclonal_lago:
+    input: "{t1sample}_{t0sample}.callsov3.tsv.gz"
+    output: "{t1sample}_{t0sample}.subclonal_CN3_classify.tsv"
+    shell:
+        """
+            zcat {input} | sed 1d | bawk '$9 == 3 && $8 < 0.2 {{print "subclonal", $0}} $9 == 3 && $8 >= 0.2 {{print "clonal", $0}}' > {output}
+        """
+
+rule subclonal_len_2:
+    input: "{sample}.callable.bed.gz"
+    output: barplot="{sample}.cn3.png", len="{sample}.length3.txt", cumplot="{sample}.cumcn3.png"
+    params: cns='3', tool=CNLEN
+    shell:
+        """
+            {params.tool} {input} {params.cns} {output.barplot} {output.cumplot} {output.len}
+        """
+
+
+rule delta_lago:
+    input: t0="{t0sample}_{t1sample}.subclonal_CN3_classify.tsv", t1="{t1sample}_{t0sample}.subclonal_CN3_classify.tsv"
+    output: binom="{t1sample}_{t0sample}.deltalago.tsv.gz"
+    shell:
+        """
+            cat {input.t1} | sed 1d | bawk '$1=="clonal"' > {input.t1}.tmp
+            cat {input.t1}.tmp | filter_1col 2 <(cut -f 2 {input.t0}) | bawk '{{print $0,"common"}}' > {output.binom}.tmp
+            cat {input.t1}.tmp | filter_1col -v 2 <(cut -f 2 {input.t0}) | bawk '{{print $0,"gain"}}' >> {output.binom}.tmp
+            cat {input.t0} | filter_1col -v 2 <(cut -f 2 {input.t1}.tmp) | bawk '{{print $0,"loss"}}' >> {output.binom}.tmp
+            gzip -c {output.binom}.tmp > {output.binom}
+            rm {input.t1}.*tmp
+            rm {output.binom}.tmp
+        """
+
+rule pair_length_ov_3:
+    input: t0="{t0sample}.callable.bed.gz", t1="{t1sample}.callable.bed.gz"
+    output: barplot="{t1sample}_{t0sample}.ovcn3.png", len="{t1sample}_{t0sample}.ovlength3.txt", cumplot="{t1sample}-{t0sample}.ovcumcn3.png", ovbed="{t1sample}_{t0sample}.callable3.bed.gz"
+    params: cns=3, tool=CNLEN2
+    shell:
+        """ 
+            bedtools intersect -b {input.t0} -a {input.t1} | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.1tmp
+            bedtools intersect -b {input.t1} -a {input.t0} | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.2tmp
+            join -t$'\\t' {output.ovbed}.1tmp {output.ovbed}.2tmp | tr "_" "\\t" > {output.ovbed}.tmp 
+            {params.tool} {output.ovbed}.tmp {params.cns} {output.barplot} {output.cumplot} {output.len} {output.ovbed};
+            rm {output.ovbed}.*tmp 
+        """
