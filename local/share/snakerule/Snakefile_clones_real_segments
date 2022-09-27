@@ -627,6 +627,7 @@ rule subclonal_corr:
 
 #######################
 # TODO REASON WHY I had to manage differently T0 and T1
+# $10 is mutect AF
 rule overlap_calls:
     input: t0="{t0sample}.var_cnv.tsv.gz", t1="{t1sample}.var_cnv.tsv.gz", ovbed="{t1sample}_{t0sample}.callable3.bed.gz"
     output: t0="{t0sample}_{t1sample}.callsov3.tsv.gz", t1="{t1sample}_{t0sample}.callsov3.tsv.gz"
@@ -635,6 +636,13 @@ rule overlap_calls:
             bedtools intersect -a <(zcat {input.t0} | sed 1d) -b {input.ovbed} | cut -f4 | tr ":" "\\t" | bawk '{{print $1":"$2":"$3":"$4, $1, $2, $3, $4, $5, $6, $6/($6+$5), $8}}' |  gzip > {output.t0}
             bedtools intersect -a <(zcat {input.t1} | sed 1d) -b {input.ovbed} | cut -f4 | tr ":" "\\t" | bawk '{{print $1":"$2":"$3":"$4, $1, $2, $3, $4, $5, $6, $6/($6+$5), $8}}' |  gzip > {output.t1}
         """
+# rule is af from mutect
+            #bedtools intersect -a <(zcat {input.t0} | sed 1d) -b {input.ovbed} | cut -f4 | tr ":" "\\t" | bawk '{{print $1":"$2":"$3":"$4, $1, $2, $3, $4, $5, $6, $7, $8}}' |  gzip > {output.t0}
+            #bedtools intersect -a <(zcat {input.t1} | sed 1d) -b {input.ovbed} | cut -f4 | tr ":" "\\t" | bawk '{{print $1":"$2":"$3":"$4, $1, $2, $3, $4, $5, $6, $7, $8}}' |  gzip > {output.t1}
+# af from reads
+            #bedtools intersect -a <(zcat {input.t0} | sed 1d) -b {input.ovbed} | cut -f4 | tr ":" "\\t" | bawk '{{print $1":"$2":"$3":"$4, $1, $2, $3, $4, $5, $6, $6/($6+$5), $8}}' |  gzip > {output.t0}
+            #bedtools intersect -a <(zcat {input.t1} | sed 1d) -b {input.ovbed} | cut -f4 | tr ":" "\\t" | bawk '{{print $1":"$2":"$3":"$4, $1, $2, $3, $4, $5, $6, $6/($6+$5), $8}}' |  gzip > {output.t1}
+        #"""
 
 
 rule subclonal_lago:
@@ -642,7 +650,7 @@ rule subclonal_lago:
     output: "{t1sample}_{t0sample}.subclonal_CN3_classify.tsv"
     shell:
         """
-            zcat {input} | sed 1d | bawk '$9 == 3 && $8 < 0.2 {{print "subclonal", $0}} $9 == 3 && $8 >= 0.2 {{print "clonal", $0}}' > {output}
+            zcat {input} | sed 1d | bawk '$9 == 3 && $8 < 0.33 {{print "subclonal", $0}} $9 == 3 && $8 >= 0.33 {{print "clonal", $0}}' > {output}
         """
 
 rule subclonal_len_2:
@@ -653,7 +661,6 @@ rule subclonal_len_2:
         """
             {params.tool} {input} {params.cns} {output.barplot} {output.cumplot} {output.len}
         """
-
 
 rule delta_lago:
     input: t0="{t0sample}_{t1sample}.subclonal_CN3_classify.tsv", t1="{t1sample}_{t0sample}.subclonal_CN3_classify.tsv"
