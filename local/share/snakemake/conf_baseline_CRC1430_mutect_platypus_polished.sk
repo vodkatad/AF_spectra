@@ -1,0 +1,85 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
+HROOT='/home/egrassi'
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+
+###################################################################
+KIND="SNV" # | indel
+MULTI="nomulti"
+### sample variable portion #############################################
+DATA=PRJ_ROOT+"/local/share/data/MA_treats_baseline_CRC1430"
+SDATA=DATA
+SAMPLES=["CRC1430-03-0","CRC1430-04-0","CRC1430-05-0","CRC1430-03-1-GG", "CRC1430-04-1-GA","CRC1430-05-1-GB"]
+
+SAMPLES = list(set(SAMPLES))
+SAMPLES.sort()
+# TODO fixme
+CLONE3=["CRC1430-03-0","CRC1430-03-1-GG"]
+CLONE4=["CRC1430-04-0","CRC1430-04-1-GA"]
+CLONE5=["CRC1430-05-0","CRC1430-05-1-GB"]
+CLONES=[CLONE3, CLONE4, CLONE5]
+STARTTIME='-0'
+TIME='-1-'
+SAMPLES_TREE=[]
+
+SAMPLES_HIGH=["CRC1430-03","CRC1430-04","CRC1430-05"]
+SAMPLES_ZERO=[x+'-0' for x in SAMPLES_HIGH]
+VCF_DIR=DATA
+BULKNAME="CRC1430LMO-0-B"
+NORMAL="CRC1430NLH0000000000D03000"
+SHIPMENT="MA_treats_h"
+##############################################################
+
+VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
+VCFTOBED1=BIN_DIR+"/vcf_to_bed"
+CNLEN=BIN_DIR+"/cn_len_plot"
+CNLEN2=BIN_DIR+"/cn_len_plot2"
+
+DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
+CALLABLE=DATA+"/callable_covered.bed.gz"
+
+DNDSCV_RDA=DATA+"/../RefCDS_human_GRCh38.p12.rda"
+
+ALL_SAMPLES=SAMPLES
+SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
+WANTED_CN = "1,2,3"
+
+wildcard_constraints:
+    sample="[a-zA-Z0-9]+-[0-9A-Z]+-[A-Z0-9]+-?[A-Z0-9]*"
+wildcard_constraints:
+    t1sample="[a-zA-Z0-9]+-[0-9A-Z]+-[A-Z0-9]+-?[A-Z0-9]*"
+wildcard_constraints:
+    t0sample="[a-zA-Z0-9]+-[0-9A-Z]+-[A-Z0-9]+-?[A-Z0-9]*"
+wildcard_constraints:
+    bsample="[a-zA-Z0-9]+-[0-9]+"
+
+#ruleorder: process_vcf > intersect_cnv > fake_binomial > pair_ov > pair_ov_nobcnok
+
+# rule process_vcf_special:
+#     input: vcf=DATA+"/"+SAMPLES[0]+".pass.vcf.gz", chrs=DATA+"/chrs"  
+#     output: SAMPLES[0]+".tsv.gz"
+#     params: tool=VCFTOBED1, multi=MULTI, kind=KIND, sample="CRC1307LMO"
+#     log: SAMPLES[0]+".multiallelic"
+#     shell:
+#         """
+#             bcftools view -s {params.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
+#             | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
+#         """
+
+# ruleorder: process_vcf_special > process_vcf
+
+## bbad llama
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/CRC0441/platypus_nobin$ mv CRC0441-01-MI-B_CRC0441-01-0.gain.vcf.gz  vivo.merged.vcf.gz
