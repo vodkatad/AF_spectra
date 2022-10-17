@@ -1,0 +1,55 @@
+include: "conf.sk"
+
+## DNDS
+rule dnds_overall:
+    input: expand("{model}/platypus_nobin/dnds.tsv", model=['baseline_CRC1620','NT_CRC1430','NT_CRC1620','T_CRC1430', 'T_CRC1620'])
+    output: "tdnds_overall.tsv"
+    shell:
+        """
+          for f in {input}; do \\
+            n=$(echo $f | tr "\/" "\\t" | cut -f 1); \\
+            bawk -v name=$n '$1=="wall"{{print name,$3,$4,$5}}' $f; \\
+          done > {output}
+        """
+
+rule dnds_global:
+    input: "tdnds_overall.tsv"
+    output: "tdnds_overall.png"
+    params: tool=BIN_DIR+"/dnds_plot_overall", colors=COLORS_MODELS_3
+    shell:
+        """
+            {params.tool} {input} {output} '{params.colors}'
+        """
+
+## Signatures
+def input_signatures(wildcards):
+    import glob
+    if wildcards.kind == "vitro":
+        return glob.glob('*_CRC1430/platypus_nobin/vitro.merged.vcf.gz') + glob.glob("*_CRC1620/platypus_nobin/vitro.merged.vcf.gz")
+    else:
+        print("wrong option, baby")
+
+# TODO for single clones a different matching strategy is needed
+rule all_sign_input:
+    input: input_signatures
+    output: "tsigninput_{kind}"
+    run:
+        import re
+        with open(output[0],'w') as out:
+            for vcf in input:
+                crc = re.search('(\w+)_(CRC\d{4})*', vcf)
+                sample_kind = crc.group(1)
+                sample = crc.group(2)
+                annotation = sample + '_' + sample_kind
+                out.write("{}\t{}".format(vcf, annotation))
+                out.write("\n")
+                  
+
+rule all_sign:
+    input: "tsigninput_{kind}"
+    output: heat="t_{kind}_heatmap_cosmic.png", cosine="t_{kind}_cosine_cosmic.png"
+    params: tool=BIN_DIR+"/mut_pat_signatures_fit", colors=COLORS_MODELS_2
+    shell:
+        """
+            {params.tool} {input} {output.heat} {output.cosine} '{params.colors}'
+        """

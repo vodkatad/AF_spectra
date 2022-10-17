@@ -117,6 +117,25 @@ def kind_MR(wildcards):
     else:
         return expand("{model}/platypus_nobin_indels/all.MR_ov", model=MODELS)
 
+def kind_MR_large(wildcards):
+    #res = kind_MR(wildcards) # get all and keep all for doubles, now, lazy and tired
+    res = ['CRC0282/platypus_nobin/all.MR_ov', 'CRC0327/platypus_nobin/all.MR_ov', 'CRC0441/platypus_nobin/all.MR_ov', 
+    'CRC1078_clones_all/platypus_nobin/all.MR_ov', 'CRC1307_clones_all/platypus_nobin/all.MR_ov', 'CRC1502_clones_all/platypus_nobin/all.MR_ov',
+    'CRC1599LM_clones_all/platypus_nobin/all.MR_ov', 'CRC1599PR/platypus_nobin/all.MR_ov',
+    'NT_CRC1430/platypus_nobin/all.MR_baseline_ov',  'NT_CRC1620/platypus_nobin/all.MR_baseline_ov']
+    #,
+    #'T_CRC1430/platypus_nobin/all.MR_baseline_ov', 'T_CRC1620/platypus_nobin/all.MR_baseline_ov']
+    return res
+
+rule overall_MR_edu_conte:
+    output: "MR_edu_conte_{kind}.pdf"
+    input: kind_MR_large
+    params: tool=BIN_DIR+"/plot_EDU_conte"
+    shell:
+        """
+            {params.tool} {output} {input}
+        """
+
 rule overall_MR_edu_vitro:
     output: "MR_edu_{kind}"
     input: kind_MR

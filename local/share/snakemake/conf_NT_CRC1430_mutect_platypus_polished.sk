@@ -83,3 +83,69 @@ wildcard_constraints:
 
 ## bbad llama
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/CRC0441/platypus_nobin$ mv CRC0441-01-MI-B_CRC0441-01-0.gain.vcf.gz  vivo.merged.vcf.gz
+
+
+## TODO refactor
+def fun_base_ov(wildcards):
+    print(wildcards.bsample)
+    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
+    regex = r"^" + re.escape(wildcards.bsample) #+ r"-"
+    idxs = get_indexes(regex, SAMPLES)
+    els = [SAMPLES[i] for i in idxs]
+    print("els:")
+    print(els)
+    t0 = None
+    if STARTTIME != "-0":
+        # here we need a new logic to find the right startime clone
+        #regex = r"^" + re.escape(wildcards.bsample) + STARTTIME
+        start = SAMPLES_ORIG_T1[wildcards.bsample] # exception gets swallowed for all since there is another rule to make it but for completeness we add a wildcard contstraint on bsample
+        print(start)
+        idxs = get_indexes(start, els)
+        print(idxs)
+        if len(idxs) != 1:
+            print("Something bad!")
+            return "plh"
+        else:
+            print("time start " + els[idxs[0]])
+            t0  = els.pop(idxs[0]) # we remove our starting clone
+            # then need to keep only the T2 ones
+            t2_r = re.compile(TIME) # do we need to get it more precise for 
+            els = list(filter(t2_r.search, els))
+    else:
+        els.remove(wildcards.bsample+STARTTIME)
+    if STARTTIME == "-0":
+        return [ x+'_'+wildcards.bsample+STARTTIME+'.MR_baseline_ov.tsv' for x in els]
+    else:
+        y = [ x+'_'+t0+'.MR_baseline_ov.tsv' for x in els]
+        print(y)
+        #return [ x+'_'+t0+'.MR_ov.tsv' for x in els_notopi] + [ x+'_'+t0+'.MR_ovtopi.tsv' for x in els_topi]
+        return y
+
+rule baseline_all_pairs_raw_ov:
+    input: fun_base_ov
+    output: "{bsample}.MR_baseline_ov"
+    shell: "head -n 1 {input[0]} > {output}; grep -h -v conte {input} >> {output}"
+
+rule baseline_plots:
+    input: "all.MR_baseline_ov"
+    output: "MR_base_estimates_vitro.pdf", "MR_base_estimates_vivo.pdf"
+    params: tool=BIN_DIR+"/MR_estimates_plots"
+    shell:
+        """
+         {params.tool} {input} {output}
+        """
+
+rule baseline_all_raw_ov:
+    input: expand("{hsample}.MR_baseline_ov", hsample=SAMPLES_HIGH)
+    output: "all.MR_baseline_ov"
+    shell: "head -n 1 {input[0]} > {output}; grep -h -v conte {input} >> {output}"
+
+BASELINE='../../baseline_CRC1430/platypus_nobin/all.MR_ov'
+rule raw_ov_baseline:
+    input: len="{t1sample}_{t0sample}.ovlength.txt", calls="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", gens=DATA+"/generations.txt", baseline=BASELINE
+    output: "{t1sample}_{t0sample}.MR_baseline_ov.tsv"
+    params: tool=BIN_DIR+"/gain_MA_removebaseline"
+    shell:
+        """
+            {params.tool} {input.len} {input.calls} {input.gens} {input.baseline} {output}
+        """

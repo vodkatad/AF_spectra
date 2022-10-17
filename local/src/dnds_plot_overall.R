@@ -26,9 +26,11 @@ ggplot(d, aes(x=model, y=estimate, color=model)) +  geom_point(stat="identity", 
   ctheme+scale_color_manual(values=cbPalette2)
 
 ggsave(outfile)
-if (! is.null(image) ) {
+if (!is.na(image) && image != "") {
   save.image(image)
 }
+
+q(save="no")
 
 #load('dndsvitro_overall.png.Rimage')
 d <- d[!grepl('2nd', d$model),]
