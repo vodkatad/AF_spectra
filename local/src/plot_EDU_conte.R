@@ -4,18 +4,18 @@ library(ggplot2)
 
 args <- commandArgs(trailingOnly = T)
 outfile <- args[1]
-colores <- args[2]
-
-
+colors <- args[2]
+save.image('p.Rdata')
+cbPalette <- unlist(strsplit(colors, ','))
 
 # per ogni input faccio media dopo aver rimosso gli invivo
 summarized <- data.frame(model=c(), EDU=c(), cellcounts=c())
-for (j in seq(2, length(args))) {
+for (j in seq(3, length(args))) {
   data <- read.table(args[j], sep="\t", header=TRUE, stringsAsFactors=FALSE)
   data <- data[!grepl('-M', data$end),]
-  summarized[j-1, 'model'] <- unique(sapply(data$end, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])}))
-  summarized[j-1, 'EDU'] <- mean(data$MR_EDU) / 0.000000001
-  summarized[j-1, 'cellcounts'] <- mean(data$MR_conte) / 0.000000001
+  summarized[j-2, 'model'] <- unique(sapply(data$end, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])}))
+  summarized[j-2, 'EDU'] <- mean(data$MR_EDU) / 0.000000001
+  summarized[j-2, 'cellcounts'] <- mean(data$MR_conte) / 0.000000001
 }
 print(summarized)
 

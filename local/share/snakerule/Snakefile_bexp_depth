@@ -130,10 +130,10 @@ def kind_MR_large(wildcards):
 rule overall_MR_edu_conte:
     output: "MR_edu_conte_{kind}.pdf"
     input: kind_MR_large
-    params: tool=BIN_DIR+"/plot_EDU_conte"
+    params: tool=BIN_DIR+"/plot_EDU_conte", colors=COLORS_MODELS_2+',#5efeef,#7c7c7c'
     shell:
         """
-            {params.tool} {output} {input}
+            {params.tool} {output} "{params.colors}" {input}
         """
 
 rule overall_MR_edu_vitro:
