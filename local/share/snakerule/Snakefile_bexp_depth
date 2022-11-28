@@ -127,6 +127,22 @@ def kind_MR_large(wildcards):
     #'T_CRC1430/platypus_nobin/all.MR_baseline_ov', 'T_CRC1620/platypus_nobin/all.MR_baseline_ov']
     return res
 
+rule new_players:
+    input: 'NT_CRC1430/platypus_nobin/all.MR_baseline_ov',  'NT_CRC1620/platypus_nobin/all.MR_baseline_ov'
+    output: 'MR_edu_new_SNV'
+    shell: "cat {input} | grep -v clone | cut -f 2,8> {output}"
+
+rule new_players_MR_edu:
+    input: old= "MR_edu_SNV", new="MR_edu_new_SNV", ggtheme=GGTHEME
+    output: "MR_edu_SNV_newplayers.png"
+    params: tool=BIN_DIR+"/MR_plot_newplayers", colors=MANY_COLORS_MODELS_VITRO_NEW
+    shell:
+        """ 
+            cat {input.old} {input.new} > {output}.tmp
+            {params.tool} {output}.tmp {output} '{params.colors}' {input.ggtheme}
+            rm {output}.tmp
+        """
+
 rule overall_MR_edu_conte:
     output: "MR_edu_conte_{kind}.pdf"
     input: kind_MR_large
