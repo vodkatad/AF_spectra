@@ -1,0 +1,47 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
+
+HROOT='/home/egrassi'
+DATA='/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC2566LM_clones/platypus'
+SDATA=DATA
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+
+PLOIDY=2
+
+KIND="SNV" # | indel
+MULTI="nomulti"
+
+VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
+CNLEN=BIN_DIR+"/cn_len_plot"
+CNLEN2=BIN_DIR+"/cn_len_plot2"
+
+#SAMPLES= {
+#    'CRC2608PR-L1-02': '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC2608PR_clones/mutect_paired/CRC2608PR-L1-02.pass.vcf.gz',
+#    'CRC2608PR-L4-04': '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC2608PR_clones/mutect_paired/CRC2608PR-L4-04.pass.vcf.gz',
+#    'CRC2608PR-L6-02': '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC2608PR_clones/mutect_paired/CRC2608PR-L6-02.pass.vcf.gz,
+#   'CRC2608LMO-L6': '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/treats_cleverers_bulk/mutect_paired/CRC2608PR-L6.pass.vcf.gz'
+#}
+#DATA=PRJ_ROOT+"/local/share/data/cleverers"
+
+#SAMPLES=["CRC2566LM-L5-02","CRC2566LM-L5-08","CRC2566LM-L7-07", "CRC2566LM-LG-03"]
+SAMPLES=["CRC2566LM-L5-08","CRC2566LM-L7-07", "CRC2566LM-LG-03"]
+
+
+
+wildcard_constraints:
+    sample="[a-zA-Z0-9]+-[0-9A-Z]+-[A-Z0-9]+"
+
+SAMPLE="wildcards"   

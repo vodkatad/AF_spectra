@@ -1,0 +1,134 @@
+include: "conf.sk"
+
+rule all_tsv:
+    input: expand("{sample}.tsv.gz", sample=SAMPLES)
+
+# why decoy are in callable interval list?? let's start with chr1-22 only, sequenza is on 1-22-X-Y only right now
+rule process_vcf:
+    input: vcf=DATA+"/platypus_filtered.vcf.gz", chrs=PRJ_ROOT+"/local/share/data/chrs"
+    output: "{sample}.tsv.gz"
+    params: tool=VCFTOBED, multi=MULTI, kind=KIND, sample= lambda wildcards: SAMPLE if SAMPLE!="wildcards" else wildcards.sample
+    log: "{sample}.multiallelic"
+    shell:
+        """
+            bcftools view -s {params.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
+            | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
+        """
+
+#rule pair_ov:
+#    input: t0="{t0sample}.calls.tsv.gz", t1="{t1sample}.calls.tsv.gz"#, ovbed="{t1sample}_{t0sample}.callable.bed.gz"
+#    output: t0="{t0sample}_{t1sample}.callsov.tsv.gz", t1="{t1sample}_{t0sample}.callsov.tsv.gz"
+#    shell:
+#        """
+#            bedtools intersect -a <(zcat {input.t0} | sed 1d | cut -f1 --complement) -b {input.ovbed} | bawk '{{print $4":"$5":"$6":"$7, $0}}' |  gzip > {output.t0}
+#            bedtools intersect -a <(zcat {input.t1} | sed 1d | cut -f1 --complement) -b {input.ovbed} | bawk '{{print $4":"$5":"$6":"$7, $0}}' |  gzip > {output.t1}
+#        """
+
+rule pair_ov_nobcnok:
+    input: t0="{t0sample}.tsv.gz", t1="{t1sample}.tsv.gz"
+    output: binom="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz"
+    shell:
+        """
+            zcat {input.t1} | cut -f 4 |  tr ":" "\\t" | bawk '{{print $1":"$2":"$3":"$4}}' > {input.t1}.tmp
+            zcat {input.t0} | cut -f 4 | tr ":" "\\t" | bawk '{{print $1":"$2":"$3":"$4}}' > {input.t0}.tmp
+            cat {input.t1}.tmp | filter_1col 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"common"}}' > {output.binom}.tmp
+            cat {input.t1}.tmp | filter_1col -v 1 <(cut -f 1 {input.t0}.tmp) | bawk '{{print $0,"c1"}}' >> {output.binom}.tmp
+            cat {input.t0}.tmp | filter_1col -v 1 <(cut -f 1 {input.t1}.tmp) | bawk '{{print $0,"c0"}}' >> {output.binom}.tmp
+            gzip -c {output.binom}.tmp > {output.binom}
+            rm {input.t0}.*tmp
+            rm {input.t1}.*tmp
+            rm {output.binom}.tmp
+        """
+
+rule all_pairs: 
+    input: expand("{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", t1sample=SAMPLES[0], t0sample=SAMPLES[1])
+
+# Since the structure to compute all ovcnok is done we rely on its output in a lazy way - risky cause we can have produced
+# by hand other ovcnokdeltas for checks...from CLONES get all matching up to CRCxyz-0X then remove -0
+# Works only for first level, probably will need to look at initial functions and call them since they should always work.
+# def get_toplevel_children_ovnock(wildcards):
+#     res = FUN_OV(wildcards)
+#     res = [x.replace('.MR_ov.tsv','.ovcnokdelta.tsv.gz') for x in res] # paciug here to remove in vivo/in vitro or split
+#     return [x.replace('.MR_ovtopi.tsv','.ovcnokdelta.tsv.gz') for x in res]
+
+# # FIXME remove header
+# rule signature_mat_toplevel:
+#     input: ovcnok = get_toplevel_children_ovnock
+#     output: ss="{bsample}.signin.tsv", sp="{bsample}.signin.vcf"
+#     shell:
+#         """
+#             rm -f {output.ss}.tmp
+#             for f in {input.ovcnok}; do
+#                 s=`echo $f | tr "_" "\\t" | cut -f 1 | tr "-" "\\t" | bawk '{{print $1"-"$2}}'`;
+#                 zcat $f | bawk -v S=$s '$16=="gain" {{print S,$2,$3,$3,$7,$8}}' | sed 's/\\tchr/\\t/1' >> {output.ss}.tmp;
+#             done
+#             cat {output.ss}.tmp | sort | uniq > {output.ss}
+#             echo -e "#CHROM\\tPOS\\tFILTER\\tREF\\tALT" > {output.sp}
+#             cat {output.ss} | bawk '{{print $2,$3,"PASS",$5,$6}}' >> {output.sp}
+#         """
+
+# rule all_sign_vcf_toplevel:
+#     input: expand("{hsample}.mutpatin.vcf", hsample=SAMPLES_HIGH)
+
+# def get_toplevel_children_vcf(wildcards):
+#     res = FUN_OV(wildcards)
+#     res = [x.replace('.MR_ov.tsv','.gain.vcf.gz') for x in res] # paciug here to remove in vivo/in vitro or split
+#     print(res)
+#     return [x.replace('.MR_ovtopi.tsv','.gain.vcf.gz') for x in res]
+
+# # needs fixing for single samples:
+# #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/CRC0441/platypus_nobin$ zcat CRC0441-10-1-C_CRC0441-10-0.gain.vcf.gz > CRC0441-10.mutpatin.vcf
+# rule signature_vcf_toplevel:
+#     input: get_toplevel_children_vcf
+#     output: vcf="{bsample}.mutpatin.vcf"
+#     shell:
+#         """
+#             bcftools merge -m none --missing-to-ref {input} > {output.vcf}
+#         """
+
+rule upsetR:
+    input: expand("{sample}.tsv.gz", sample=SAMPLES)
+    output: "upsetr.svg"
+    params: tool=BIN_DIR+"/upsetr"
+    shell:
+        """
+            for f in {input}; do \\
+                zcat $f | cut -f 4 | tr ":" "\\t" | bawk '{{print $1"_"$2"_"$3}}' | bawk -v N=$f '{{print $1,N}}' | sed 's/\.tsv\.gz//1'; \\
+            done > {output}.tmp
+            {params.tool} {output}.tmp {output}
+            rm {output}.tmp
+        """
+
+
+rule class_vcf:
+    input: ovcnok="CRC2573LM-L8-04_CRC2573LM-L8-12.ovcnokdelta.tsv.gz", vcf=DATA+"/platypus_filtered.vcf.gz"
+    output: "paired.{class}.vcf.gz"
+    shell:
+        """
+            zcat {input.vcf} | grep "^##" > {output}.tmp
+            zcat {input.vcf} | grep -v "^##" | grep "^#" | cut -f 11 --complement >> {output}.tmp
+            zcat {input.ovcnok} | tr ":" "\\t" | bawk '$5=="{wildcards.class}" {{print $1,$2,$1":"$2"_"$3"/"$4,$3,$4,".","PASS","CONTQ=42","GT:AF","0/1:0.42"}}' >> {output}.tmp
+            bgzip -c {output}.tmp > {output}
+            rm {output}.tmp
+        """ 
+
+rule signature:
+    input: "paired.{class}.vcf.gz"
+    output: "{class}.cosmic.fit.tsv"
+    params: tool=BIN_DIR+'/mut_pat_signatures_fit_one'
+    shell: 
+        """
+            mkdir -p signatures
+            {params.tool} {input} {output} {wildcards.class}
+        """
+
+rule all_signatures:
+    input: expand('{wclass}.cosmic.fit.tsv', wclass=['c0', 'c1', 'common'])
+    output: 'all_cosmic_fit.tsv'
+    run:    
+        import pandas as pd
+        res = pd.read_csv(input[0], sep="\t")
+        for i in range(1,len(input)):
+            resi = pd.read_csv(input[i], sep="\t")
+            res = res.merge(resi, left_index=True, right_index=True)
+        res.to_csv(output[0], sep="\t")

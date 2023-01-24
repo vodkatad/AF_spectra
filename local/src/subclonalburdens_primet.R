@@ -1,5 +1,5 @@
 library(ggplot2)
-data <- read.table('/mnt/trcanmed/snaketree/prj/snakegatk/dataset/Pri_Mets_godot/mutect_paired/clonal_mut_burden.tsv', sep= "\t", header=T)
+data <- read.table('/mnt/trcanmed/snaketree/prj/snakegatk/dataset/Pri_Mets_godot/mutect_paired/subcl_mut_burden.tsv', sep= "\t", header=T)
 
 rownames(data) <- data$X
 data$lmodel <- substr(rownames(data), 0, 10)
@@ -36,7 +36,16 @@ ggplot(data=d3, aes(x=reorder(smodel,o), y=burden, fill=mp))+
   xlab('Patient')+ylab('Subclonal mutational burden (/ Mbps)')+
   scale_fill_manual(values=c('#adacac', '#595959'))+
   guides(fill=guide_legend(title=""))
+ggsave('/home/egrassi/primet_subcl.pdf')
 
+
+ggplot(data=d3, aes(x=mp, y=burden, fill=mp))+
+  geom_violin()+theme_bw()+
+  theme(text=element_text(size = 18), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  xlab('Original Tumor')+ylab('Subclonal mutational burden (/ Mbps)')+
+  scale_fill_manual(values=c('#adacac', '#595959'))+
+  guides(fill=guide_legend(title=""))
+ggsave('/home/egrassi/primet_subcl_vio.pdf')
 
 met <- data[data$mp == "LMX",]
 pri <- data[data$mp == "PRX",]
@@ -45,7 +54,18 @@ if (!all(met$smodel==pri$smodel)) {
 }
 t.test(met$burden, pri$burden, alternative="greater", paired=TRUE)
 wilcox.test(met$burden, pri$burden, alternative="greater", paired=TRUE)
-ggsave('/home/egrassi/primet_subcl.pdf')
+
+
+
+
+ggplot(data=d3, aes(x=mp, y=burden, fill=mp))+
+  geom_violin()+theme_bw()+
+  geom_point()+geom_line(aes(group=smodel))+
+  theme(text=element_text(size = 18), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  xlab('Original Tumor')+ylab('Subclonal mutational burden (/ Mbps)')+
+  scale_fill_manual(values=c('#adacac', '#595959'))+
+  guides(fill=guide_legend(title=""))
+ggsave('/home/egrassi/primet_subcl_bp.pdf')
 
 ### slopes
 
