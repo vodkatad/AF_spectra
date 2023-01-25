@@ -100,11 +100,24 @@ grepps <- unlist(sapply(w, function(x) { our$model[grepl(x, our$model,)] }))
 our <- our[our$model %in% grepps,]
 our$time <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][3]; return(y[1])})
 
-                #1078_2  1078_7      1078_9   1307_02   1307_08   1307_09    1599LM1,1599lm3,  1599lm7, 1599pr1,1599pr10
-cbPalette <- c('#155d00','#239203','#2fc603','#77a003','#95c805','#bcfc08','#ffff99', '#ffff00','#ffff66','#ff9900','#ffad33')
+                #1078_2  1078_7      1078_9   1307_02   1307_08   1307_09   1599LM1,1599lm3,  1599lm7 1599pr1,1599pr10, 
+cbPalette <- c('#155d00','#239203','#2fc603','#77a003','#95c805','#bcfc08','#ff9900','#ffad33','#ff9900','#ffff00','#ffff66')
+#cbPalette <- c('#ff9900','#ffad33','#ffff99', '#ffff00','#ffff66','#155d00','#239203','#2fc603','#77a003','#95c805','#bcfc08')
 
 
-pdata$model <- factor(pdata$model, levels=c('CRC1078','CRC1307','CRC1599PR','CRC1599LM'))
+
+new_order <- c('CRC1599PR','CRC1599LM','CRC1078','CRC1307')
+#our$model <- factor(our$model, levels=c('CRC1599PR','CRC1599LM','CRC1078','CRC1307'))
+#our <- our[order(our$model),]
+
+ordered <- our$model_clone[order(our$model_clone)]
+palette_df <- data.frame(palette=cbPalette, model_clone=unique(ordered), stringsAsFactors=FALSE)# unique keeps the order, gasp
+#our <- merge(our, palette_df, by="model_clone")
+our$model <- factor(our$model, levels=new_order)
+pdata$model <- factor(pdata$model, levels=new_order)
+palette_values <- c(palette_df$palette)
+names(palette_values) <- palette_df$model_clone
+
 
 ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_text(size=15), axis.title.x = element_text(size=20),
                            axis.title.y=element_text(size=20), axis.text.y=element_text(size=15), 
@@ -115,10 +128,10 @@ ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_tex
 ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
   geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('Subclonal muts')+ylab('mut/Mbp')+xlab('')+
   geom_point(data=our, aes(x=model, y=subclonal, color=model_clone, shape=time), stat="identity", size=4, position=position_dodge(0.2))+
-  ctheme+scale_color_manual(values=cbPalette)+scale_shape_manual(values=c(18,20))+geom_signif(data=our, aes(x=model, y=subclonal),
+  ctheme+scale_color_manual(values=palette_values)+scale_shape_manual(values=c(18,20))+geom_signif(data=our, aes(x=model, y=subclonal),
                                                                                               comparisons = list(c("CRC1078", "CRC1307"), c('CRC1599PR','CRC1599LM')),
                                                                                               map_signif_level = TRUE
                                                                                               #test="t.test"
   )
 
-ggsave('subclonal_manual_size.png', width=7.574, height=7.574, units='in')
+ggsave('subclonal_manual_size_correctcolors.pdf', width=7.574, height=7.574, units='in')

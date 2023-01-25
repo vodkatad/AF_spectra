@@ -9,7 +9,6 @@ load_polish <- function(filename) {
     first
 }
 
-save.image('wtf.Rdata')
 sample_mut <- data.frame(sample=c(), mut=c())
 for (i in seq(1, length(inputs))) {
     this_d <- load_polish(inputs[[i]])
@@ -20,7 +19,7 @@ tabledf <- as.data.frame(table(sample_mut$mut))
 colnames(tabledf) <- c('mut', 'n')
 
 res <- tabledf[tabledf$n == length(inputs),, drop=FALSE] 
-res$nn <- rep('common', length(res))
+res$nn <- rep('common', nrow(res))
 res$n <- NULL
 
 # efficiency and good code at their peaks

@@ -90,7 +90,7 @@ save.image(paste0(outfile, '.Rdata'))
 q('no')
 ### Reorderered svg for Andrea with theme
 basename <- substr(outfile, 1, nchar(outfile)-4)
-reordered <- paste0(basename, "_reordered.png")
+reordered <- paste0(basename, "_reordered.svg")
 new_order <- c('CRC0282', 'CRC0327', 'CRC0441', 'CRC1502', 'CRC1599PR', 'CRC1599LM', 'CRC1078', 'CRC1307')
 if (n == length(cbPalette)) {
   # We need to keep colors in track, we do this adding it to our before setting factors.
@@ -111,10 +111,10 @@ if (n == length(cbPalette)) {
     geom_point(data=our, aes(x=model, y=MR, color=model_clone, shape=time), stat="identity", shape=18, size=4, position=position_dodge(0.2))+
     unmute_theme+ctheme+scale_shape_manual(values=c(18,20))
 }
-ggsave(reordered)
+ggsave(reordered, height=5.25, width=5.25, units="in")
 
 
-library(ggsignif)
+glibrary(ggsignif)
 
 
 ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
@@ -124,4 +124,13 @@ ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size
   geom_signif(data=our, mapping=aes(x=model, y=MR), 
               comparisons = list(c("CRC0282", "CRC1307"),c('CRC1307','CRC1599PR')), map_signif_level=TRUE)
 
-ggsave('MR_edu_SNV_ggsignif.pdf')
+ggsave('MR_edu_SNV_ggsignif.svg', height=5.25, width=5.25, units="in")
+
+ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
+  geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('MR EDU')+ylab('MR, mut/(division*bp) *10^-9')+xlab('')+
+  geom_point(data=our, aes(x=model, y=MR, color=model_clone, shape=time), stat="identity", size=4, position=position_dodge(0.2))+
+  ctheme+scale_color_manual(values=cbPalette)+scale_shape_manual(values=c(18,20))+
+  geom_signif(data=our, mapping=aes(x=model, y=MR), 
+              comparisons = list(c("CRC1599PR", "CRC1599LM"),c('CRC1078','CRC1307')), map_signif_level=TRUE)
+
+ggsave('MR_edu_SNV_ggsignif2.svg', height=5.25, width=5.25, units="in")

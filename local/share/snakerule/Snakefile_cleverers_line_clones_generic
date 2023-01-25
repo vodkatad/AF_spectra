@@ -107,7 +107,6 @@ rule signature:
     params: tool=BIN_DIR+'/mut_pat_signatures_fit_one'
     shell: 
         """
-            mkdir -p signatures
             {params.tool} {input} {output} {wildcards.class}
         """
 

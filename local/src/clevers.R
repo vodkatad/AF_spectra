@@ -1,12 +1,17 @@
+
+conflictRules("DelayedArray", exclude = "seed")
+library(NMF)
+library(SummarizedExperiment)
+
 library(MutationalPatterns)
 ref_genome <- 'BSgenome.Hsapiens.UCSC.hg19'
 ref_transcriptome <- "TxDb.Hsapiens.UCSC.hg19.knownGene"
 library(ref_genome, character.only = TRUE)
 library(ref_transcriptome, character.only = TRUE)
-library(NMF)
 library(gridExtra)
 library(ggplot2)
 library(reshape)
+
 
 files <- c("/home/egrassi/P1.merged.vcf.gz","/home/egrassi/P2.merged.vcf.gz","/home/egrassi/P3.merged.vcf.gz")
 sample_names <- c('cl1',"cl2","cl3")
@@ -152,11 +157,11 @@ ggplot(cos_sim_ori_rec, aes(y=cos_sim, x=sample)) +
 
 ## private clones
 
-f <- c("P1.T1.1.vcf.gz","P1.T1.4.vcf.gz","P1.T2.4.vcf.gz","P1.T3.2.vcf.gz","P1.T3.3.vcf.gz","P1.T4.3.vcf.gz","P1.T4.4.vcf.gz","P2.T1.1.vcf.gz","P2.T1.3.vcf.gz","P2.T2.5.vcf.gz","P2.T4.2.vcf.gz","P2.T4.3.vcf.gz","P2.T5.1.vcf.gz","P2.T5.4.vcf.gz","P2.T6.2.vcf.gz","P2.T6.6.vcf.gz","P3.T1.1.vcf.gz","P3.T1.4.vcf.gz","P3.T2.1.vcf.gz","P3.T2.2.vcf.gz","P3.T3.2.vcf.gz","P3.T3.4.vcf.gz","P3.T4.1.vcf.gz","P3.T4.2.vcf.gz")
+f <- c("P1.T1.1.vcf.gz","P1.T1.4.vcf.gz","P1.T2.4.vcf.gz","P1.T3.2.vcf.gz","P1.T3.3.vcf.gz","P1.T4.3.vcf.gz","P1.T4.4.vcf.gz","P2.T1.1.vcf.gz","P2.T1.3.vcf.gz","P2.T2.5.vcf.gz","P2.T4.2.vcf.gz","P2.T4.3.vcf.gz","P2.T5.1.vcf.gz","P2.T5.4.vcf.gz","P2.T6.2.vcf.gz","P2.T6.6.vcf.gz")#,"P3.T1.1.vcf.gz","P3.T1.4.vcf.gz","P3.T2.1.vcf.gz","P3.T2.2.vcf.gz","P3.T3.2.vcf.gz","P3.T3.4.vcf.gz","P3.T4.1.vcf.gz","P3.T4.2.vcf.gz")
 path <- '/scratch/trcanmed/AF_spectra/local/share/data/clevers/private_clones/'
 
 files <- paste0(path, f)
-sample_names <- c("P1.T1.1","P1.T1.4","P1.T2.4","P1.T3.2","P1.T3.3","P1.T4.3","P1.T4.4","P2.T1.1","P2.T1.3","P2.T2.5","P2.T4.2","P2.T4.3","P2.T5.1","P2.T5.4","P2.T6.2","P2.T6.6","P3.T1.1","P3.T1.4","P3.T2.1","P3.T2.2","P3.T3.2","P3.T3.4","P3.T4.1","P3.T4.2")
+sample_names <- c("P1.T1.1","P1.T1.4","P1.T2.4","P1.T3.2","P1.T3.3","P1.T4.3","P1.T4.4","P2.T1.1","P2.T1.3","P2.T2.5","P2.T4.2","P2.T4.3","P2.T5.1","P2.T5.4","P2.T6.2","P2.T6.6")#,"P3.T1.1","P3.T1.4","P3.T2.1","P3.T2.2","P3.T3.2","P3.T3.4","P3.T4.1","P3.T4.2")
 
 
 vcfs <- read_vcfs_as_granges(files, sample_names, ref_genome)
@@ -176,6 +181,8 @@ plot(estimate)
 nsign <- 2 
 nmf_res <- extract_signatures(mut_mat, rank = nsign, nrun = nrun)
 
+
+# dio cane https://support.bioconductor.org/p/110844/
 
 names_sign <- paste0("Clevers_singleclones_", seq(1, nsign))
 colnames(nmf_res$signatures) <- names_sign
