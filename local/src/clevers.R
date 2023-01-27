@@ -305,4 +305,31 @@ colnames(data) <- unlist(lapply(strsplit(colnames(data),'.', fixed=TRUE), functi
 
 #names(cbPalette2) <- levels(annot_rows$model)
 #annot_colors <- list(sample=col, model=cbPalette2)
+
+pheatmap(t(data), fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE,  annotation_col=annot_rows,   color=brewer.pal(9, 'PuBu'), width=6, height=8.3)
+
+
 pheatmap(t(data), fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE,  annotation_col=annot_rows,   color=brewer.pal(9, 'PuBu'), width=6, height=8.3, filename="clevers.pdf")
+
+
+pc <- 0.0001
+ratiodf <- data.frame(row.names=rownames(data), ratio = log10((data[,'8']+pc)/(data[,'1']+pc)))
+
+ratiodf$mut <- ifelse(unlist(lapply(strsplit(rownames(ratiodf),'_', fixed=T), function(x){ x[1] }))!="common", 'Private', 'Shared')
+ratiodf$model <- unlist(lapply(strsplit(rownames(ratiodf),'_', fixed=T), function(x){ x[2] }))
+ratiodf$id <- rownames(ratiodf)
+
+
+
+ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_text(size=15, angle=90, vjust=0.5, hjust=1), 
+                           axis.title.y=element_text(size=20), axis.text.y=element_text(size=15), 
+                           plot.title = element_text(face = "bold", size = 20, hjust = 0.5), legend.position='none'
+)
+
+ggplot(data=ratiodf, aes(x=reorder(id, as.numeric(as.factor(model))), y=ratio, fill=mut))+geom_col(position="dodge")+
+  theme_bw()+ctheme+
+  xlab('Sample')+ylab("Log10 ratio") + ggtitle("Signature 8 / Signature 1")+
+  scale_fill_manual(values=c('darkgoldenrod', 'darkgreen'))
+
+ggsave('clevers_ratio.pdf', width=8, height=5, units="in")
+
