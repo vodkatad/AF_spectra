@@ -743,7 +743,7 @@ rule correlation_snvn_bdeathrate:
 ### quick and dirty correlation between n. of subclonal and MR
 def kind_subclonal(wildcards):
     if wildcards.kind == "SNV":
-        return expand("{model}/mutect_nobin/n_subclonal_norm.txt", model=MODELS_NOREP_TRUE)
+        return expand("{model}/mutect_nobin/n_subclonal_norm.txt", model=MODELS_NOREP)
     else:
         return expand("{model}/mutect_nobin_indels/n_subclonal_norm.txt", model=MODELS_NOREP_TRUE)
 

@@ -116,6 +116,32 @@ data4 <- data3[!grepl('2nd', rownames(data3)),]
 pheatmap(data4, fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE, annotation_row=annot_rows, annotation_colors = annot_colors,  color=brewer.pal(9, 'PuBu'), filename="signnozoom_cosmic_order2.pdf")
 pheatmap(t(data4), fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE, annotation_col=annot_rows, annotation_colors = annot_colors,  color=brewer.pal(9, 'PuBu'), file="t_signnozoom_cosmic_order2.pdf", width=11.7, height=8.3)
 
+## separate bulk, vitro, vivo
+#bulk
+da <- annot_rows[annot_rows$sample=="bulk",]
+da$sample <- NULL
+d <- data4[rownames(data4) %in% rownames(da),]
+rownames(d) <- gsub('_bulk', '', rownames(d))
+rownames(da) <- gsub('_bulk', '', rownames(da))
+pheatmap(t(d), fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE, annotation_col=da, annotation_colors = annot_colors,  color=brewer.pal(9, 'PuBu'), width=10, height=8.3,file="sign_bulk.pdf")
+
+da <- annot_rows[annot_rows$sample=="vitroMA",]
+da$sample <- NULL
+d <- data4[rownames(data4) %in% rownames(da),]
+rownames(d) <- gsub('_bulk', '', rownames(d))
+rownames(da) <- gsub('_bulk', '', rownames(da))
+pheatmap(t(d), fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE, annotation_col=da, annotation_colors = annot_colors,  color=brewer.pal(9, 'PuBu'), width=10, height=8.3,file="sign_vitro.pdf")
+
+
+
+da <- annot_rows[annot_rows$sample=="vivoMA",]
+da$sample <- NULL
+d <- data4[rownames(data4) %in% rownames(da),]
+rownames(d) <- gsub('_bulk', '', rownames(d))
+rownames(da) <- gsub('_bulk', '', rownames(da))
+pheatmap(t(d), fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE, annotation_col=da, annotation_colors = annot_colors,  color=brewer.pal(9, 'PuBu'), width=10, height=8.3,file="sign_vivo.pdf")
+
+
 
 
 data4 <- data4[,colnames(data4) %in% c(1,6,8,18)]
@@ -138,6 +164,8 @@ ggplot(data=ddd, aes(y=SBS8_SBS1, x=model))+geom_col(position="dodge")+theme_bw(
 
 colors <- "#cc3300,#f607b9,#9900ff,#155d00,#77a003,#0829fc,#ff9900,#ffff00"
 cbPalette <- unlist(strsplit(colors, ','))
+
+pheatmap(data, fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE,  annotation_row=annot_rows, annotation_colors = annot_colors,  color=brewer.pal(9, 'PuBu'), filename=outputheat)
 
 
 ggplot(data=ddd, aes(y=SBS8_SBS1, x=model, fill=model))+geom_col(position="dodge")+theme_bw()+scale_fill_manual(values=cbPalette)+scale_y_log10()

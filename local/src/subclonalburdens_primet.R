@@ -76,7 +76,7 @@ ggsave('/home/egrassi/primet_subcl_bp.pdf')
 
 ### slope
 
-data <- read.table('/mnt/trcanmed/snaketree/prj/snakegatk/dataset/Pri_Mets_godot/bestbet_0.1_0.2.tsv', sep="\t", header=TRUE)
+data <- read.table('/mnt/trcanmed/snaketree/prj/snakegatk/dataset/Pri_Mets_godot/bestbet_0.12_0.24.tsv', sep="\t", header=TRUE)
 
 data$lmodel <- substr(rownames(data), 0, 10)
 data$smodel <- substr(rownames(data), 0, 7)
@@ -125,6 +125,21 @@ ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size
   geom_signif(data=fit_r2, mapping=aes(x=mp, y=intercept), 
               comparisons = list(c("LMX", "PRX")), test="t.test", test.args=list(alternative = "greater", paired=TRUE))
 
+pd <- position_dodge(width=0.2)
+  
+#https://stackoverflow.com/questions/39533456/how-to-jitter-both-geom-line-and-geom-point-by-the-same-magnitude
+ggplot(data=fit_r2, aes(x=mp, y=intercept, color=mp, group=smodel)) +
+  geom_jitter(data=fit_r2, aes(x=mp, y=intercept, color=mp), size=4, shape=18, position=pd)+
+  geom_line(data=fit_r2, aes(group=smodel), position=pd, color="lightgrey", linetype = "dashed")+
+  geom_point(data=pdata, aes(x=model, y=mean, group=NULL, color=NULL), stat="identity", shape=1, size=5) +
+  geom_segment(data=pdata, aes(y=lower, yend=upper, x=model, xend=model, group=NULL, color=NULL), size=0.6) + ctheme+
+  scale_color_manual(values=c('#adacac', '#595959'))+
+  ggtitle('Estimated MR')+ylab('μ/β')+xlab('')+
+  geom_signif(data=fit_r2, mapping=aes(x=mp, y=intercept), 
+              comparisons = list(c("LMX", "PRX")), test="t.test", test.args=list(alternative = "greater", paired=TRUE))
+
+
+
 met <- fit_r2[fit_r2$mp == "LMX",]
 pri <- fit_r2[fit_r2$mp == "PRX",]
 if (!all(met$smodel==pri$smodel)) {
@@ -132,7 +147,7 @@ if (!all(met$smodel==pri$smodel)) {
 }
 ti <- t.test(met$intercept, pri$intercept, alternative="greater", paired=TRUE)
 
-ggsave('slopes_filtered.svg', height=5.25, width=5.25, units="in")
+ggsave('slopes_filtered_lines.svg', height=5.25, width=5.25, units="in")
 
 #######33 signatures tries
 data <- read.table('/mnt/trcanmed/snaketree/prj/snakegatk/dataset/Pri_Mets_godot/signatures/all_cosmic_fit.tsv', sep="\t", header=T, row.names=1)

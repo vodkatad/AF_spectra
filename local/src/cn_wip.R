@@ -79,7 +79,7 @@ if (n == length(cbPalette)) {
 ggsave('cn_lengths.pdf', height=5.25, width=5.25, units="in")
 
 ##
-our2 <- read.table('/scratch/trcanmed/AF_spectra/dataset/vitro_gained_SNV', sep="\t", header=F, stringsAsFactors = F)
+our2 <- read.table('/scratch/trcanmed/AF_spectra/dataset/vitro_gained_norm_SNV', sep="\t", header=F, stringsAsFactors = F)
 colnames(our2) <- c('sample','estimate')
 
 our2$model <- sapply(our2$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
@@ -129,7 +129,7 @@ ggplot(m, aes_string(x=name_x, y=name_y)) +  geom_point(aes(color=model), size=3
 ggplot(m, aes_string(x=name_x, y=name_y)) +  geom_point(aes(color=model), size=3) + geom_smooth(method='lm')+
   theme_bw()+labs(caption=paste0('pearson=', round(ci$estimate,2), ' pval=',round(ci$p.value, 4))) + scale_color_manual(values=cbPalette)+theme(text = element_text(size = 15), legend.position="None")
 
-ggsave('cn_cor.pdf', height=5.25, width=5.25, units="in")
+ggsave('cn_cor_norm.pdf', height=5.25, width=5.25, units="in")
 
 ### single model correlations
 mour <- merge(our, our2, by="sample")
@@ -226,6 +226,72 @@ names_tree <- list(
     'CRC0441-10-1-C'= 'CRC0441-10-0' 
 ) 
   
+distances <- sapply(names(names_tree), function(x) { di[rownames(di)==x, colnames(di)==names_tree[[x]]]} )
+
+tree_di <- as.data.frame(distances)
+
+mm <- merge(tree_di, mour, by.x="row.names", by.y="sample")
+
+cor.test(mm$distances, mm$dist_CNV)
+
+##
+
+
+setwd('/scratch/trcanmed/AF_spectra/dataset/CRC0327/tree')
+load('tree_bulk_vitro.Rdata')
+library(ape)
+di <- cophenetic(NexusTree)
+
+names <-rowNames(di)
+
+# TODO automagicate (from conf?)
+names_tree <- list(
+  'CRC0327-02-1-A'=  'CRC0327-02-0' ,
+  'CRC0327-02-1-E'= 'CRC0327-02-0',
+  'CRC0327-02-1-I'= 'CRC0327-02-0',
+  'CRC0327-04-1-A'= 'CRC0327-04-0',
+  'CRC0327-04-1-B'= 'CRC0327-04-0',
+  'CRC0327-04-1-C'= 'CRC0327-04-0',
+  'CRC0327-08-1-A'= 'CRC0327-08-0',
+  'CRC0327-08-1-C'= 'CRC0327-08-0',
+  'CRC0327-08-1-F'= 'CRC0327-08-0'
+) 
+
+distances <- sapply(names(names_tree), function(x) { di[rownames(di)==x, colnames(di)==names_tree[[x]]]} )
+
+tree_di <- as.data.frame(distances)
+
+mm <- merge(tree_di, mour, by.x="row.names", by.y="sample")
+
+cor.test(mm$distances, mm$dist_CNV)
+
+## MSI
+
+setwd('/scratch/trcanmed/AF_spectra/dataset/CRC0282_clones_2/tree')
+load('tree_bulk_vitro.Rdata')
+library(ape)
+di <- cophenetic(NexusTree)
+
+names <-rowNames(di)
+
+names_tree <- list(
+  'CRC0282-01-1-A'= 'CRC0282-01-0' ,
+  'CRC0282-01-1-B'= 'CRC0282-01-0',
+  'CRC0282-01-1-E'= 'CRC0282-01-0',
+  'CRC0282-01-1-C'= 'CRC0282-01-0',
+  'CRC0282-01-1-D'= 'CRC0282-01-0',
+  'CRC0282-01-1-F'= 'CRC0282-01-0',
+  'CRC0282-05-1-A'= 'CRC0282-05-0',
+  'CRC0282-05-1-C'= 'CRC0282-05-0',
+  'CRC0282-05-1-D'= 'CRC0282-05-0',
+  'CRC0282-07-1-A'= 'CRC0282-07-0',
+  'CRC0282-07-1-B'= 'CRC0282-07-0',
+  'CRC0282-07-1-E'= 'CRC0282-07-0',
+  'CRC0282-07-1-C'= 'CRC0282-07-0',
+  'CRC0282-07-1-D'= 'CRC0282-07-0',
+  'CRC0282-07-1-F'= 'CRC0282-07-0'
+) 
+
 distances <- sapply(names(names_tree), function(x) { di[rownames(di)==x, colnames(di)==names_tree[[x]]]} )
 
 tree_di <- as.data.frame(distances)

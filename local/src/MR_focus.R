@@ -6,11 +6,10 @@ pdata <- pdata[pdata$model %in% w,]
 grepps <- unlist(sapply(w, function(x) { our$model[grepl(x, our$model,)] }))
 our <- our[our$model %in% grepps,]
 
-cbPalette <- c('#155d00','#239203','#2fc603','#77a003','#95c805','#95c805','#bcfc08','#bcfc08','#ffff00','#ffff66','#ff9900','#ffad33')
+                  #1078_2  1078_7     1078_9, 1078_7A   1307_02   1307_08   1307_09  1307_028d 1307_029e 1599LM1,1599lm3,  1599lm7 1599pr1,1599pr10, 
+cbPalette <- c('#155d00','#239203','#2fc603','#239203', '#77a003','#95c805','#bcfc08','#95c805','#bcfc08','#ff9900','#ffad33','#ff9900','#ffff00','#ffff66')
+pdata$model <- factor(pdata$model, levels=c('CRC1599PR','CRC1599LM', 'CRC1078','CRC1307'))
 
-pdata$model <- factor(pdata$model, levels=c('CRC1078','CRC1307','CRC1599PR','CRC1599LM'))
-
-ggsave('MR_focus_time_size.png', width=7.574, height=7.574, units='in')
 
 library(ggsignif)
 
@@ -28,7 +27,7 @@ ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size
     #test="t.test"
   )
 
-ggsave('MR_focus_time_size.png', width=7.574, height=7.574, units='in')
+ggsave('MR_focus_time_size.pdf', width=7.574, height=7.574, units='in')
 
 
 wilcox.test(our[grepl('CRC1078',our$sample),'MR_edu'], our[grepl('CRC1307',our$sample),'MR_edu'])
@@ -135,3 +134,21 @@ ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size
   )
 
 ggsave('subclonal_manual_size_correctcolors.pdf', width=7.574, height=7.574, units='in')
+
+
+our2 <- read.table('/scratch/trcanmed/AF_spectra/dataset/subclonal_SNV', sep="\t", header=F, stringsAsFactors = F)
+colnames(our2) <- c('sample','subclonal')
+our2$model <- sapply(our2$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
+our2$clone <- sapply(our2$sample, function(x) {y<-strsplit(x, '-')[[1]][2]; return(y[1])})
+our2$clone2 <- sapply(our2$sample, function(x) {y<-strsplit(x, '-')[[1]][4]; return(y[1])})
+our2$model_clone <- paste0(our2$model, "_", our2$clone)
+our2 <- our2[our2$model !="CRC1307LMO", ]#should not be here!
+our2 <- our2[!grepl('-M', our2$sample, fixed=T),]
+w <- c('CRC1078','CRC1307','CRC1599LM','CRC1599PR')
+our2 <- our2[our2$model %in% grepps,]
+
+
+> setdiff(our2$model_clone, our$model_clone)
+[1] "CRC1599LM_07"
+> setdiff(our$model_clone, our2$model_clone)
+[1] "CRC1078_07A"   "CRC1307_08D"   "CRC1307_09E"   "CRC1599LM_01C"
