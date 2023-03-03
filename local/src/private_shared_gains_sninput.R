@@ -17,6 +17,16 @@ for (i in seq(7, length(args))) {
   files <- c(files, args[i])
 }
 
+if (length(files)==1) {
+  file.create(output_plot) 
+  file.create(output_muts) # fixme generate files with 0 or .. ?
+  file.create(output_n)
+  private_story <- data.frame(matrix(NA, nrow=1, ncol=5))
+  colnames(private_story) <- c('clone_ref', 'clone_other', 'private_gen', 'private_mut_ref', 'common_mut')
+  write.table(private_story, file=output_mrca, quote=F, sep="\t")
+  q(save="no", status=0)
+}
+
 load_gain <- function(filename) {
   d <- read.table(filename, sep="\t", header=FALSE, stringsAsFactors = FALSE)
   d <- d[d$V16=="gain",]
