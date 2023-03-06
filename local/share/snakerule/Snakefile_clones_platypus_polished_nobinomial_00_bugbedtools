@@ -469,7 +469,7 @@ rule dnds:
     params:  tool=BIN_DIR+"/dnds"
     shell:
         """
-            tr ":" "\\t" < {input.mut} | bawk '{{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
+            tr ":" "\\t" < {input.mut} |  tr "@" "\\t" | bawk '{{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
             {params.tool} {output[0]}.tmp {output} {input.rda} &> {log}
             rm {output[0]}.tmp
         """
@@ -483,7 +483,7 @@ rule dndsvitro:
     params:  tool=BIN_DIR+"/dnds"
     shell:
         """
-            tr ":" "\\t" < {input.mut} | bawk '{{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
+            tr ":" "\\t" < {input.mut} |  tr "@" "\\t" | bawk '{{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
             {params.tool} {output[0]}.tmp {output} {input.rda} &> {log}
             rm {output[0]}.tmp
         """

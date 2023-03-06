@@ -340,7 +340,7 @@ rule class_vcf:
         """
             zcat {input.vcf} | grep "^##" > {output}.tmp
             zcat {input.vcf} | grep -v "^##" | grep "^#" | cut -f 11 --complement >> {output}.tmp
-            zcat {input.ovcnok} | bawk '$16=="{wildcards.class}" {{print $5,$6,$5":"$6"_"$7"/"$8,$7,$8,".","PASS","CONTQ=42","GT:AF","0/1:"$11}}' >> {output}.tmp
+            zcat {input.ovcnok} | sed 's/@0\/1//g' | sed 's/@1\/0//g' | sed 's/@1\/1//g' | sed 's/@0\/0//g' | bawk '$16=="{wildcards.class}" {{print $5,$6,$5":"$6"_"$7"/"$8,$7,$8,".","PASS","CONTQ=42","GT:AF","0/1:"$11}}' >> {output}.tmp
             bgzip -c {output}.tmp > {output}
             rm {output}.tmp
         """
