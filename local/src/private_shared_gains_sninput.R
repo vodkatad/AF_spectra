@@ -30,7 +30,11 @@ if (length(files)==1) {
 load_gain <- function(filename) {
   d <- read.table(filename, sep="\t", header=FALSE, stringsAsFactors = FALSE)
   d <- d[d$V16=="gain",]
-  return(d[,1])
+  muts <- d$V1
+  if (any(grepl('@', muts))) {
+    muts <- sapply(strsplit( muts, '@'), function(x) {x[[1]]})
+  }
+  return(muts)
 }
 
 gains <- sapply(files, load_gain)
@@ -46,6 +50,10 @@ col4 <- rev(tail(brewer.pal(n = 9, name = "Greens"), n=3))
 #col5 <- brewer.pal(n = 6, name = "Set3")
 colo <- c(col1, col4, col2)
 
+#> table(counts$Freq)
+
+#   1    2    3 
+#5274 2091  393 
 
 save.image('pippo.Rdata')
 merged <- lapply(gains, function(x) { m <- counts[counts$ugains %in% x,]; return(m)})

@@ -9,7 +9,7 @@ colors <- args[3]
 yname <- args[4]
 
 our <- read.table(infile, sep="\t", header=FALSE, stringsAsFactors=FALSE)
-colnames(our) <- c('sample','', '', 'MR_edu')
+colnames(our) <- c('sample', 'MR_edu')
 our <- our[!is.na(our$MR_edu),]
 #our$MR <- our$MR_edu / 0.000000001
 our$model <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})

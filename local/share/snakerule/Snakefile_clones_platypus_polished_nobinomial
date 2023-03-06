@@ -553,7 +553,7 @@ def find_all_MR_hsample(wildcards):
     return '-'.join(wildcards.hsample.split('-')[0:2]) + ".MR_ov"
 
 rule shared_clone:
-    input: find_all_MR_hsample, find_clone_ovcnok
+    input: find_all_MR_hsample, find_clone_ovcnoka
     output: plot="{hsample}.shared.png", n="{hsample}.shared.tsv", muts="{hsample}.sharedmuts.tsv", mrca="{hsample}.mrca.tsv"
     params: tool=BIN_DIR+"/private_shared_gains_sninput"
     shell: 
