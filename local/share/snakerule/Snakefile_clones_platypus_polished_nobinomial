@@ -538,7 +538,6 @@ rule dndsvitro:
 
 
 #### shared
-# right now selection of files is done inside R with list.files, this is DANGEROUS, FIXME
 def wanted_one_pair(ancestor_clone):
     res = []
     for cl in CLONES:
@@ -563,7 +562,13 @@ rule shared_clone:
         """
 
 rule all_shared:
-    input: expand("{sample}.shared.png", sample=SAMPLES_ZERO)
+    input: expand("{sample}.mrca.tsv", sample=SAMPLES_ZERO)
+    output: "all_mrca.tsv"
+    shell: 
+        """
+            head -n1 {input[0]} > {output}
+            cat {input} | grep -v clone_ref >> {output}
+        """
 
 rule shared_clone_all:
     output: "all.shared.png"

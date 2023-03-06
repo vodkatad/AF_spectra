@@ -16,7 +16,7 @@ ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
 CNVKIT="cnvkit"
 
 HROOT='/home/egrassi'
-DATA=PRJ_ROOT+"/local/share/data/CRC0327"
+DATA=PRJ_ROOT+"/local/share/data/CRC0327_fixed"
 SDATA=DATA
 BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"

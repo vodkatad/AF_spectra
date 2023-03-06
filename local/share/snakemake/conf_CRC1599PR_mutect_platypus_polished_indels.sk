@@ -17,16 +17,17 @@ BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
 
 ###################################################################
-KIND="indel" # | indel
+KIND="SNV" # | indel
 MULTI="nomulti"
 ### sample variable portion #############################################
 DATA=PRJ_ROOT+"/local/share/data/CRC1599PR"
 SDATA=DATA
-SAMPLES=['CRC1599PR-01-0', 'CRC1599PR-10-0', 'CRC1599PR-01-1-L', 'CRC1599PR-01-1-F', 'CRC1599PR-01-1-E', 'CRC1599PR-10-1-F', 'CRC1599PR-10-1-E']
+SAMPLES=['CRC1599PRO-0-B', 'CRC1599PR-01-0', 'CRC1599PR-10-0', 'CRC1599PR-01-1-L', 'CRC1599PR-01-1-F', 'CRC1599PR-01-1-E', 'CRC1599PR-10-1-F', 'CRC1599PR-10-1-E', 'CRC1599PR-10-1-G']
 # TODO FIXME
 CLONE2=['CRC1599PR-01-0', 'CRC1599PR-01-1-L', 'CRC1599PR-01-1-F', 'CRC1599PR-01-1-E']
-CLONE8=['CRC1599PR-10-0','CRC1599PR-10-1-F', 'CRC1599PR-10-1-E']
+CLONE8=['CRC1599PR-10-0','CRC1599PR-10-1-F', 'CRC1599PR-10-1-E', 'CRC1599PR-10-1-G']
 CLONE9=[""]
+CLONES=[CLONE2, CLONE8]
 SAMPLES_HIGH=["CRC1599PR-01","CRC1599PR-10"] # list comprehens TODO
 SAMPLES_ZERO=[x+'-0' for x in SAMPLES_HIGH]
 VCF_DIR=PRJ_ROOT+"/dataset/CRC1599PR/platypus_nobin"
@@ -69,3 +70,6 @@ wildcard_constraints:
 
 ## bbad llama
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/CRC0441/platypus_nobin$ mv CRC0441-01-MI-B_CRC0441-01-0.gain.vcf.gz  vivo.merged.vcf.gz
+BULKNAME="CRC1599PRO-0-B"
+SHIPMENT="third_shipment_bulk"
+NORMAL="CRC1599NLH0000000000D03000"

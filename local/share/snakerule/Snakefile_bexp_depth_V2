@@ -1,54 +1,22 @@
 include: "conf.sk"
 
-#### first data for Orso on bexp on 30x
-DEPTHS = ['10x','20x','30x','40x','50x']
-
-rule all_merge:
-    input: ['merged_' + x for x in DEPTHS]
-    output: "all_bexp_different_coverage.tsv"
-    shell: 
-        """
-            head -n 1 {input[0]} > {output}
-            cat {input} | grep -v -w called_in_gen >> {output}
-        """
-
-rule merge:
-    input: bonf='CRC1307_mutect_nobin_{depth}/bexp_n_gen.bonf.tsv', bh='CRC1307_mutect_nobin_{depth}/bexp_n_gen.bh.tsv', len='CRC1307_mutect_nobin_{depth}/all.lengthgen.txt'
-    output: "merged_{depth}"
-    run:
-        import pandas as pd
-        bonf = pd.read_csv(input.bonf, sep="\t", index_col=0)
-        bh = pd.read_csv(input.bh, sep="\t", index_col=0)
-        covered = pd.read_csv(input.len, sep="\t", index_col=0)
-        bonf['correction'] = 'bonf'
-        bh['correction'] = 'bh'
-        covered['coverage'] = wildcards.depth
-        bexp = pd.concat([bonf, bh])
-        tot = bexp.join(covered, how='inner')
-        tot.to_csv(output[0], sep="\t", header=True)
-
-
-#### signatures TODO definitive
-
-
 def input_signatures(wildcards):
     import glob
     if wildcards.kind == "vitro":
-        return glob.glob("CRC*/platypus_nobin/vitro.merged.vcf.gz")
+        return glob.glob("CRC*/platypus_nobin_00/vitro.merged.vcf.gz")
     elif wildcards.kind == "vivo":
-        return glob.glob("CRC*/platypus_nobin/vivo.merged.vcf.gz") 
+        return glob.glob("CRC*/platypus_nobin_00/vivo.merged.vcf.gz") 
     elif wildcards.kind == "vitroloss":
-        return glob.glob("CRC*/platypus_nobin/vitro.mergedloss.vcf.gz")
+        return glob.glob("CRC*/platypus_nobin_00/vitro.mergedloss.vcf.gz")
     elif wildcards.kind == "vivoloss":
-        return glob.glob("CRC*/platypus_nobin/vivo.mergedloss.vcf.gz")
+        return glob.glob("CRC*/platypus_nobin_00/vivo.mergedloss.vcf.gz")
     elif wildcards.kind == "vitrovivobulk":
-        return glob.glob("CRC*/platypus_nobin/vitro.merged.vcf.gz") + glob.glob("CRC*/platypus_nobin/vivo.merged.vcf.gz") + BULK_VCF
+        return glob.glob("CRC*/platypus_nobin_00/vitro.merged.vcf.gz") + glob.glob("CRC*/platypus_nobin_00/vivo.merged.vcf.gz") + BULK_VCF
     elif wildcards.kind == "allstartingvcf":
         print("TODO!")
     else:
         print("wrong option, baby")
 
-# TODO for single clones a different matching strategy is needed
 rule all_sign_input:
     input: input_signatures
     output: "signinput_{kind}_{merged}"
@@ -76,8 +44,6 @@ rule all_sign_input:
                 out.write("\n")
                   
 
-# Todo also print the signature matrixes?
-# TODO also print 'selected' heatmap
 rule all_sign:
     input: "signinput_vitrovivobulk_merged"
     output: heat="vitrovivobulk_heatmap_{merged}_cosmic.png", cosine="vitrovivobulk_cosine_{merged}_cosmic.png"
@@ -95,12 +61,6 @@ rule shared_clone:
     params: tool=BIN_DIR+"/private_shared_gains"
 
 
-#egrassi@godot:/mnt/trcanmed/snaketree/prj/AF_spectra/dataset$ grep wall CRC*/platypus_nobin/dnds.tsv  CRC1307_platypus_nobin/dnds.tsv  | tr "/" "\t" | tr "_" "\t" | cut -f 1,6,7,8
-#CRC0282 0.937575744678809       0.852361772254831       1.03130889444349
-#CRC0327 1.39346842110341        0.670110088592115       2.89766453851189
-#CRC1078 0.647971238408106       0.410085699806697       1.02385117550319
-#CRC1502 0.763560613708499       0.456284024078526       1.27776731167463
-#CRC1307 1.08332207165535        0.744123741132339       1.57713918541261
 
 #### Overall inputs and summarizing plots
 # 0- dnds
@@ -113,46 +73,11 @@ rule shared_clone:
 # $4==1 keeps only first 6 months in vitro samples
 def kind_MR(wildcards):
     if wildcards.kind == "SNV":
-        return expand("{model}/platypus_nobin/all.MR_ov", model=MODELS)
+        return expand("{model}/platypus_nobin_00/all.MR_ov", model=MODELS)
     elif wildcards.kind == "indel":
-        return expand("{model}/platypus_nobin_indels/all.MR_ov", model=MODELS)
+        return expand("{model}/platypus_nobin_indels_00/all.MR_ov", model=MODELS)
     else:
-        return expand("{model}/platypus_nobin/all_mrca.tsv", model=MODELS_NOREP_TRUE)
-
-def kind_MR_large(wildcards):
-    #res = kind_MR(wildcards) # get all and keep all for doubles, now, lazy and tired
-    res = ['CRC0282/platypus_nobin/all.MR_ov', 'CRC0327/platypus_nobin/all.MR_ov', 'CRC0441/platypus_nobin/all.MR_ov', 
-    'CRC1078_clones_all/platypus_nobin/all.MR_ov', 'CRC1307_clones_all/platypus_nobin/all.MR_ov', 'CRC1502_clones_all/platypus_nobin/all.MR_ov',
-    'CRC1599LM_clones_all/platypus_nobin/all.MR_ov', 'CRC1599PR/platypus_nobin/all.MR_ov',
-    'NT_CRC1430/platypus_nobin/all.MR_baseline_ov',  'NT_CRC1620/platypus_nobin/all.MR_baseline_ov']
-    #,
-    #'T_CRC1430/platypus_nobin/all.MR_baseline_ov', 'T_CRC1620/platypus_nobin/all.MR_baseline_ov']
-    return res
-
-rule new_players:
-    input: 'NT_CRC1430/platypus_nobin/all.MR_baseline_ov',  'NT_CRC1620/platypus_nobin/all.MR_baseline_ov'
-    output: 'MR_edu_new_SNV'
-    shell: "cat {input} | grep -v clone | cut -f 2,8> {output}"
-
-rule new_players_MR_edu:
-    input: old= "MR_edu_SNV", new="MR_edu_new_SNV", ggtheme=GGTHEME
-    output: "MR_edu_SNV_newplayers.png"
-    params: tool=BIN_DIR+"/MR_plot_newplayers", colors=MANY_COLORS_MODELS_VITRO_NEW
-    shell:
-        """ 
-            cat {input.old} {input.new} > {output}.tmp
-            {params.tool} {output}.tmp {output} '{params.colors}' {input.ggtheme}
-            rm {output}.tmp
-        """
-
-rule overall_MR_edu_conte:
-    output: "MR_edu_conte_{kind}.pdf"
-    input: kind_MR_large
-    params: tool=BIN_DIR+"/plot_EDU_conte", colors=COLORS_MODELS_2+',#5efeef,#7c7c7c'
-    shell:
-        """
-            {params.tool} {output} "{params.colors}" {input}
-        """
+        return expand("{model}/platypus_nobin_00/all_mrca.tsv", model=MODELS_NOREP_TRUE)
 
 rule overall_MR_edu_vitro:
     output: "MR_edu_{kind}"
@@ -294,9 +219,11 @@ rule correlation_vitrovivo_nn:
         """
             {params.tool} {params.toremove} '{params.palette}' {input} {output} mean gained_{wildcards.kind}_vitro gained_{wildcards.kind}_vivo no
         """
+
 ### all dnds
+# TODO FIXME NAMES
 rule all_dnds:
-    input: expand("{model}/platypus_nobin/all_gained_named.tsv", model=MODELS)
+    input: expand("{model}/platypus_nobin_00/all_gained_named.tsv", model=MODELS)
     output: "dnds.tsv", "dnds.Rdata"
     log: "dnds.log"
     params:  tool=BIN_DIR+"/dnds", rda=DNDSCV_RDA
@@ -308,7 +235,7 @@ rule all_dnds:
         """
  
 rule all_dnds_vitroMSS:
-    input: expand("{model}/platypus_nobin/all_gained_named.tsv", model=MODELS[1:])
+    input: expand("{model}/platypus_nobin_00/all_gained_named.tsv", model=MODELS[1:])
     output: "dnds_vitroMSS.tsv", "dnds_vitroMSS.Rdata"
     log: "dnds_vitroMSS.log"
     params:  tool=BIN_DIR+"/dnds", rda=DNDSCV_RDA
@@ -320,7 +247,7 @@ rule all_dnds_vitroMSS:
         """
 
 rule dnds_vitro:
-    input: expand("{model}/platypus_nobin/all_gained_named.tsv", model=MODELS)
+    input: expand("{model}/platypus_nobin_00/all_gained_named.tsv", model=MODELS)
     output: "dnds_vitro.tsv", "dnds_vitro.Rdata"
     log: "dnds_vitro.log"
     params:  tool=BIN_DIR+"/dnds", rda=DNDSCV_RDA
@@ -332,7 +259,7 @@ rule dnds_vitro:
         """
 
 rule dnds_overall:
-    input: expand("{model}/platypus_nobin/dnds.tsv", model=MODELS)
+    input: expand("{model}/platypus_nobin_00/dnds.tsv", model=MODELS)
     output: "dnds_overall.tsv"
     shell:
         """
@@ -343,7 +270,7 @@ rule dnds_overall:
         """
 
 rule dnds_voverall:
-    input: expand("{model}/platypus_nobin/dndsvitro.tsv", model=MODELS)
+    input: expand("{model}/platypus_nobin_00/dndsvitro.tsv", model=MODELS)
     output: "dndsvitro_overall.tsv"
     shell:
         """
@@ -352,6 +279,7 @@ rule dnds_voverall:
             bawk -v name=$n '$1=="wall"{{print name,$3,$4,$5}}' $f; \\
           done | sed 's/clones_all/2nd/i'> {output}
         """
+
 ## plots
 # single plots are from all_gained_named.tsv with also in vivo so we will keep it here
 rule dnds_global:
@@ -364,7 +292,7 @@ rule dnds_global:
         """
 
 rule dnds_plot_MSIMSS:
-    input: msi="CRC0282/platypus_nobin/dndsvitro.tsv", mss="dnds_vitroMSS.tsv"
+    input: msi="CRC0282/platypus_nobin_00/dndsvitro.tsv", mss="dnds_vitroMSS.tsv"
     output: "dnds_MSIMSS.png"
     params: tool=BIN_DIR+"/dnds_plot_all", colors='#cc3300,#6666ff'
     shell:
@@ -373,7 +301,7 @@ rule dnds_plot_MSIMSS:
         """
 
 rule dnds_onebyone: # TODO
-    input: expand("{model}/platypus_nobin/dnds.tsv", model=MODELS)
+    input: expand("{model}/platypus_nobin_00/dnds.tsv", model=MODELS)
     output: "dnds_onebyone.png"
     params: tool=BIN_DIR+"/dnds_plot_onebyone"
     shell:
@@ -476,9 +404,9 @@ rule bed:
 # Do we keep or remove in vivo? Only in vitro!
 def all_nonsyn(wildcards):
     if wildcards.kind == "SNV":
-        return expand("{model}/platypus_nobin/nonsyn.binary.tsv.gz", model=MODELS_NOREP)
+        return expand("{model}/platypus_nobin_00/nonsyn.binary.tsv.gz", model=MODELS_NOREP)
     else:
-        return expand("{model}/platypus_nobin_indels/nonsyn.binary.tsv.gz", model=MODELS_NOREP)
+        return expand("{model}/platypus_nobin_indels_00/nonsyn.binary.tsv.gz", model=MODELS_NOREP)
 
 rule merge_binary_nonsyn:
     output: res="{kind}_nonsyn.binary.tsv.gz"
