@@ -8,10 +8,10 @@
 #snakemake -j 12 all_mrca.tsv
 #snakemake vitro.merged.vcf.gz vivo.merged.vcf.gz
 
-cd $1/platypus_nobin_indels_00/
+#cd $1/platypus_nobin_indels_00/
 #cd ../platypus_nobin_indels_00/
 #rm *tsv *gz *ov *png *log *multiallelic
-snakemake -j 12 all.MR_ov
+#snakemake -j 12 all.MR_ov
 
 #cd ../mutect_nobin/
 #snakemake all_R
@@ -21,3 +21,7 @@ snakemake -j 12 all.MR_ov
 
 #cd ../MutationalPatterns/
 #snakemake Homo_sapiens.GRCh37.75_autosomal_exon_merged_sorted.enrich.tsv
+
+
+cd $1/tree/
+snakemake tree_bulk_vitro.pdf nobs_tree_bulk_vitro.svg

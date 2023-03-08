@@ -40,7 +40,7 @@ variant   = extract.gt(vcf, element = "NV", as.numeric = TRUE)
 # Calculate the vaf
 vafs = variant / depth
 # Use threshold for vaf
-vafs = vafs >= 1
+vafs = vafs > 0
 # Convert to binary table
 vafs_bin = apply(vafs, 2, as.integer)
 # Rownames

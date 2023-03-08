@@ -411,7 +411,7 @@ rule annovar:
         """
 
 
-# bug this finds all :()
+# bug this finds all :(
 rule all_pairs_annovar:
     input: find_pairs_annovar
     output: "{bsample}.annovar.gz"
