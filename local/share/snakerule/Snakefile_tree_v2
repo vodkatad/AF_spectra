@@ -1,0 +1,20 @@
+include: "../platypus_nobin_00/Snakefile"
+include: "./conf.sk"
+
+MODEL=SAMPLES[1].split('-')[0]
+
+rule phangorn_bulk:
+    input:  bulk=DATA+'/../' + SHIPMENT + '/'+BULKNAME+'.pass.vcf.gz', vcf=DATA+"/platypus_filtered.vcf.gz"
+    output: nexus="tree_bulk_{vv}.nexus", pdf="tree_bulk_{vv}.pdf", rimage="tree_bulk_{vv}.Rdata"
+    params: model=MODEL, normal=NORMAL, chrs=','.join(['chr'+str(x) for x in list(range(1,23)) + ['X','Y']])
+    script: SRC_DIR+"/phangorn2_nothr.R"
+
+
+# TODO add tmp to rimage output of phangon_bulk rule once we are satisfied with the plot
+rule phangorn_plot:
+    input: rimage="tree_bulk_{vv}.Rdata"
+    output: pdf="nobs_tree_bulk_{vv}.svg"
+    script: SRC_DIR+"/phangorn_plots.R"
+
+
+

@@ -97,11 +97,6 @@ save.image('sign.Rdata')
 
 q()
 load('sign.Rdata')
-annot_rows <- annot_rows[order(annot_rows$sample, annot_rows$model),]
-data2 <- data[match(rownames(annot_rows), rownames(data)), ]
-
-pheatmap(data2, fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE, cluster_rows=FALSE, annotation_row=annot_rows, annotation_colors = annot_colors,  color=brewer.pal(9, 'PuBu'), filename="sign_cosmic_order1.pdf")
-
 
 annot_rows <- annot_rows[order(annot_rows$model, annot_rows$sample),]
 data3 <- data[match(rownames(annot_rows), rownames(data)), ]
