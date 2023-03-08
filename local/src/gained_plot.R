@@ -53,7 +53,10 @@ if (!is.na(vivi) && vivi == "vivo") {
 }
 
 n <- length(levels(as.factor(our$model_clone)))
-cbPalette <- unlist(strsplit(colors, ','))
+
+palette_df <- readRDS(colors)
+pal <- palette_df$palette
+names(pal) <- palette_df$model_clone
 
 
 ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_text(size=15, angle=90, vjust=0.5, hjust=1), 
@@ -61,12 +64,15 @@ ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_tex
                 plot.title = element_text(face = "bold", size = 20, hjust = 0.5), legend.position='none'
 )
 
+
+
+
 our$time <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][3]; return(y[1])})
-if (n <= length(cbPalette)) {
+if (n <= length(pal)) {
 ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
   geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('Gained muts')+ylab(ylab)+xlab('')+
   geom_point(data=our, aes(x=model, y=gained, color=model_clone, shape=time), stat="identity", size=4, position=position_dodge(0.2))+
-  ctheme+scale_color_manual(values=cbPalette)+scale_shape_manual(values=scale_shape)
+  ctheme+scale_color_manual(values=pal)+scale_shape_manual(values=scale_shape)
 } else {
 ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
   geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('Gained muts')+ylab(ylab)+xlab('')+

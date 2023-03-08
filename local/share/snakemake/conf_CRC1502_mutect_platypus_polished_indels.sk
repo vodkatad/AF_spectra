@@ -21,7 +21,7 @@ SRC_DIR=PRJ_ROOT+"/local/src"
 
 PLOIDY=2
 
-KIND="SNV" # | indel
+KIND="indel" # | indel
 MULTI="nomulti"
 
 VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"

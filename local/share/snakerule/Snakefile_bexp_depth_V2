@@ -108,10 +108,10 @@ rule overall_mrca:
 rule mrca_plot:
     input: "shared_mrca"
     output: "mrca.png"
-    params: tool=BIN_DIR+"/generic_clones_plot", colors=MANY_COLORS_MODELS_VITRO
+    params: tool=BIN_DIR+"/generic_clones_plot", colors=MANY_COLORS_PALETTE
     shell:
         """
-            {params.tool} {input} {output} '{params.colors}' birth
+            {params.tool} {input} {output} {params.colors} MRCA_gen
         """
 
 
@@ -319,13 +319,13 @@ rule dnds_onebyone: # TODO
             {params.tool} {input} {output}
         """
 
-rule MR_edu_plot:
+rule MRedu_plot:
     input: data="MR_edu_{kind}", ggtheme=GGTHEME
     output: "MR_edu_{kind}.png"
-    params: tool=BIN_DIR+"/MR_plot", colors=MANY_COLORS_MODELS_VITRO
+    params: tool=BIN_DIR+"/MR_plot", colors=MANY_COLORS_PALETTE
     shell:
         """
-            {params.tool} {input.data} {output} '{params.colors}' {input.ggtheme}
+            {params.tool} {input.data} {output} {params.colors} {input.ggtheme}
         """
 
 wildcard_constraints:
@@ -334,48 +334,48 @@ wildcard_constraints:
 rule gained_plot:
     input: "{vivi}_gained_norm_{kind}"
     output: "{vivi}_gained_norm_{kind}.png"
-    params: tool=BIN_DIR+"/gained_plot", colors=lambda w: MANY_COLORS_MODELS_VITRO if w.vivi == "vitro" else MANY_COLORS_MODELS_VIVO
+    params: tool=BIN_DIR+"/gained_plot", colors=MANY_COLORS_PALETTE
     shell:
         """
-            {params.tool} {input} {output} '{params.colors}' {wildcards.vivi} norm
+            {params.tool} {input} {output} {params.colors} {wildcards.vivi} norm
         """
 
 rule gained_nn_plot:
     input: "{vivi}_gained_{kind}"
     output: "{vivi}_gained_{kind}.png"
-    params: tool=BIN_DIR+"/gained_plot", colors=lambda w: MANY_COLORS_MODELS_VITRO if w.vivi == "vitro" else MANY_COLORS_MODELS_VIVO
+    params: tool=BIN_DIR+"/gained_plot", colors=MANY_COLORS_PALETTE
     shell:
         """
-            {params.tool} {input} {output} '{params.colors}' {wildcards.vivi} nonorm
+            {params.tool} {input} {output} {params.colors} {wildcards.vivi} nonorm
         """
         
 ### quick and dirty remove 282
 rule MSS_MR_edu_plot:
     input: "MR_edu_{kind}"
     output: "MSSMR_edu_{kind}.png"
-    params: tool=BIN_DIR+"/MR_plot", colors=MSS_MANY_COLORS_MODELS_VITRO
+    params: tool=BIN_DIR+"/MR_plot", colors=MANY_COLORS_PALETTE
     shell:
         """
             grep -v CRC0282 {input} > {output}.tmp
-            {params.tool} {output}.tmp {output} '{params.colors}'
+            {params.tool} {output}.tmp {output} {params.colors}
             rm {output}.tmp
         """
 
 rule MSS_gained_plot:
     input: "{vivi}_gained_norm_{kind}"
     output: "{vivi}_gainedMSS_norm_{kind}.png"
-    params: tool=BIN_DIR+"/gained_plot", colors=lambda w: MSS_MANY_COLORS_MODELS_VITRO if w.vivi == "vitro" else MSS_MANY_COLORS_MODELS_VIVO
+    params: tool=BIN_DIR+"/gained_plot", colors=MANY_COLORS_PALETTE #lambda w: MSS_MANY_COLORS_MODELS_VITRO if w.vivi == "vitro" else MSS_MANY_COLORS_MODELS_VIVO
     shell:
         """
             grep -v CRC0282 {input} > {output}.tmp
-            {params.tool} {output}.tmp {output} '{params.colors}' {wildcards.vivi} norm
+            {params.tool} {output}.tmp {output} {params.colors} {wildcards.vivi} norm
             rm {output}.tmp
         """
 
 rule MSS_gainednn_plot:
     input: "{vivi}_gained_{kind}"
     output: "{vivi}_gainedMSS_{kind}.png"
-    params: tool=BIN_DIR+"/gained_plot", colors=lambda w: MSS_MANY_COLORS_MODELS_VITRO if w.vivi == "vitro" else MSS_MANY_COLORS_MODELS_VIVO
+    params: tool=BIN_DIR+"/gained_plot", colors=MANY_COLORS_PALETTE#lambda w: MSS_MANY_COLORS_MODELS_VITRO if w.vivi == "vitro" else MSS_MANY_COLORS_MODELS_VIVO
     shell:
         """
             grep -v CRC0282 {input} > {output}.tmp
@@ -672,20 +672,20 @@ rule correlation_snv_bdeathrate:
 rule birth_plot:
     input: B
     output: "birth_clones.png"
-    params: tool=BIN_DIR+"/generic_clones_plot", colors=MANY_COLORS_MODELS_VITRO
+    params: tool=BIN_DIR+"/generic_clones_plot", colors=MANY_COLORS_PALETTE
     shell:
         """
-            {params.tool} {input} {output} '{params.colors}' birth
+            {params.tool} {input} {output} {params.colors} birth
         """
 
 
 rule birth_plot_TEMP:
     input: PRJ_ROOT+'/local/share/data/bdTEMP.txt'
     output: "birth_TEMP.png"
-    params: tool=BIN_DIR+"/generic_clones_plot", colors=MANY_COLORS_MODELS_VITRO
+    params: tool=BIN_DIR+"/generic_clones_plot", colors=MANY_COLORS_PALETTE
     shell:
         """
-            {params.tool} {input} {output} '{params.colors}' birth
+            {params.tool} {input} {output} {params.colors} birth
         """
 
 rule correlation_snvn_birthrate:

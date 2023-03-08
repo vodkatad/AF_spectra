@@ -44,6 +44,7 @@ COLORS_MODELS_2="#cc3300,#f607b9,#9900ff,#155d00,#77a003,#0829fc,#ff9900,#ffff00
 MANY_COLORS_MODELS_VITRO="#cc3300,#ff4000,#ff6633,#f607b9,#fb49ce,#f998e0,#9900ff,#ad33ff,#c266ff,#155d00,#239203,#2fc603,#239203,#77a003,#95c805,#95c805,#bcfc08,#bcfc08,#0829fc,#0829fc,#4a62fb,#4a62fb,#95a3fd,#95a3fd,#003399,#003399,#ff9900,#ffad33,#ff9900,#ffff00,#ffff66"
 MANY_COLORS_MODELS_VITRO_NEW="#cc3300,#ff4000,#ff6633,#f607b9,#fb49ce,#f998e0,#9900ff,#ad33ff,#c266ff,#155d00,#239203,#2fc603,#239203,#77a003,#95c805,#95c805,#bcfc08,#bcfc08,#5efeef,#01e4ce,#b3fff7,#0829fc,#0829fc,#4a62fb,#4a62fb,#95a3fd,#95a3fd,#003399,#003399,#ff9900,#ffad33,#ff9900,#ffff00,#ffff66,#7c7c7c,#666666,#cccccc"
 MANY_COLORS_MODELS_VIVO=COLORS_MODELS
+MANY_COLORS_PALETTE=PRJ_ROOT+"/local/share/data/palette.rds"
 
 BED=PRJ_ROOT+"/local/share/data/mutational_patterns/data"
 

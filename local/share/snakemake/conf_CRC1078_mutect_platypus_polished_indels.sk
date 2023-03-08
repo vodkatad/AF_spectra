@@ -17,7 +17,7 @@ HROOT='/home/egrassi'
 BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
 
-KIND="SNV" # | indel
+KIND="indel" # | indel
 MULTI="nomulti"
 
 VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"

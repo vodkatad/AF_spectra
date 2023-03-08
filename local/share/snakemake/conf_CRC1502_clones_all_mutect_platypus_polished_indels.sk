@@ -17,7 +17,7 @@ BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
 
 ###################################################################
-KIND="SNV" # | indel
+KIND="indel" # | indel
 MULTI="nomulti"
 ### sample variable portion #############################################
 DATA=PRJ_ROOT+"/local/share/data/CRC1502_clones_all"

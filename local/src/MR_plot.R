@@ -40,31 +40,14 @@ geom_errorbar(aes(ymin=lower, ymax=upper), width=.2, size=1, position=position_d
 
 our$model_clone <- paste0(our$model, "_", our$clone)
 
-#cbPalette <- c("#ff5733", "#ff7433","#ff8d33", 
-#              #"#9d01fc","#a91efe", "#be52ff",
-#              "#f607b9","#fb49ce","#f998e0",
-#              "#155d00","#239203","#2fc603",
-#              "#77a003","#95c805","#bcfc08",
-#              "#0829fc","#4a62fb","#95a3fd"
-#              )
 n <- length(levels(as.factor(our$model_clone)))
-cbPalette <- unlist(strsplit(colors, ','))
-#if (n == length(cbPalette)) {
-# ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
-# geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('MR EDU')+ylab('MR, mut/(division*bp) *10^-9')+
-#   geom_point(data=our, aes(x=model, y=MR, color=model_clone), stat="identity", shape=18, size=4, position=position_dodge(0.2))+
-#   theme(axis.text.x = element_text(size=15, angle=90, vjust=0.5, hjust=1), legend.position="none", axis.title.y=element_text(size=15))+scale_color_manual(values=cbPalette)
-# } else {
-# ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
-# geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('MR EDU')+ylab('MR, mut/(division*bp) *10^-9')+
-#   geom_point(data=our, aes(x=model, y=MR, color=model_clone), stat="identity", shape=18, size=4, position=position_dodge(0.2))+
-#   theme(axis.text.x = element_text(size=15, angle=90, vjust=0.5, hjust=1), legend.position="none", axis.title.y=element_text(size=15))
-# }
-
-# ggsave(outfile)
 
 # shape clones
 our$time <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][3]; return(y[1])})
+
+palette_df <- readRDS(colors)
+pal <- palette_df$palette
+names(pal) <- palette_df$model_clone
 
 
 ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_text(size=15, angle=90, vjust=0.5, hjust=1), 
@@ -72,11 +55,13 @@ ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_tex
                 plot.title = element_text(face = "bold", size = 20, hjust = 0.5), legend.position='none'
 )
 
-if (n == length(cbPalette)) {
+
+
+if (n <= length(pal)) {
   ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
     geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('MR EDU')+ylab('MR, mut/(division*bp) *10^-9')+xlab('')+
     geom_point(data=our, aes(x=model, y=MR, color=model_clone, shape=time), stat="identity", size=4, position=position_dodge(0.2))+
-    ctheme+scale_color_manual(values=cbPalette)+scale_shape_manual(values=c(18,20))
+    ctheme+scale_color_manual(values=pal)+scale_shape_manual(values=c(18,20))
 } else {
   ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
     geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('MR EDU')+ylab('MR, mut/(division*bp) *10^-9')+xlab('')+
@@ -89,6 +74,7 @@ save.image(paste0(outfile, '.Rdata'))
 
 q('no')
 ### Reorderered svg for Andrea with theme
+cbPalette <- pal
 basename <- substr(outfile, 1, nchar(outfile)-4)
 reordered <- paste0(basename, "_reordered.svg")
 new_order <- c('CRC0282', 'CRC0327', 'CRC0441', 'CRC1502', 'CRC1599PR', 'CRC1599LM', 'CRC1078', 'CRC1307')

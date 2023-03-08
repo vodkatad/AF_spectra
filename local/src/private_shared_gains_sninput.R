@@ -31,9 +31,9 @@ load_gain <- function(filename) {
   d <- read.table(filename, sep="\t", header=FALSE, stringsAsFactors = FALSE)
   d <- d[d$V16=="gain",]
   muts <- d$V1
-  if (any(grepl('@', muts))) {
-    muts <- sapply(strsplit( muts, '@'), function(x) {x[[1]]})
-  }
+  #if (any(grepl('@', muts))) {
+  #  muts <- sapply(strsplit( muts, '@'), function(x) {x[[1]]})
+  #}
   return(muts)
 }
 
