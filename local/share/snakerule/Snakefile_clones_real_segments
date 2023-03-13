@@ -582,21 +582,46 @@ rule fake_binomial:
 
 rule subclonal:
     input: "{sample}.fbcalls.tsv.gz"
-    output: "{sample}.subclonal_n.tsv"
+    output: "{sample}.subclonal_n_{loweraf}_{higheraf}.tsv"
     shell:
         """
-            zcat {input} | sed 1d | bawk '$12==2 && $11 < 0.3 {{print $1}} $12==3 && $11 < 0.1 {{print $1}}' | sort | uniq | wc -l > {output}
+            zcat {input} | sed 1d | bawk '$11 > {wildcards.loweraf} && $11 < {wildcards.higheraf}' | sort | uniq | wc -l \
+            |  bawk '{{print $0, {wildcards.higheraf}, {wildcards.loweraf}}}' > {output}
         """
 
+def my_expand(wildcards):
+    exp = expand("{sample}.subclonal_n_{loweraf}_{higheraf}.tsv", sample=SAMPLES, loweraf=[0.025, 0.05, 0.1, 0.12, 0.15], 
+                                                                                 higheraf=[0.05, 0.1, 0.15, 0.2, 0.24, 0.3, 0.5])
+    res = []
+    import re
+    for e in exp:
+        sl = e.split('_')
+        laf = float(sl[2])
+        haf_tsv = sl[3]
+        haf = float(re.sub('\.tsv$', '', haf_tsv))
+        if laf < haf:
+            res.append(e)
+    return res
+
 rule n_subclonal:
-    input: expand("{sample}.subclonal_n.tsv", sample=SAMPLES)
+    input: my_expand
     output: "all_subclonal_n.tsv"
     shell:
         """
             for f in {input}; do
-                cat <(echo -en "$f\\t") <(cat $f) | sed 's/\.subclonal_n\.tsv//1';
+                cat <(echo -en "$f\\t") <(cat $f);
             done > {output}
         """
+
+rule clean_subcl:
+    input: my_expand
+    shell: "rm {input}"
+
+rule correl_subclonal_mr:
+    input: subcl="all_subclonal_n.tsv"
+    params: mr="../platypus_nobin_00/all.MR_ov"
+    output: plot="subclonal_mr_corr.png"
+    script: SRC_DIR+"/subcl_mr_corr_intra.R"
 
 rule subclonal_len:
     input: "{sample}.callable.bed.gz"

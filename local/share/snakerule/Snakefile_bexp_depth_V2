@@ -73,11 +73,15 @@ rule shared_clone:
 # $4==1 keeps only first 6 months in vitro samples
 def kind_MR(wildcards):
     if wildcards.kind == "SNV":
-        return expand("{model}/platypus_nobin_00/all.MR_ov", model=MODELS)
+        return expand("{model}/platypus_nobin/all.MR_ov", model=MODELS)
     elif wildcards.kind == "indel":
-        return expand("{model}/platypus_nobin_indels_00/all.MR_ov", model=MODELS)
-    else:
-        return expand("{model}/platypus_nobin_00/all_mrca.tsv", model=MODELS_NOREP_TRUE)
+        return expand("{model}/platypus_nobin_indels/all.MR_ov", model=MODELS)
+    elif wildcards.kind == "mrca":
+        return expand("{model}/platypus_nobin/all_mrca.tsv", model=MODELS_NOREP_TRUE)
+    elif wildcards.kind == "subclonal":
+        return expand("{model}/mutect_nobin/all_subclonal_n.tsv", model=MODELS_NOREP_TRUE)
+    else: 
+        print("boh!")
 
 rule overall_MR_edu_vitro:
     output: "MR_edu_{kind}"
@@ -103,6 +107,14 @@ rule overall_mrca:
     shell:
         """
             cat {input} | grep -v clone_other  | grep -v '\-M' | bawk '{{print $2"_"$3,$4}}' > {output}
+        """
+
+rule overall_subcl:
+    input: kind_MR
+    output: "fixedthr_{kind}"
+    shell:
+        """
+            cat {input} | grep -v '\-M' | grep '\-1\-' |  bawk '$3==0.24 && $4==0.05 {{print $1,$2}}' | tr "." "\\t" | cut -f 1,6 > {output}
         """
 
 rule mrca_plot:
@@ -154,6 +166,15 @@ rule average_model:
     shell:
         """
             {params.tool} {input} {output}
+        """
+
+rule correlation_subcl_mr:
+    input: x='MR_edu_SNV_averaged.tsv', y='fixedthr_subclonal_averaged.tsv'
+    output: 'MR_SNV_subcl.pdf'
+    params: tool=BIN_DIR+'/corrplot', toremove="CRC0282", palette=COLORS_MODELS_NOMSI
+    shell:
+        """
+            {params.tool} {params.toremove} '{params.palette}' {input} {output} mean MR_SNV n_subclonal no
         """
 
 rule correlation_snv_indel:

@@ -15,7 +15,8 @@
 
 #cd ../mutect_nobin/
 #snakemake all_R
-
+cd $1/mutect_nobin
+snakemake subclonal_mr_corr.png
 #cd ../sequenza
 #snakemake -j 12 merged_heatmap.png
 
@@ -23,5 +24,5 @@
 #snakemake Homo_sapiens.GRCh37.75_autosomal_exon_merged_sorted.enrich.tsv
 
 
-cd $1/tree/
-snakemake tree_bulk_vitro.pdf nobs_tree_bulk_vitro.svg
+#cd $1/tree/
+#snakemake tree_bulk_vitro.pdf nobs_tree_bulk_vitro.svg

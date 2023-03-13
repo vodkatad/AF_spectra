@@ -116,8 +116,12 @@ def kind_MR(wildcards):
         return expand("{model}/platypus_nobin/all.MR_ov", model=MODELS)
     elif wildcards.kind == "indel":
         return expand("{model}/platypus_nobin_indels/all.MR_ov", model=MODELS)
-    else:
+    elif wildcards.kind == "mrca":
         return expand("{model}/platypus_nobin/all_mrca.tsv", model=MODELS_NOREP_TRUE)
+    elif wildcards.kind == "subclonal":
+        return expand("{model}/mutect_nobin/all_subclonal_n.tsv", model=MODELS_NOREP_TRUE)
+    else: 
+        print("boh!")
 
 def kind_MR_large(wildcards):
     #res = kind_MR(wildcards) # get all and keep all for doubles, now, lazy and tired
@@ -168,6 +172,14 @@ rule overall_mrca:
     shell:
         """
             cat {input} | grep -v clone_other  | grep -v '\-M' | bawk '{{print $2"_"$3,$4}}' > {output}
+        """
+
+rule overall_subcl:
+    input: kind_MR
+    output: "fixedthr_{kind}"
+    shell:
+        """
+            cat {input} | grep -v '\-M' |  bawk '$3==0.24 && $2==0.05 {print $1,$2}' | tr "-" "\\t" | cut -f 1,4 > {output}
         """
 
 rule mrca_plot:
