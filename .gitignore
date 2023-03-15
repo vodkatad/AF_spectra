@@ -1,4 +1,5 @@
 dataset/*
+datasetV2/*
 local/share/data/*
 .snakemake
 local/src/LD-mut-rate
