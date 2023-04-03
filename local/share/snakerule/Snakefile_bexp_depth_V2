@@ -105,6 +105,22 @@ rule check_noplaty_plot:
     params: name="platy_vs_noplaty", tool=BIN_DIR+"/check_plot", colors=MANY_COLORS_PALETTE
     shell: "{params.tool} {input.r1} {input.r2} {params.name} {params.colors} {input.ggtheme}" 
 
+
+rule check_coverage:
+    input: 'CRC1307_clones_all/platypus_nobin_20x/all.MR_ov', 'CRC1307/platypus_nobin_20x/all.MR_ov', 'CRC1502_clones_all/platypus_nobin_20x/all.MR_ov', 'CRC1502/platypus_nobin_20x/all.MR_ov'
+    output: "check_MR_coverage_MR_edu_SNV"
+    shell:
+        """
+            cat {input} | bawk '$4==1 || $4 == 2 {{print $2,$8}}' > {output}
+        """
+
+rule check_coverage_plot:
+    input: r1="MR_edu_SNV", r2="check_MR_coverage_MR_edu_SNV", ggtheme=GGTHEME
+    output: plot="cov1x_vs_cov20x.pdf", stats="cov1x_vs_cov20x.log"
+    params: name="cov1x_vs_cov20x", tool=BIN_DIR+"/check_plot", colors=MANY_COLORS_PALETTE
+    shell: "{params.tool} {input.r1} {input.r2} {params.name} {params.colors} {input.ggtheme}" 
+
+
 rule overall_len:
     input: kind_MR
     output: "all_len_{kind}.tsv"
@@ -325,12 +341,24 @@ rule dnds_voverall:
           done | sed 's/clones_all/2nd/i'> {output}
         """
 
+rule dnds_1voverall:
+    input: expand("{model}/platypus_nobin_00/dndsvitro.tsv", model=MODELS_NOREP_TRUE)
+    output: "dnds1vitro_overall.tsv"
+    shell:
+        """
+          for f in {input}; do \\
+            n=$(echo $f | tr "\/" "\\t" | cut -f 1); \\
+            bawk -v name=$n '$1=="wall"{{print name,$3,$4,$5}}' $f; \\
+          done | sed 's/clones_all/2nd/i'> {output}
+        """
+
+
 ## plots
 # single plots are from all_gained_named.tsv with also in vivo so we will keep it here
 rule dnds_global:
     input: "{dndskind}_overall.tsv"
     output: "{dndskind}_overall.png"
-    params: tool=BIN_DIR+"/dnds_plot_overall", colors=COLORS_MODELS_3
+    params: tool=BIN_DIR+"/dnds_plot_overall", colors=COLORS_MODELS_2 # this is not general needs to change for dndsvitro 1 vitro
     shell:
         """
             {params.tool} {input} {output} '{params.colors}' {output}.Rimage

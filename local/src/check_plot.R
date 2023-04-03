@@ -52,6 +52,10 @@ for (mi in models) {
 
 #ggplot(data=m, aes(x=platy, y=noplaty, color=model_clone))+geom_point()+
 #  unmute_theme+scale_color_manual(values=pal)
+#ggplot(data=m, aes(x=cov1x, y=cov20x, color=model_clone))+geom_point()+
+#  unmute_theme+scale_color_manual(values=pal)
+
+
 
 prepare_plot <- function(our) {
   confidence_interval <- function(vector, interval) {
@@ -111,3 +115,4 @@ sink(outputstats, append=TRUE)
 print(pdata1$mean / pdata2$mean)
 sink()
 
+save.image('pippo.RData')
