@@ -54,6 +54,9 @@ ggplot(data=d3, aes(x=mp, y=burden, fill=mp))+
   guides(fill=guide_legend(title="")) + stat_summary(fun.data=data_summary)
 ggsave('/home/egrassi/primet_subcl_vio.pdf')
 
+
+
+
 met <- data[data$mp == "LMX",]
 pri <- data[data$mp == "PRX",]
 if (!all(met$smodel==pri$smodel)) {
@@ -139,7 +142,6 @@ ggplot(data=fit_r2, aes(x=mp, y=intercept, color=mp, group=smodel)) +
               comparisons = list(c("LMX", "PRX")), test="t.test", test.args=list(alternative = "greater", paired=TRUE))
 
 
-
 met <- fit_r2[fit_r2$mp == "LMX",]
 pri <- fit_r2[fit_r2$mp == "PRX",]
 if (!all(met$smodel==pri$smodel)) {
@@ -148,6 +150,107 @@ if (!all(met$smodel==pri$smodel)) {
 ti <- t.test(met$intercept, pri$intercept, alternative="greater", paired=TRUE)
 
 ggsave('slopes_filtered_lines.svg', height=5.25, width=5.25, units="in")
+
+### repeat removing two outliers ##############################################################3 TODO XXX is there a NA to filter here TODO (is it the 0 subcl?)
+data <- read.table('/mnt/trcanmed/snaketree/prj/snakegatk/dataset/Pri_Mets_godot/bestbet_0.12_0.24.tsv', sep="\t", header=TRUE)
+
+data$lmodel <- substr(rownames(data), 0, 10)
+data$smodel <- substr(rownames(data), 0, 7)
+data$mp <- substr(rownames(data), 8, 10)
+data$mp <- factor(data$mp, levels=c('PRX', 'LMX'))
+data <- data[data$intercept < 28,]
+
+fit_r2 <- data
+fit_keep <- fit_r2[fit_r2$r > 0.90 & fit_r2$subcl > 10,]
+
+pairs <- as.data.frame(table(fit_keep$smodel))
+with_pair <- fit_keep[fit_keep$smodel %in% pairs[pairs$Freq == 2,'Var1'],]
+fit_r2 <- with_pair
+
+ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_text(size=15, angle=90, vjust=0.5, hjust=1), 
+                           axis.title.y=element_text(size=20), axis.text.y=element_text(size=15), 
+                           plot.title = element_text(face = "bold", size = 20, hjust = 0.5), legend.position='none'
+)
+
+LEVEL <- 0.99
+ic_clones <- sapply(unique(fit_r2$mp), function(x) { confidence_interval(fit_r2[fit_r2$mp==x,'intercept'], LEVEL) })
+colnames(ic_clones) <- unique(fit_r2$mp)
+pdata <- as.data.frame(t(ic_clones))
+pdata$model <- rownames(pdata)
+
+pdata$model <- factor(pdata$model, levels=c('PRX', 'LMX'))
+fit_r2$mp <- factor(fit_r2$mp, levels=c('PRX', 'LMX'))
+pd <- position_dodge(width=0.2)
+
+#https://stackoverflow.com/questions/39533456/how-to-jitter-both-geom-line-and-geom-point-by-the-same-magnitude
+ggplot(data=fit_r2, aes(x=mp, y=intercept, color=mp, group=smodel)) +
+  geom_jitter(data=fit_r2, aes(x=mp, y=intercept, color=mp), size=4, shape=18, position=pd)+
+  geom_line(data=fit_r2, aes(group=smodel), position=pd, color="lightgrey", linetype = "dashed")+
+  geom_point(data=pdata, aes(x=model, y=mean, group=NULL, color=NULL), stat="identity", shape=1, size=5) +
+  geom_segment(data=pdata, aes(y=lower, yend=upper, x=model, xend=model, group=NULL, color=NULL), size=0.6) + ctheme+
+  scale_color_manual(values=c('#adacac', '#595959'))+
+  ggtitle('Estimated MR')+ylab('μ/β')+xlab('')+
+  geom_signif(data=fit_r2, mapping=aes(x=mp, y=intercept), 
+              comparisons = list(c("LMX", "PRX")), test="t.test", test.args=list(alternative = "greater", paired=TRUE))
+
+
+met <- fit_r2[fit_r2$mp == "LMX",]
+pri <- fit_r2[fit_r2$mp == "PRX",]
+if (!all(met$smodel==pri$smodel)) {
+  stop('llama! Qualquadra non cosa in pri-met pairs')
+}
+ti <- t.test(met$intercept, pri$intercept, alternative="greater", paired=TRUE)
+wilcox.test(met$intercept, pri$intercept, alternative="greater", paired=TRUE)
+##############################################################3
+
+# subclonal counts 
+data <- read.table('/mnt/trcanmed/snaketree/prj/snakegatk/dataset/Pri_Mets_godot/bestbet_0.12_0.24.tsv', sep="\t", header=TRUE)
+
+data$lmodel <- substr(rownames(data), 0, 10)
+data$smodel <- substr(rownames(data), 0, 7)
+data$mp <- substr(rownames(data), 8, 10)
+data$mp <- factor(data$mp, levels=c('PRX', 'LMX'))
+data <- data[data$intercept < 28 | is.na(data$intercept),] # to keep the 0 subcl guy
+
+fit_r2 <- data
+fit_keep <- fit_r2 # no thr on R2 or n. here
+
+pairs <- as.data.frame(table(fit_keep$smodel))
+with_pair <- fit_keep[fit_keep$smodel %in% pairs[pairs$Freq == 2,'Var1'],]
+fit_r2 <- with_pair
+
+
+
+LEVEL <- 0.99
+ic_clones <- sapply(unique(fit_r2$mp), function(x) { confidence_interval(fit_r2[fit_r2$mp==x,'subcl'], LEVEL) })
+colnames(ic_clones) <- unique(fit_r2$mp)
+pdata <- as.data.frame(t(ic_clones))
+pdata$model <- rownames(pdata)
+
+pdata$model <- factor(pdata$model, levels=c('PRX', 'LMX'))
+fit_r2$mp <- factor(fit_r2$mp, levels=c('PRX', 'LMX'))
+pd <- position_dodge(width=0.2)
+
+#https://stackoverflow.com/questions/39533456/how-to-jitter-both-geom-line-and-geom-point-by-the-same-magnitude
+ggplot(data=fit_r2, aes(x=mp, y=subcl, color=mp, group=smodel)) +
+  geom_jitter(data=fit_r2, aes(x=mp, y=subcl, color=mp), size=4, shape=18, position=pd)+
+  geom_line(data=fit_r2, aes(group=smodel), position=pd, color="lightgrey", linetype = "dashed")+
+  geom_point(data=pdata, aes(x=model, y=mean, group=NULL, color=NULL), stat="identity", shape=1, size=5) +
+  geom_segment(data=pdata, aes(y=lower, yend=upper, x=model, xend=model, group=NULL, color=NULL), size=0.6) + ctheme+
+  scale_color_manual(values=c('#adacac', '#595959'))+
+  ggtitle('Subclonal muts')+ylab('#')+xlab('')+
+  geom_signif(data=fit_r2, mapping=aes(x=mp, y=subcl), 
+              comparisons = list(c("LMX", "PRX")), test="t.test", test.args=list(alternative = "greater", paired=TRUE))
+
+
+met <- fit_r2[fit_r2$mp == "LMX",]
+pri <- fit_r2[fit_r2$mp == "PRX",]
+if (!all(met$smodel==pri$smodel)) {
+  stop('llama! Qualquadra non cosa in pri-met pairs')
+}
+ti <- t.test(met$subcl, pri$subcl, alternative="greater", paired=TRUE)
+wilcox.test(met$subcl, pri$subcl, alternative="greater", paired=TRUE)
+
 
 #######33 signatures tries
 data <- read.table('/mnt/trcanmed/snaketree/prj/snakegatk/dataset/Pri_Mets_godot/signatures/all_cosmic_fit.tsv', sep="\t", header=T, row.names=1)
