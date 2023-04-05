@@ -9,6 +9,7 @@ def find_prj_root(path=os.getcwd()):
 PRJ_ROOT=find_prj_root()
 DNDSCV_RDA=PRJ_ROOT+"/local/share/data/RefCDS_human_GRCh38.p12.rda"
 BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
 SNAKE_ROOT="/mnt/trcanmed/snaketree"
 
 

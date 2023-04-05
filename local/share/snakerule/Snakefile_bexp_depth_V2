@@ -1038,3 +1038,13 @@ rule all_MR_ov:
             cat {input} | grep -w -v start >> {output}
         """
         
+
+### Evil spawn non syn
+rule evil_muts:
+    input: second_genes='CRC1502_clones_all/platypus_nobin_{altclass}/nonsyn.binary.tsv.gz', 
+           first_genes='CRC1502/platypus_nobin_{altclass}/nonsyn.binary.tsv.gz', 
+           second_muts='CRC1502_clones_all/platypus_nobin_{altclass}/CRC1502-09.annovar.gz', 
+           first_muts='CRC1502/platypus_nobin_{altclass}/CRC1502-09.annovar.gz'
+    params: target='CRC1502-09C', targetT1='CRC1502-09-1-C', nbrothers=3
+    output: muts="CRC1502-09C_CRC1502-09C_CRC1502-09-1-C.{altclass}.private.tsv"
+    script: SRC_DIR+'/wip_common_muts.R'
