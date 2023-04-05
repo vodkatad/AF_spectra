@@ -11,6 +11,7 @@ DNDSCV_RDA=PRJ_ROOT+"/local/share/data/RefCDS_human_GRCh38.p12.rda"
 BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
 SNAKE_ROOT="/mnt/trcanmed/snaketree"
+SROOT="/scratch/trcanmed"
 
 
 B=PRJ_ROOT+'/local/share/data/birth_rates_up3.txt'
@@ -70,4 +71,4 @@ for m in MODELS:
 
 DATA=os.path.join(PRJ_ROOT,'local/share/data/CRC0282/')
 
-GGTHEME=SNAKE_ROOT+'/prj/biobanca/dataset/V1/theme_20.Rdata'
+GGTHEME=SNAKE_ROOT+'/prj/biobanca/dataset/V1/theme_5.Rdata'

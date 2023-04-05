@@ -1048,3 +1048,19 @@ rule evil_muts:
     params: target='CRC1502-09C', targetT1='CRC1502-09-1-C', nbrothers=3
     output: muts="CRC1502-09C_CRC1502-09C_CRC1502-09-1-C.{altclass}.private.tsv"
     script: SRC_DIR+'/wip_common_muts.R'
+
+rule supplementary_wilcox_mut_burden:
+    input: genes="CRC1502-09C_CRC1502-09C_CRC1502-09-1-C.00.private.tsv", wilcox=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_{ref}"
+    output: tsv="supplementary_wilcox_mut_burden_{ref}.tsv"
+    script: SRC_DIR+'/filter_correct.R'
+
+rule supplementary_ed7_xlsx:
+    input: TCGA="supplementary_wilcox_mut_burden_TCGA.tsv", WES="supplementary_wilcox_mut_burden_wes.tsv"
+    output: "Extended_Data_Table_7_wilcox_mutburden.xlsx"
+    shell: "tsv_to_xls -i {input.TCGA},{input.WES} -s TCGA,WES -o {output}"
+
+rule fig_3b_wilcox_mb:
+    input: TCGA=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_TCGA.rds", WES=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_wes.rds",
+           theme=GGTHEME
+    output: plot="fig_3b_wilcox_mb.pdf"
+    script: SRC_DIR+"/fig3b_wilcox.R"
