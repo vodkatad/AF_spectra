@@ -586,13 +586,27 @@ rule all_gain_together:
             cut -f 2 {input} | sort | uniq > {output}
         """ 
 
-rule enrich_chr:
-    input: "union_callable.bed.gz", "all_gain.tsv"
-    output: "enrich_chr.tsv"
-    params: TOOL="todo"
-    shell:
-        """
-        """
+# annotatr
+def wanted_pairs_novitro():
+    res = []
+    for cl in CLONES:
+        cl = [x for x in cl if not re.search('-M', x)]
+        res = res + expand("{t1sample}_"+cl[0], t1sample=cl[1:]) 
+    return res
+
+def find_pairs_gain_bed(wildcards):
+    return [x+'.gain.bed' for x in wanted_pairs_novitro()]
+
+rule vitro_gained_bed:
+    input: find_pairs_gain_bed
+    output: "all.gain.bed"
+    shell: "cat {input} | cut -f1,2,3 | sort | uniq > {output}"
+
+rule annotatr:
+    input: gained_bed="all.gain.bed"
+    params: custom_annot="no"
+    output: plot_n="gained.genomicregions.svg", plot_corr="gained.genomicregionsnorm.svg"
+    script: SRC_DIR+"/annotatr.R"
 
 ### CN events naive counts 
 # if intersecting with callable they explode in number, so we don't

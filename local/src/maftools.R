@@ -5,8 +5,8 @@ bed <- '/scratch/trcanmed/AF_spectra/dataset/all_vitro_all_merged_gained.bed'
 gained = read_regions(con = bed, genome = 'hg38', format='bed')
 seqlevels(gained, pruning.mode="coarse") <- paste0('chr', seq(1,22))
 
-annots = c('hg38_basicgenes', 'hg38_genes_intergenic',
-           'hg38_genes_intronexonboundaries')
+annots = c('hg38_basicgenes', 'hg38_genes_intergenic')
+           #'hg38_genes_intronexonboundaries')
 annotations = build_annotations(genome = 'hg38', annotations = annots)
 
 # Intersect the regions we read in with the annotations
@@ -25,7 +25,7 @@ ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_tex
 
 
 
-order <- c('intergenic','intron', 'exon','1 to 5kb', '5UTRs', '3UTRs','intron/exon boundaries')
+order <- c('intergenic','intron', 'exon','1 to 5kb', '5UTRs', '3UTRs')#,'intron/exon boundaries')
 plot_annotations = plot_annotation(
   annotated_regions = gained_annotated,
   #annotation_order = annots,
@@ -75,8 +75,8 @@ pd$annot.type <- as.factor(pd$annot.type)
 #[1] "hg38_genes_1to5kb"               "hg38_genes_3UTRs"                "hg38_genes_5UTRs"               
 #[4] "hg38_genes_exons"                "hg38_genes_intergenic"           "hg38_genes_intronexonboundaries"
 #[7] "hg38_genes_introns"              "hg38_genes_promoters"           
-levels(pd$annot.type) <- c('1to5kb','3UTRs', '5UTRs','exons','intergenic','intronexon','introns','promoters')
-pd$annot.type <- factor(pd$annot.type, levels=c('introns','intergenic','1to5kb','promoters','3UTRs','5UTRs','exons','intronexon'))
+levels(pd$annot.type) <- c('1to5kb','3UTRs', '5UTRs','exons','intergenic','introns','promoters')
+pd$annot.type <- factor(pd$annot.type, levels=c('introns','intergenic','1to5kb','promoters','3UTRs','5UTRs','exons'))
 ggplot(data=pd, aes(x=annot.type,y=n,fill=SNV))+geom_bar(stat="identity", position='dodge')+ctheme+xlab('')+ylab('#')+scale_fill_manual(values=c('darkgreen', 'darkgoldenrod'))+theme()
 
 library(reshape)

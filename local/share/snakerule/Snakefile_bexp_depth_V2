@@ -73,11 +73,11 @@ rule shared_clone:
 # $4==1 keeps only first 6 months in vitro samples
 def kind_MR(wildcards):
     if wildcards.kind == "SNV":
-        return expand("{model}/platypus_nobin/all.MR_ov", model=MODELS)
+        return expand("{model}/platypus_nobin_00/all.MR_ov", model=MODELS)
     elif wildcards.kind == "indel":
-        return expand("{model}/platypus_nobin_indels/all.MR_ov", model=MODELS)
+        return expand("{model}/platypus_nobin_indels_00/all.MR_ov", model=MODELS)
     elif wildcards.kind == "mrca":
-        return expand("{model}/platypus_nobin/all_mrca.tsv", model=MODELS_NOREP_TRUE)
+        return expand("{model}/platypus_nobin_00/all_mrca.tsv", model=MODELS_NOREP_TRUE)
     elif wildcards.kind == "subclonal":
         return expand("{model}/mutect_nobin/all_subclonal_n.tsv", model=MODELS_NOREP_TRUE)
     else: 
@@ -352,6 +352,16 @@ rule dnds_1voverall:
           done | sed 's/clones_all/2nd/i'> {output}
         """
 
+rule dndsdouble_1voverall:
+    input: expand("{model}/platypus_nobin_indels_00/dnds_double_vitro.tsv", model=MODELS_NOREP_TRUE)
+    output: "dnds1vitrodouble_overall.tsv"
+    shell:
+        """
+          for f in {input}; do \\
+            n=$(echo $f | tr "\/" "\\t" | cut -f 1); \\
+            bawk -v name=$n '$1=="wall"{{print name,$3,$4,$5}}' $f; \\
+          done | sed 's/clones_all/2nd/i'> {output}
+        """
 
 ## plots
 # single plots are from all_gained_named.tsv with also in vivo so we will keep it here
@@ -448,21 +458,21 @@ rule MSS_gainednn_plot:
 
 
 ### MutationalPatterns bed
-rule chain:
-    output: "chain.gz"
-    shell: "wget -O {output} http://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz"
+#rule chain:
+#    output: "chain.gz"
+#    shell: "wget -O {output} http://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz"
 
 
-wildcard_constraints:
-    which="[\w\d_.]+"   
+#wildcard_constraints:
+#    which="[\w\d_.]+"   
 
-rule bed:
-    input: bed=BED+"/{which}.bed", chain="chain.gz"
-    output: bed="{which}.bed", miss="{which}.miss"
-    shell:
-        """
-            liftOver <(bawk '{{print "chr"$1,$2,$3}}' {input.bed}) {input.chain} {output.bed} {output.miss}
-        """
+#rule bed:
+#    input: bed=BED+"/{which}.bed", chain="chain.gz"
+#    output: bed="{which}.bed", miss="{which}.miss"
+#    shell:
+#        """
+#            liftOver <(bawk '{{print "chr"$1,$2,$3}}' {input.bed}) {input.chain} {output.bed} {output.miss}
+#        """
 
 
 ### QC #  TODO
@@ -1064,3 +1074,27 @@ rule fig_3b_wilcox_mb:
            theme=GGTHEME
     output: plot="fig_3b_wilcox_mb.pdf"
     script: SRC_DIR+"/fig3b_wilcox.R"
+
+# regions
+# annotatr
+def all_gained_bed(wildcards):
+    if wildcards.kind == "first":
+        return expand("{model}/platypus_nobin_00/all.gain.bed", model=MODELS_NOREP_TRUE)
+    elif wildcards.kind == "all":
+        return expand("{model}/platypus_nobin_indels_00/all.gain.bed", model=MODELS)
+    else: 
+        print("boh!")
+
+rule overall_bed:
+    output: "gained_{kind}.bed"
+    input: all_gained_bed
+    shell:
+        """
+            cat {input} | sort | uniq > {output}
+        """
+
+rule annotatr:
+    input: gained_bed="gained_{kind}.bed"
+    params: custom_annot="no"
+    output: plot_n="gained_{kind}.genomicregions.svg", plot_corr="gained_{kind}.genomicregionsnorm.svg"
+    script: SRC_DIR+"/annotatr.R"
