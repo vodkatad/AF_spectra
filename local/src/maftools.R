@@ -79,6 +79,14 @@ levels(pd$annot.type) <- c('1to5kb','3UTRs', '5UTRs','exons','intergenic','intro
 pd$annot.type <- factor(pd$annot.type, levels=c('introns','intergenic','1to5kb','promoters','3UTRs','5UTRs','exons'))
 ggplot(data=pd, aes(x=annot.type,y=n,fill=SNV))+geom_bar(stat="identity", position='dodge')+ctheme+xlab('')+ylab('#')+scale_fill_manual(values=c('darkgreen', 'darkgoldenrod'))+theme()
 
+
+
+read_annotations(con = '/scratch/trcanmed/AF_spectra/dataset/all_RepliSeq_median_early_merged.bed', genome = 'hg38', name = 'early', format = 'bed')
+read_annotations(con = '/scratch/trcanmed/AF_spectra/dataset/all_RepliSeq_median_intermediate_merged.bed', genome = 'hg38', name = 'intermediate', format = 'bed')
+read_annotations(con = '/scratch/trcanmed/AF_spectra/dataset/all_RepliSeq_median_late_merged.bed', genome = 'hg38', name = 'late', format = 'bed')
+
+print(annotatr_cache$list_env())
+
 library(reshape)
 large <- cast(pd, value='n', formula = "annot.type ~ SNV")
 rownames(large) <- large$annot.type

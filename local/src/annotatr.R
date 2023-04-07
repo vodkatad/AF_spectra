@@ -5,7 +5,7 @@ library(ggplot2)
 bed <- snakemake@input[['gained_bed']]
 custom_annot <- snakemake@params[['custom_annot']]
 if (custom_annot == "yes") {
-  annot_bed <- snakemake@input[['annot_bed']]  
+  annot_beds <- snakemake@input[['annot_beds']]  
 }
 output_plot_n <- snakemake@output[['plot_n']]
 output_plot_corr <- snakemake@output[['plot_corr']]
@@ -20,10 +20,11 @@ if (custom_annot=="no") {
   annots <- c('hg38_basicgenes', 'hg38_genes_intergenic')
   #'hg38_genes_intronexonboundaries')
 }  else {
-  stop('Still not implemented!')
-  #read_annotations(con = ezh2_file, genome = 'hg19', name = 'ezh2', format = 'bed')
-  #name will be "hg19_custom_ezh2"
-  # TODO
+  beds <- read.table(annot_beds, sep="\t", header=FALSE, stringsAsFactors = FALSE)
+  for (i in seq(1, nrow(beds))) {
+    read_annotations(con = beds[i, 1], genome = 'hg38', name = 'early', format = 'bed')
+  }
+  annots <- annotatr_cache$list_env()
 }
 
 annotations <- build_annotations(genome = 'hg38', annotations = annots)
@@ -74,16 +75,18 @@ pd$annot.type <- as.factor(pd$annot.type)
 #> levels(pd$annot.type)
 #[1] "hg38_genes_1to5kb"               "hg38_genes_3UTRs"                "hg38_genes_5UTRs"               
 #[4] "hg38_genes_exons"                "hg38_genes_intergenic"           "hg38_genes_intronexonboundaries"
-#[7] "hg38_genes_introns"              "hg38_genes_promoters"           
+#[7] "hg38_genes_introns"
+names_regions <- levels(pd$annot.type)"hg38_genes_promoters"           
 if (custom_annot=="no") {
-  names_regions <- levels(pd$annot.type)
   renamed_lev <- gsub('hg38_genes_', '', names_regions) # c('1to5kb','3UTRs', '5UTRs','exons','intergenic','introns','promoters')
-  levels(pd$annot.type) <- renamed_lev
-  pd$annot.type <- as.character(pd$annot.type) # to unique inheriting the order from n
-  orderpd <- pd[pd$SNV=="gained",]
-  orderpd <- orderpd[order(-orderpd$n),]
-  pd$annot.type <- factor(pd$annot.type, levels=unique(orderpd$annot.type))
+} else {
+  renamed_lev <- gsub('hg38_custom_', '', names_regions) 
 }
+levels(pd$annot.type) <- renamed_lev
+pd$annot.type <- as.character(pd$annot.type) # to unique inheriting the order from n
+orderpd <- pd[pd$SNV=="gained",]
+orderpd <- orderpd[order(-orderpd$n),]
+pd$annot.type <- factor(pd$annot.type, levels=unique(orderpd$annot.type))
 
 ggplot(data=pd, aes(x=annot.type,y=n,fill=SNV))+geom_bar(stat="identity", position='dodge')+ctheme+xlab('')+ylab('#')+
     scale_fill_manual(values=c('darkgreen', 'darkgoldenrod'))+theme()
@@ -102,3 +105,5 @@ ggplot(data=m, aes(x=annot.type,y=perMb,fill=SNV))+geom_bar(stat="identity", pos
   scale_fill_manual(values=c('darkgreen', 'darkgoldenrod'))+theme()
 
 ggsave(output_plot_corr)
+
+
