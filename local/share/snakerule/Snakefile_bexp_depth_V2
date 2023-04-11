@@ -573,7 +573,15 @@ rule gene_essential:
     output: "{kind}_essential_nonsyn.tsv"
     shell:
         """
-            zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | filter_1col 1 {input.filter} > {output}
+            zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | filter_1col 1 {input.filter} | sort | uniq > {output}
+        """
+
+rule all_gene:
+    input: d="{kind}_nonsyn.binary.tsv.gz", filter=PRJ_ROOT+"/local/share/data/common_iorio_crisp_essential"
+    output: "{kind}_essential_nonsyn.tsv"
+    shell:
+        """
+            zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | sort | uniq > {output}
         """
 
 

@@ -608,6 +608,13 @@ rule annotatr:
     output: plot_n="gained.genomicregions.svg", plot_corr="gained.genomicregionsnorm.svg"
     script: SRC_DIR+"/annotatr.R"
 
+
+rule annotatr_custom_repliseq:
+    input: gained_bed="all.gain.bed", annot_beds=PRJ_ROOT+'/local/share/data/repliseq_list_bed.txt'
+    params: custom_annot="yes"
+    output: plot_n="repliseq_gained.genomicregions.svg", plot_corr="repliseq_gained.genomicregionsnorm.svg"
+    script: SRC_DIR+"/annotatr.R"
+    
 ### CN events naive counts 
 # if intersecting with callable they explode in number, so we don't
 rule segmentation_changes:

@@ -22,9 +22,11 @@ if (custom_annot=="no") {
 }  else {
   beds <- read.table(annot_beds, sep="\t", header=FALSE, stringsAsFactors = FALSE)
   for (i in seq(1, nrow(beds))) {
-    read_annotations(con = beds[i, 1], genome = 'hg38', name = 'early', format = 'bed')
+    name <- strsplit(beds[i,1], "_")[[1]][5]
+    read_annotations(con = beds[i, 1], genome = 'hg38', name = name, format = 'bed')
   }
   annots <- annotatr_cache$list_env()
+  print(annots)
 }
 
 annotations <- build_annotations(genome = 'hg38', annotations = annots)
@@ -76,7 +78,7 @@ pd$annot.type <- as.factor(pd$annot.type)
 #[1] "hg38_genes_1to5kb"               "hg38_genes_3UTRs"                "hg38_genes_5UTRs"               
 #[4] "hg38_genes_exons"                "hg38_genes_intergenic"           "hg38_genes_intronexonboundaries"
 #[7] "hg38_genes_introns"
-names_regions <- levels(pd$annot.type)"hg38_genes_promoters"           
+names_regions <- levels(pd$annot.type)          
 if (custom_annot=="no") {
   renamed_lev <- gsub('hg38_genes_', '', names_regions) # c('1to5kb','3UTRs', '5UTRs','exons','intergenic','introns','promoters')
 } else {
