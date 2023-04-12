@@ -176,7 +176,8 @@ tree_di <- as.data.frame(distances)
 mm <- merge(tree_di, mour, by.x="row.names", by.y="sample")
 
 cor.test(mm$distances, mm$dist_CNV)
-
+#NEW cor.test(mm$distances, mm$Gained_SNV)
+#NEW store avg of tree_di for last overall cor
 
 setwd('/scratch/trcanmed/AF_spectra/dataset/CRC0327/tree')
 load('tree_bulk_vitro.Rdata')

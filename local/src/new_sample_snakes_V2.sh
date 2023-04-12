@@ -7,7 +7,7 @@ cd $1/platypus_nobin_00
 #snakemake -j 12 dnds.tsv dndsvitro.tsv
 #snakemake -j 12 all_mrca.tsv
 #snakemake vitro.merged.vcf.gz vivo.merged.vcf.gz
-snakemake gained.genomicregions.svg
+snakemake repliseq_gained.genomicregions.svg
 
 #cd $1/platypus_nobin_indels_00/
 #cd ../platypus_nobin_indels_00/

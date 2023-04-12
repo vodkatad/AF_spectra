@@ -577,14 +577,44 @@ rule gene_essential:
         """
 
 rule all_gene:
-    input: d="{kind}_nonsyn.binary.tsv.gz", filter=PRJ_ROOT+"/local/share/data/common_iorio_crisp_essential"
-    output: "{kind}_essential_nonsyn.tsv"
+    input: d="{kind}_nonsyn.binary.tsv.gz"
+    output: "{kind}_nonsyn.tsv"
     shell:
         """
-            zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | sort | uniq > {output}
+            zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | grep -v sample | sort | uniq > {output}
         """
 
+rule universe:
+    input: annovar='/mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt'
+    output: "nonsyn_universe.tsv"
+    shell:
+        """
+            cut -f13,14 {input.annovar}  | grep -w cmpl | cut -f1 | sort | uniq > {output}
+        """
 
+# essenziali che non sono nell'universo vanno non considerati (non sto a cercare la lista di testati di Iorio)
+rule universe_essential:
+    input: u="nonsyn_universe.tsv", filter=PRJ_ROOT+"/local/share/data/common_iorio_crisp_essential"
+    output: "nonsyn_universe_essential.tsv"
+    shell: "filter_1col 1 {input.u} < {input.filter} > {output}"
+
+rule essential_n:
+    input: tot_gained="{kind}_nonsyn.tsv", gained_essential="{kind}_essential_nonsyn.tsv", universe="nonsyn_universe.tsv",
+            ess="nonsyn_universe_essential.tsv"
+    output: "{kind}_essential_n.tsv"
+    shell: 
+        """
+            echo -e "n_univ\\tn_gainedess\\tn_gained\\tn_ess\\tn_gainedess2\\tn_gained2" > {output}
+            wc -l {input.universe} >> {output}
+            filter_1col 1 {input.universe} < {input.gained_essential} | wc -l >> {output}
+            filter_1col 1 {input.universe} < {input.tot_gained} | wc -l >> {output}
+            filter_1col 1 {input.universe} < {input.ess} | wc -l >> {output}
+            wc -l {input.gained_essential} >> {output}
+            wc -l {input.tot_gained} >> {output}
+
+        """
+# TODO put in rule
+#
 
 rule vi_merge_binary_nonsyn:
     output: res="{kind}_vinonsyn.binary.tsv.gz"
