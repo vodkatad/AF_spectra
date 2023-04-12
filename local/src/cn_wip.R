@@ -1,4 +1,5 @@
 library(ggplot2)
+setwd('/scratch/trcanmed/AF_spectra/datasetV2')
 load('/scratch/trcanmed/AF_spectra/local/share/data/cn.Rdata')
 
 nrow(our)==5*9 #???
@@ -79,7 +80,7 @@ if (n == length(cbPalette)) {
 ggsave('cn_lengths.pdf', height=5.25, width=5.25, units="in")
 
 ##
-our2 <- read.table('/scratch/trcanmed/AF_spectra/dataset/vitro_gained_norm_SNV', sep="\t", header=F, stringsAsFactors = F)
+our2 <- read.table('/scratch/trcanmed/AF_spectra/datasetV2/vitro_gained_norm_SNV', sep="\t", header=F, stringsAsFactors = F)
 colnames(our2) <- c('sample','estimate')
 
 our2$model <- sapply(our2$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
@@ -149,8 +150,10 @@ dcors <- as.data.frame(t(cors))
 colnames(dcors) <- c('pearson', 'pvalue')
 
 ## let's try with one tree on a single example.
-
-setwd('/scratch/trcanmed/AF_spectra/dataset/CRC1307_clones_all/tree')
+avg_dist_trees <- c()
+namest <- c()
+setwd('/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/tree')
+model <- 'CRC1307'
 load('tree_bulk_vitro.Rdata')
 library(ape)
 di <- cophenetic(NexusTree)
@@ -164,10 +167,10 @@ names_tree <- list(
   'CRC1307-08-1-E'= 'CRC1307-08-0',
   'CRC1307-09-1-B'= 'CRC1307-09-0',
   'CRC1307-09-1-C'= 'CRC1307-09-0',
-  'CRC1307-09-1-E'= 'CRC1307-09-0',
-  'CRC1307-09E-2-3'= 'CRC1307-09-1-E',
-  'CRC1307-09E-2-4'= 'CRC1307-09-1-E',
-  'CRC1307-09E-2-5'= 'CRC1307-09-1-E'
+  'CRC1307-09-1-E'= 'CRC1307-09-0'
+  #'CRC1307-09E-2-3'= 'CRC1307-09-1-E',
+  #'CRC1307-09E-2-4'= 'CRC1307-09-1-E',
+  #'CRC1307-09E-2-5'= 'CRC1307-09-1-E'
 ) 
 
 distances <- sapply(names(names_tree), function(x) { di[rownames(di)==x, colnames(di)==names_tree[[x]]]} )
@@ -175,16 +178,20 @@ distances <- sapply(names(names_tree), function(x) { di[rownames(di)==x, colname
 tree_di <- as.data.frame(distances)
 mm <- merge(tree_di, mour, by.x="row.names", by.y="sample")
 
-cor.test(mm$distances, mm$dist_CNV)
-#NEW cor.test(mm$distances, mm$Gained_SNV)
-#NEW store avg of tree_di for last overall cor
+print(model)
+print(cor.test(mm$distances, mm$dist_CNV))
+print(cor.test(mm$distances, mm$estimate))
+avg_dist_trees <- c(avg_dist_trees, mean(mm$distances))
+namest <- c(namest, model)
 
-setwd('/scratch/trcanmed/AF_spectra/dataset/CRC0327/tree')
+save.image("lamissimo.Rdata")
+setwd('/scratch/trcanmed/AF_spectra/datasetV2/CRC0327/tree')
+model <- 'CRC0327'
 load('tree_bulk_vitro.Rdata')
 library(ape)
 di <- cophenetic(NexusTree)
 
-names <-rowNames(di)
+names <-rownames(di)
 
 # TODO automagicate (from conf?)
 names_tree <- list(
@@ -205,16 +212,20 @@ tree_di <- as.data.frame(distances)
 
 mm <- merge(tree_di, mour, by.x="row.names", by.y="sample")
 
-cor.test(mm$distances, mm$dist_CNV)
-
+print(model)
+print(cor.test(mm$distances, mm$dist_CNV))
+print(cor.test(mm$distances, mm$estimate))
+avg_dist_trees <- c(avg_dist_trees, mean(mm$distances))
+namest <- c(namest, model)
 ## CRC0441
 
-setwd('/scratch/trcanmed/AF_spectra/dataset/CRC0441/tree')
+setwd('/scratch/trcanmed/AF_spectra/datasetV2/CRC0441/tree')
+model <- 'CRC0441'
 load('tree_bulk_vitro.Rdata')
 library(ape)
 di <- cophenetic(NexusTree)
 
-names <-rowNames(di)
+names <-rownames(di)
 
 # TODO automagicate (from conf?)
 names_tree <- list(
@@ -233,17 +244,20 @@ tree_di <- as.data.frame(distances)
 
 mm <- merge(tree_di, mour, by.x="row.names", by.y="sample")
 
-cor.test(mm$distances, mm$dist_CNV)
-
+print(model)
+print(cor.test(mm$distances, mm$dist_CNV))
+print(cor.test(mm$distances, mm$estimate))
+avg_dist_trees <- c(avg_dist_trees, mean(mm$distances))
+namest <- c(namest, model)
 ##
 
-
-setwd('/scratch/trcanmed/AF_spectra/dataset/CRC0327/tree')
+model <- 'CRC0327'
+setwd('/scratch/trcanmed/AF_spectra/datasetV2/CRC0327/tree')
 load('tree_bulk_vitro.Rdata')
 library(ape)
 di <- cophenetic(NexusTree)
 
-names <-rowNames(di)
+names <-rownames(di)
 
 # TODO automagicate (from conf?)
 names_tree <- list(
@@ -264,16 +278,20 @@ tree_di <- as.data.frame(distances)
 
 mm <- merge(tree_di, mour, by.x="row.names", by.y="sample")
 
-cor.test(mm$distances, mm$dist_CNV)
+print(model)
+print(cor.test(mm$distances, mm$dist_CNV))
+print(cor.test(mm$distances, mm$estimate))
+avg_dist_trees <- c(avg_dist_trees, mean(mm$distances))
+namest <- c(namest, model)
 
 ## MSI
-
-setwd('/scratch/trcanmed/AF_spectra/dataset/CRC0282_clones_2/tree')
+model <- 'CRC0282'
+setwd('/scratch/trcanmed/AF_spectra/datasetV2/CRC0282/tree')
 load('tree_bulk_vitro.Rdata')
 library(ape)
 di <- cophenetic(NexusTree)
 
-names <-rowNames(di)
+names <-rownames(di)
 
 names_tree <- list(
   'CRC0282-01-1-A'= 'CRC0282-01-0' ,
@@ -299,4 +317,176 @@ tree_di <- as.data.frame(distances)
 
 mm <- merge(tree_di, mour, by.x="row.names", by.y="sample")
 
-cor.test(mm$distances, mm$dist_CNV)
+print(model)
+print(cor.test(mm$distances, mm$dist_CNV))
+print(cor.test(mm$distances, mm$estimate))
+avg_dist_trees <- c(avg_dist_trees, mean(mm$distances))
+namest <- c(namest, model)
+
+# CRC1078
+model <- 'CRC1078'
+setwd('/scratch/trcanmed/AF_spectra/datasetV2/CRC1078/tree')
+load('tree_bulk_vitro.Rdata')
+library(ape)
+di <- cophenetic(NexusTree)
+
+names <-rownames(di)
+
+names_tree <- list(
+  'CRC1078-02-1-C'= 'CRC1078-02-0' ,
+  'CRC1078-02-1-D'= 'CRC1078-02-0',
+  'CRC1078-02-1-E'= 'CRC1078-02-0',
+  'CRC1078-07-1-A'= 'CRC1078-07-0',
+  'CRC1078-07-1-E'= 'CRC1078-07-0',
+  'CRC1078-07-1-F'= 'CRC1078-07-0',
+  'CRC1078-09-1-B'= 'CRC1078-09-0',
+  'CRC1078-09-1-C'= 'CRC1078-09-0',
+  'CRC1078-09-1-D'= 'CRC1078-09-0'
+  #'CRC1078-07A-2-2'= 'CRC1078-07-1-A',
+  #'CRC1078-07A-2-3'= 'CRC1078-07-1-A',
+  #'CRC1078-07A-2-4'= 'CRC1078-07-1-A'
+) 
+
+distances <- sapply(names(names_tree), function(x) { di[rownames(di)==x, colnames(di)==names_tree[[x]]]} )
+
+tree_di <- as.data.frame(distances)
+
+mm <- merge(tree_di, mour, by.x="row.names", by.y="sample")
+
+print(model)
+print(cor.test(mm$distances, mm$dist_CNV))
+print(cor.test(mm$distances, mm$estimate))
+avg_dist_trees <- c(avg_dist_trees, mean(mm$distances))
+namest <- c(namest, model)
+
+# CRC1502
+
+model <- 'CRC1502'
+setwd('/scratch/trcanmed/AF_spectra/datasetV2/CRC1502/tree')
+load('tree_bulk_vitro.Rdata')
+library(ape)
+di <- cophenetic(NexusTree)
+
+names <-rownames(di)
+names_tree <- list(
+  'CRC1502-03-1-A'= 'CRC1502-03-0' ,
+  'CRC1502-03-1-C'= 'CRC1502-03-0',
+  'CRC1502-03-1-D'= 'CRC1502-03-0',
+  'CRC1502-08-1-A'= 'CRC1502-08-0',
+  'CRC1502-08-1-C'= 'CRC1502-08-0',
+  'CRC1502-08-1-D'= 'CRC1502-08-0',
+  'CRC1502-09-1-A'= 'CRC1502-09-0',
+  'CRC1502-09-1-C'= 'CRC1502-09-0',
+  'CRC1502-09-1-E'= 'CRC1502-09-0',
+  'CRC1502-10-1-A'='CRC1502-10-0',
+  'CRC1502-10-1-B'='CRC1502-10-0',
+  'CRC1502-10-1-D'='CRC1502-10-0'
+  #'CRC1502-03A-2-1'='CRC1502-03-1-A',
+  #'CRC1502-03A-2-3'='CRC1502-03-1-A',
+  #'CRC1502-03A-2-5'='CRC1502-03-1-A',
+  #'CRC1502-09C-2-1'='CRC1502-09-1-C',
+  #'CRC1502-09C-2-2'='CRC1502-09-1-C',
+  #'CRC1502-09C-2-3'='CRC1502-09-1-C',
+  #'CRC1502-10B-2-3'='CRC1502-10-1-B',
+  #'CRC1502-10B-2-5'='CRC1502-10-1-B',
+  #'CRC1502-10B-2-6'='CRC1502-10-1-B',
+  #'CRC1502-08D-2-2'='CRC1502-08-1-D'
+)  
+
+
+distances <- sapply(names(names_tree), function(x) { di[rownames(di)==x, colnames(di)==names_tree[[x]]]} )
+
+tree_di <- as.data.frame(distances)
+
+mm <- merge(tree_di, mour, by.x="row.names", by.y="sample")
+
+print(model)
+print(cor.test(mm$distances, mm$dist_CNV))
+print(cor.test(mm$distances, mm$estimate))
+avg_dist_trees <- c(avg_dist_trees, mean(mm$distances))
+namest <- c(namest, model)
+
+# CRC1599PR
+model <- 'CRC1599PR'
+setwd('/scratch/trcanmed/AF_spectra/datasetV2/CRC1599PR/tree')
+load('tree_bulk_vitro.Rdata')
+library(ape)
+di <- cophenetic(NexusTree)
+
+names <-rownames(di)
+
+names_tree <- list(
+  'CRC1599PR-01-1-E'='CRC1599PR-01-0',
+  'CRC1599PR-01-1-F'='CRC1599PR-01-0',
+  'CRC1599PR-01-1-L'='CRC1599PR-01-0',
+  'CRC1599PR-10-1-E'='CRC1599PR-10-0',
+  'CRC1599PR-10-1-F'='CRC1599PR-10-0',
+  'CRC1599PR-10-1-G'='CRC1599PR-10-0'
+)
+
+distances <- sapply(names(names_tree), function(x) { di[rownames(di)==x, colnames(di)==names_tree[[x]]]} )
+
+tree_di <- as.data.frame(distances)
+
+mm <- merge(tree_di, mour, by.x="row.names", by.y="sample")
+
+print(model)
+print(cor.test(mm$distances, mm$dist_CNV))
+print(cor.test(mm$distances, mm$estimate))
+avg_dist_trees <- c(avg_dist_trees, mean(mm$distances))
+namest <- c(namest, model)
+
+# CRC1599LM
+model <- 'CRC1599LM'
+setwd('/scratch/trcanmed/AF_spectra/datasetV2/CRC1599LM/tree')
+load('tree_bulk_vitro.Rdata')
+library(ape)
+di <- cophenetic(NexusTree)
+
+names <-rownames(di)
+
+
+names_tree <- list(
+  'CRC1599LM-01-1-A'='CRC1599LM-01-0',
+  'CRC1599LM-01-1-C'='CRC1599LM-01-0',
+  'CRC1599LM-01-1-D'='CRC1599LM-01-0',
+  'CRC1599LM-03-1-B'='CRC1599LM-03-0',
+  'CRC1599LM-03-1-D'='CRC1599LM-03-0',
+  'CRC1599LM-03-1-E'='CRC1599LM-03-0'
+  # 'CRC1599LM-01C-2-1'='CRC1599LM-01-1-C',
+  #  'CRC1599LM-01C-2-4'='CRC1599LM-01-1-C',
+  #  'CRC1599LM-01C-2-5'='CRC1599LM-01-1-C'
+)
+distances <- sapply(names(names_tree), function(x) { di[rownames(di)==x, colnames(di)==names_tree[[x]]]} )
+
+tree_di <- as.data.frame(distances)
+
+mm <- merge(tree_di, mour, by.x="row.names", by.y="sample")
+
+print(model)
+print(cor.test(mm$distances, mm$dist_CNV))
+print(cor.test(mm$distances, mm$estimate))
+avg_dist_trees <- c(avg_dist_trees, mean(mm$distances))
+namest <- c(namest, model)
+
+save.image("lamissimo.Rdata")
+
+df <- data.frame(row.names=unique(namest), avg_dist_trees=unique(avg_dist_trees))
+m <- merge(df, pdata2, by.x="row.names", by.y="model")
+name_x <- 'mean'
+name_y <- 'avg_dist_trees'
+colors <- c("#cc3300,#f607b9,#9900ff,#155d00,#77a003,#0829fc,#ff9900,#ffff00")
+
+cbPalette <- unlist(strsplit(colors, ','))
+m$model <- m$Row.names
+ci <- cor.test(m[, name_x], m[, name_y])
+ggplot(m, aes_string(x=name_x, y=name_y)) +  geom_point(aes(color=model), size=3) + geom_smooth(method='lm')+
+  theme_bw()+labs(caption=paste0('pearson=', round(ci$estimate,2), ' pval=',round(ci$p.value, 4))) + scale_color_manual(values=cbPalette)+theme(text = element_text(size = 15))
+
+
+m <- m[m$model != 'CRC0282',]
+cbPalette <- cbPalette[-1]
+ci <- cor.test(m[, name_x], m[, name_y])
+ggplot(m, aes_string(x=name_x, y=name_y)) +  geom_point(aes(color=model), size=3) + geom_smooth(method='lm')+
+  theme_bw()+labs(caption=paste0('pearson=', round(ci$estimate,2), ' pval=',round(ci$p.value, 4))) + scale_color_manual(values=cbPalette)+theme(text = element_text(size = 15))
+

@@ -487,9 +487,9 @@ rule MSS_gainednn_plot:
 # Do we keep or remove in vivo? Only in vitro!
 def all_nonsyn(wildcards):
     if wildcards.kind == "SNV":
-        return expand("{model}/platypus_nobin_00/nonsyn.binary.tsv.gz", model=MODELS_NOREP)
+        return expand("{model}/platypus_nobin_00/nonsyn.binary.tsv.gz", model=MODELS_NOREP_TRUE)
     else:
-        return expand("{model}/platypus_nobin_indels_00/nonsyn.binary.tsv.gz", model=MODELS_NOREP)
+        return expand("{model}/platypus_nobin_indels_00/nonsyn.binary.tsv.gz", model=MODELS_NOREP_TRUE)
 
 rule merge_binary_nonsyn:
     output: res="{kind}_nonsyn.binary.tsv.gz"
@@ -605,16 +605,30 @@ rule essential_n:
     shell: 
         """
             echo -e "n_univ\\tn_gainedess\\tn_gained\\tn_ess\\tn_gainedess2\\tn_gained2" > {output}
-            wc -l {input.universe} >> {output}
+            cat {input.universe} | wc -l >> {output}
             filter_1col 1 {input.universe} < {input.gained_essential} | wc -l >> {output}
             filter_1col 1 {input.universe} < {input.tot_gained} | wc -l >> {output}
             filter_1col 1 {input.universe} < {input.ess} | wc -l >> {output}
-            wc -l {input.gained_essential} >> {output}
-            wc -l {input.tot_gained} >> {output}
+            cat {input.gained_essential} | wc -l >> {output}
+            cat {input.tot_gained} | wc -l >> {output}
 
         """
+
+rule essential_phyper:
+    input: "{kind}_essential_n.tsv"
+    output: "{kind}_essential_phyper.txt"
+    shell:
+        """
+            Rscript -e "d <- read.table('{input[0]}', header=T, fill=T); d2 <- data.frame(row.names=colnames(d), n=d[,1]); print(d2[2,1]==d2[5,1]); print(d2[3,1]==d2[6,1]); print(phyper(d2[2,1]-1, d2[4,1], d2[1,1]-d2[4,1], d2[3,1], lower.tail=FALSE));" \\
+                > {output}
+        """
+
 # TODO put in rule
-#
+#d <- read.table('SNV_essential_n.tsv', sep="\t", header=T, fill=T)
+#d2 <- data.frame(row.names=colnames(d), n=d[,1])
+# d2[2,1]==d2[5,1]
+# d2[3,1]==d2[6,1]
+#phyper(d2[2,1]-1, d2[4,1], d2[1,1]-d2[4,1], d2[3,1], lower.tail=FALSE)
 
 rule vi_merge_binary_nonsyn:
     output: res="{kind}_vinonsyn.binary.tsv.gz"
