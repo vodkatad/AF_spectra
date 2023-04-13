@@ -499,12 +499,15 @@ rule merge_binary_nonsyn:
         d = pd.read_table(input.pop(0), sep='\t', compression="gzip", index_col=0, header=0)
         d = d[~ d.index.str.contains('-M')]
         d = d.loc[:, (d != 0).any(axis=0)]
+        if d.shape[1] == 0:
+            d = pd.DataFrame()
         for i in input:
             x = pd.read_table(i, sep='\t', compression="gzip", index_col=0, header=0)
-            #x = x[x.sample.str.contains('-M')]
-            x = x[~ x.index.str.contains('-M')]
-            x = x.loc[:, (x != 0).any(axis=0)]
-            d = d.append(x, sort=True).fillna(0)
+            if x.shape[1] != 0:
+                #x = x[x.sample.str.contains('-M')]
+                x = x[~ x.index.str.contains('-M')]
+                x = x.loc[:, (x != 0).any(axis=0)]
+                d = d.append(x, sort=True).fillna(0)
         d.to_csv(output.res, sep='\t', index=True, compression='gzip')
 
 
@@ -521,7 +524,7 @@ rule gene_oncog:
     output: "{kind}_oncog_nonsyn.tsv"
     shell:
         """
-            zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | filter_1col 1 {input.filter} > {output}
+            zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | filter_1col 1 {input.filter}  | sort | uniq > {output}
         """
 
 rule gene_tsg:
@@ -529,7 +532,7 @@ rule gene_tsg:
     output: "{kind}_tsg_nonsyn.tsv"
     shell:
         """
-            zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | filter_1col 1 {input.filter} > {output}
+            zcat {input.d} | bawk 'NR==1' | tr "\\t" "\\n" | tr ";" "\\n" | filter_1col 1 {input.filter}  | sort | uniq > {output}
         """
 
 CMODELS_NOREP=['CRC0282','CRC0327','CRC0441','CRC1078','CRC1307','CRC1307_clones_all','CRC1502','CRC1502_clones_all','CRC1599LM']
@@ -594,14 +597,24 @@ rule universe:
 
 # essenziali che non sono nell'universo vanno non considerati (non sto a cercare la lista di testati di Iorio)
 rule universe_essential:
-    input: u="nonsyn_universe.tsv", filter=PRJ_ROOT+"/local/share/data/common_iorio_crisp_essential"
+    input: u="nonsyn_universe.tsv", filter=PRJ_ROOT+"/local/share/data/common_iorio_crisp_essential"    
     output: "nonsyn_universe_essential.tsv"
     shell: "filter_1col 1 {input.u} < {input.filter} > {output}"
 
-rule essential_n:
-    input: tot_gained="{kind}_nonsyn.tsv", gained_essential="{kind}_essential_nonsyn.tsv", universe="nonsyn_universe.tsv",
-            ess="nonsyn_universe_essential.tsv"
-    output: "{kind}_essential_n.tsv"
+rule universe_oncog:
+    input: u="nonsyn_universe.tsv", filter=PRJ_ROOT+"/local/share/data/oncog"
+    output: "nonsyn_universe_oncog.tsv"
+    shell: "filter_1col 1 {input.u} < {input.filter} > {output}"
+
+rule universe_tsg:
+    input: u="nonsyn_universe.tsv", filter=PRJ_ROOT+"/local/share/data/tsb"
+    output: "nonsyn_universe_tsg.tsv"
+    shell: "filter_1col 1 {input.u} < {input.filter} > {output}"
+
+rule essential_or_onco_n:
+    input: tot_gained="{kind}_nonsyn.tsv", gained_essential="{kind}_{gclass}_nonsyn.tsv", universe="nonsyn_universe.tsv",
+            ess="nonsyn_universe_{gclass}.tsv"
+    output: "{kind}_{gclass}_n.tsv"
     shell: 
         """
             echo -e "n_univ\\tn_gainedess\\tn_gained\\tn_ess\\tn_gainedess2\\tn_gained2" > {output}
@@ -615,12 +628,25 @@ rule essential_n:
         """
 
 rule essential_phyper:
-    input: "{kind}_essential_n.tsv"
-    output: "{kind}_essential_phyper.txt"
+    input: "{kind}_{gclass}_n.tsv"
+    output: "{kind}_{gclass}_phyper.txt"
     shell:
         """
-            Rscript -e "d <- read.table('{input[0]}', header=T, fill=T); d2 <- data.frame(row.names=colnames(d), n=d[,1]); print(d2[2,1]==d2[5,1]); print(d2[3,1]==d2[6,1]); print(phyper(d2[2,1]-1, d2[4,1], d2[1,1]-d2[4,1], d2[3,1], lower.tail=FALSE));" \\
+            Rscript -e "d <- read.table('{input[0]}', header=T, fill=T); d2 <- data.frame(row.names=colnames(d), n=d[,1]); 
+                        print(d2[2,1]==d2[5,1]); print(d2[3,1]==d2[6,1]); 
+                        print(phyper(d2[2,1]-1, d2[4,1], d2[1,1]-d2[4,1], d2[3,1], lower.tail=FALSE));" \\
                 > {output}
+        """
+
+rule essential_phyper_both:
+    input: "SNV_{gclass}_n.tsv", "indel_{gclass}_n.tsv"
+    output: "both{gclass}_phyper.txt"
+    shell:
+        """
+            Rscript -e "d <- read.table('{input[0]}', header=T, fill=T); d2 <- data.frame(row.names=colnames(d), n=d[,1]);
+                        di <- read.table('{input[1]}', header=T, fill=T); d3 <- data.frame(row.names=colnames(di), n=di[,1]); d2[2,1] <- d2[2,1]+d3[2,1]; d2[3,1] <- d2[3,1]+d3[3,1];
+                        print(phyper(d2[2,1]-1, d2[4,1], d2[1,1]-d2[4,1], d2[3,1], lower.tail=FALSE));" \\
+                        > {output}
         """
 
 # TODO put in rule
