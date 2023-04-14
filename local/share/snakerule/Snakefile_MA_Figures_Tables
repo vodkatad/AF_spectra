@@ -1,0 +1,41 @@
+include: 'conf.sk'
+### Figure 3
+rule fig_3b_wilcox_mb:
+    #input: #TCGA=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_TCGA.rds", WES=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_wes.rds", # alt for our servers
+    input: TCGA=SOURCE_DATA+'/all_genes_mb_wilcox_TCGA.rds', WES=SOURCE_DATA+'/all_genes_mb_wilcox_wes.rds',
+           theme=GGTHEME
+    output: plot='fig_3b_wilcox_mb.svg'
+    script: SRC_DIR+'/fig3b_wilcox.R'
+
+
+### Figure 5
+rule figure_5a_subclonal:
+    input: LM=SOURCE_DATA+'/CRC1599LMX0A02001TUMD03000V2.pass.table.snv.gz', PR=SOURCE_DATA+'/CRC1599PRX0A02002TUMD03000V2.pass.table.snv.gz',
+           theme=GGTHEME
+    output: plot='fig_5a_subclonal.svg'
+    log: log='fig_5a_subclonal.svg'
+    script: SRC_DIR+'/fig5a_subclonal.R'
+
+rule figure_5b_vaf_histo:
+    input: LM=SOURCE_DATA+'/CRC1599LMX0A02001TUMD03000V2.pass.table.snv.gz', PR=SOURCE_DATA+'/CRC1599PRX0A02002TUMD03000V2.pass.table.snv.gz',
+           theme=GGTHEME
+    output: plot='fig_5b_VAFhistogram.svg'
+    script: SRC_DIR+'/fig5b_VAFhisto.R'
+
+rule figure_5c_vaf_histo:
+    input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',
+           theme=GGTHEME
+    output: plot='fig_5c_slopes_pairedscatter.svg'
+    log: log='fig_5c_slopes_pairedscatter.log'
+    script: SRC_DIR+'/fig5c_slopes_pairedscatter.R'
+
+# Supplementaty tables
+rule supplementary_wilcox_mut_burden:
+    input: genes=DATASET+"/CRC1502-09C_CRC1502-09C_CRC1502-09-1-C.00.private.tsv", wilcox=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_{ref}"
+    output: tsv="supplementary_wilcox_mut_burden_{ref}.tsv"
+    script: SRC_DIR+'/filter_correct.R'
+
+rule supplementary_edt8_xlsx:
+    input: TCGA="supplementary_wilcox_mut_burden_TCGA.tsv", WES="supplementary_wilcox_mut_burden_wes.tsv"
+    output: "Extended_Data_Table_8_wilcox_mutburden.xlsx"
+    shell: "tsv_to_xls -i {input.TCGA},{input.WES} -s TCGA,WES -o {output}"

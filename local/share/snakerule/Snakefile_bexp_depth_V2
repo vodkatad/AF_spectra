@@ -539,9 +539,9 @@ CMODELS_NOREP=['CRC0282','CRC0327','CRC0441','CRC1078','CRC1307','CRC1307_clones
 # 1599PR has no cosmic muts, bad fix for now
 def all_cosmic(wildcards):
     if wildcards.kind == "SNV":
-        return expand("{model}/platypus_nobin/cosmic.binary.tsv.gz", model=CMODELS_NOREP)
+        return expand("{model}/platypus_nobin_00/cosmic.binary.tsv.gz", model=CMODELS_NOREP)
     else:
-        return expand("{model}/platypus_nobin_indels/cosmic.binary.tsv.gz", model=CMODELS_NOREP)
+        return expand("{model}/platypus_nobin_indels_00/cosmic.binary.tsv.gz", model=CMODELS_NOREP)
 
 rule merge_binary_cosmic:
     output: res="{kind}_cosmic.binary.tsv.gz"
@@ -1052,7 +1052,7 @@ rule sign_3:
 # gain all merged then pcgr, to get a MAF
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ for f in */*/vitro.merged.vcf.gz; do tabix $f; done
 rule merge_all:
-    input: expand("{model}/platypus_nobin/vitro.merged.vcf.gz", model=MODELS)
+    input: expand("{model}/platypus_nobin_00/vitro.merged.vcf.gz", model=MODELS)
     output: "all_vitro_all_merged_gained.vcf.gz"
     shell:
         """
@@ -1061,7 +1061,7 @@ rule merge_all:
         """
 
 rule merge_all_mss:
-    input: expand("{model}/platypus_nobin/vitro.merged.vcf.gz", model=MODELS[1:])
+    input: expand("{model}/platypus_nobin_00/vitro.merged.vcf.gz", model=MODELS[1:])
     output: "all_vitro_mss_merged_gained.vcf.gz"
     shell:
         """
@@ -1079,7 +1079,7 @@ rule bed_all:
 
 PCGR='/mnt/trcanmed/snaketree/prj/snakegatk/local/src/pcgr/'
 rule pcgr:
-    input: "all_vitro_merged_gained.vcf.gz"
+    input: "all_vitro_all_merged_gained.vcf.gz"
     output: "pcgr/all_gained.pcgr_acmg.grch38.snvs_indels.tiers.tsv"
     params: pcgr=PCGR, assay='WGS', mdir='pcgr'
     shell:

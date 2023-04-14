@@ -2,7 +2,7 @@ tcga_rds  <- snakemake@input[['TCGA']]
 wes_rds  <- snakemake@input[['WES']]
 outplot <- snakemake@output[['plot']]
 theme <- snakemake@input[['theme']]
-
+save.image(paste0(outplot, '.Rdata'))
 library(ggplot2)
 library(ggpubr)
 
@@ -27,3 +27,4 @@ p <- ggarrange(tcga_p, wes_p,  common.legend = TRUE)
 
 
 ggsave(outplot, plot=p, width=89, height=44, units="mm")
+save.image(paste0(outplot, '.Rdata'))
