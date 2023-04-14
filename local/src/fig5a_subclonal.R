@@ -40,6 +40,9 @@ p <- ggplot(data=merged, aes(x=MR_edu, y=n)) +
   scale_fill_manual(values=pal, guide="none")+
   xlab('MR, mut/(division*bp) *10^-9')+ylab('# subclonal SNVs')
 
+# average errors
+
+# pearson pvalue
 
 ggsave(outplot, plot=p, width=89, height=56, units="mm")
 save.image(paste0(outplot, '.Rdata'))
