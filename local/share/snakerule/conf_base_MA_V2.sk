@@ -74,5 +74,5 @@ DATA=os.path.join(PRJ_ROOT,'local/share/data/CRC0282/')
 
 GGTHEME=SNAKE_ROOT+'/prj/biobanca/dataset/V1/theme_5.Rdata'
 
-REF_DATASET='../datasetV2/'
+REF_DATASET='../datasetV2'
 SOURCE_DATA=PRJ_ROOT+'/local/share/data/SourceData'

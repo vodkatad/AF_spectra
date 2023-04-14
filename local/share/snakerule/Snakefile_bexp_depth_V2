@@ -489,7 +489,7 @@ def all_nonsyn(wildcards):
     if wildcards.kind == "SNV":
         return expand("{model}/platypus_nobin_00/nonsyn.binary.tsv.gz", model=MODELS_NOREP_TRUE)
     else:
-        return expand("{model}/platypus_nobin_indels_00/nonsyn.binary.tsv.gz", model=MODELS_NOREP_TRUE)
+        return expand("{model}/platypus_nobin_indels_00/nonsyn.binary.tsv.gz", model=MODELS_NOREP_TRUE_NOMSI)
 
 rule merge_binary_nonsyn:
     output: res="{kind}_nonsyn.binary.tsv.gz"
