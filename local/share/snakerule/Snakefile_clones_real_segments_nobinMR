@@ -566,8 +566,18 @@ rule subclonal:
             |  bawk '{{print $0, {wildcards.higheraf}, {wildcards.loweraf}}}' > {output}
         """
 
+SUBCL=SAMPLES
+try:
+    TIME
+except NameError:
+    print('Pass')
+else:
+    if TIME=='-2-':
+        import re
+        SUBCL=[x for x in SAMPLES if re.search('-2-', x)]
+
 def my_expand(wildcards):
-    exp = expand("{sample}.subclonal_n_{loweraf}_{higheraf}.tsv", sample=SAMPLES, loweraf=[0.025, 0.05, 0.1, 0.12, 0.15], 
+    exp = expand("{sample}.subclonal_n_{loweraf}_{higheraf}.tsv", sample=SUBCL, loweraf=[0.025, 0.05, 0.1, 0.12, 0.15], 
                                                                                  higheraf=[0.05, 0.1, 0.15, 0.2, 0.24, 0.3, 0.5])
     res = []
     import re

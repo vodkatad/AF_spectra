@@ -38,7 +38,11 @@ CLONES=[CLONE8, CLONE2, CLONE4]
 #STARTTIME='-1'
 #TIME='-2-'
 #FUN_OV=find_pairs_raw_ov_stupid
-
+# this is needed to have an empty all_subclonal_n.tsv cause here without TIME=-2- the rule to select only 2nd round clones to get subclonal there does not work.
+ruleorder: my_subclonal > n_subclonal
+rule my_subclonal:
+    output: "all_subclonal_n.tsv"
+    shell: "touch {output}"
 #SAMPLES_ORIG_T1= {
 #    'CRC0327-08': 'CRC1502-03-1-A',
 #}

@@ -36,13 +36,67 @@ merged$time <- sapply(merged$sample, function(x) {y<-strsplit(x, '-')[[1]][3]; r
 
 p <- ggplot(data=merged, aes(x=MR_edu, y=n)) +
   geom_point(aes(color=model_clone, shape=PDT, fill=model_clone), stat="identity", size=2, position=position_dodge(0.2))+
-  unmute_theme+scale_color_manual(values=pal, guide="none")+scale_shape_manual(values=c(18,18,20,20))+#scale_shape_manual(values=c(18,23,20,19))+
+  unmute_theme+scale_color_manual(values=pal, guide="none")+scale_shape_manual(values=c(24,25,22,23))+#scale_shape_manual(values=c(18,23,20,19))+
   scale_fill_manual(values=pal, guide="none")+
-  xlab('MR, mut/(division*bp) *10^-9')+ylab('# subclonal SNVs')
+  xlab('MR, mut/(division*bp) *10^-9')+ylab('# subclonal SNVs')+theme(legend.position="right")
 
-# average errors
+# average errors ############
+confidence_interval <- function(vector, interval) {
+   # Standard deviation of sample
+   vec_sd <- sd(vector)
+   # Sample size
+   n <- length(vector)
+   # Mean of sample
+   vec_mean <- mean(vector)
+   # Error according to t distribution
+   error <- qt((1+interval)/2, df = n - 1) * vec_sd / sqrt(n)
+   # Confidence interval as a vector
+   result <- c("lower" = vec_mean - error, "upper" = vec_mean + error, "mean" = vec_mean)
+   return(result)
+}
+ 
+LEVEL <- 0.99
+ic_clones <- sapply(unique(merged$model), function(x) { confidence_interval(merged[merged$model==x,'MR_edu'], LEVEL) })
+colnames(ic_clones) <- unique(merged$model)
+pdataMR <- as.data.frame(t(ic_clones))
+pdataMR$model <- rownames(pdataMR)
+
+
+ic_clones <- sapply(unique(merged$model), function(x) { confidence_interval(merged[merged$model==x,'n'], LEVEL) })
+colnames(ic_clones) <- unique(merged$model)
+pdatasub <- as.data.frame(t(ic_clones))
+pdatasub$model <- rownames(pdatasub)
+
+pdata <- merge(pdataMR, pdatasub, by='model')
+# 
+p <- ggplot() +
+   geom_point(data=merged, aes(x=MR_edu, y=n, color=model_clone, shape=PDT, fill=model_clone), stat="identity", size=2, position=position_dodge(0.2))+
+   unmute_theme+scale_color_manual(values=pal, guide="none")+scale_shape_manual(values=c(24,25,22,23))+#scale_shape_manual(values=c(18,23,20,19))+
+   geom_point(data=pdata, aes(x=mean.x, y=mean.y), shape=1, size=3)+
+   geom_errorbar(data=pdata, aes(x=mean.x, y=mean.y, ymin=lower.y, ymax=upper.y), width=.05, size=.2)+
+   geom_errorbar(data=pdata, aes(x=mean.x, y=mean.y, xmin=lower.x, xmax=upper.x), width=.05, size=.2)+
+   scale_fill_manual(values=pal, guide="none")+
+   xlab('MR, mut/(division*bp) *10^-9')+ylab('# subclonal SNVs')+theme(legend.position="right")
+
 
 # pearson pvalue
+sink(log_f)
+for (me in c('spearman', 'pearson')) {
+  print('all')
+  print(cor.test(merged$MR_edu, merged$n, method=me))
+  print(nrow(merged))
+  for (m in unique(merged$model)) {
+    print(m)
+    subm <- merged[merged$model == m, ]
+    print(cor.test(subm$MR_edu, subm$n, method=me))
+    print(nrow(subm))
+  }
+  print('avg')
+  print(cor.test(pdata$mean.x, pdata$mean.y, method=me))
+  print(nrow(pdata))
+}
+sink()
+
 
 ggsave(outplot, plot=p, width=89, height=56, units="mm")
 save.image(paste0(outplot, '.Rdata'))

@@ -25,6 +25,8 @@ confidence_interval <- function(vector, interval) {
   vec_mean <- mean(vector)
   # Error according to t distribution
   error <- qt((1+interval)/2, df = n - 1) * vec_sd / sqrt(n)
+  # TODO try with   error <- vec_sd
+
   # Confidence interval as a vector
   result <- c("lower" = vec_mean - error, "upper" = vec_mean + error, "mean" = vec_mean)
   return(result)

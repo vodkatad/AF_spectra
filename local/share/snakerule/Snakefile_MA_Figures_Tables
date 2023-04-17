@@ -13,7 +13,7 @@ rule figure_5a_subclonal:
     input: subclonal=REF_DATASET+'/fixedthr_subclonal', MR=REF_DATASET+'/MR_edu_SNV',
            theme=GGTHEME, colors=MANY_COLORS_PALETTE
     output: plot='fig_5a_subclonal.svg'
-    log: log='fig_5a_subclonal.svg'
+    log: log='fig_5a_subclonal.log'
     script: SRC_DIR+'/fig5a_subclonal.R'
 
 rule figure_5b_vaf_histo:

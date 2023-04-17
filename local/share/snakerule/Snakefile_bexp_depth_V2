@@ -79,7 +79,7 @@ def kind_MR(wildcards):
     elif wildcards.kind == "mrca":
         return expand("{model}/platypus_nobin_00/all_mrca.tsv", model=MODELS_NOREP_TRUE)
     elif wildcards.kind == "subclonal":
-        return expand("{model}/mutect_nobin/all_subclonal_n.tsv", model=MODELS_NOREP_TRUE)
+        return expand("{model}/mutect_nobin/all_subclonal_n.tsv", model=MODELS)
     else: 
         print("boh!")
 
@@ -144,7 +144,7 @@ rule overall_subcl:
     output: "fixedthr_{kind}"
     shell:
         """
-            cat {input} | grep -v '\-M' | grep '\-1\-' |  bawk '$3==0.24 && $4==0.05 {{print $1,$2}}' | tr "." "\\t" | cut -f 1,6 > {output}
+            cat {input} | grep -v '\-M' |  bawk '$3==0.24 && $4==0.12 {{print $1,$2}}' | tr "." "\\t" | cut -f 1,6 > {output}
         """
 
 rule mrca_plot:
