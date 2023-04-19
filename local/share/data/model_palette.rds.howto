@@ -1,0 +1,5 @@
+colors <- "#cc3300,#f607b9,#9900ff,#155d00,#77a003,#0829fc,#ff9900,#ffff00"
+models <- "CRC0282,CRC0327,CRC0441,CRC1078,CRC1307,CRC1502,CRC1599LM,CRC1599PR"
+model_palette_df <- data.frame(palette=unlist(strsplit(colors, ',')), model=unlist(strsplit(models, ',')), stringsAsFactors=F)
+saveRDS(model_palette_df, file="/scratch/trcanmed/AF_spectra/local/share/data/model_palette.rds")
+savehistory('/scratch/trcanmed/AF_spectra/local/share/data/model_palette.rds.howto')
