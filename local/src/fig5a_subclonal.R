@@ -72,7 +72,7 @@ pdata <- merge(pdataMR, pdatasub, by='model')
 p <- ggplot() +
    geom_point(data=merged, aes(x=MR_edu, y=n, color=model_clone, shape=PDT, fill=model_clone), stat="identity", size=2, position=position_dodge(0.2))+
    unmute_theme+scale_color_manual(values=pal, guide="none")+scale_shape_manual(values=c(24,25,22,23))+#scale_shape_manual(values=c(18,23,20,19))+
-   geom_point(data=pdata, aes(x=mean.x, y=mean.y), shape=1, size=3)+
+   geom_point(data=pdata, aes(x=mean.x, y=mean.y), shape=1, size=2)+
    geom_errorbar(data=pdata, aes(x=mean.x, y=mean.y, ymin=lower.y, ymax=upper.y), width=.05, size=.2)+
    geom_errorbar(data=pdata, aes(x=mean.x, y=mean.y, xmin=lower.x, xmax=upper.x), width=.05, size=.2)+
    scale_fill_manual(values=pal, guide="none")+

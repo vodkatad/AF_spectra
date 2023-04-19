@@ -65,6 +65,9 @@ dm_annsum <- summarize_annotations(
 
 real_annsum <- summarize_annotations(annotated_regions=gained_annotated, quiet=T)
 
+# as.data.frame can probably be used to impone a hierarchy
+#
+
 real <- as.data.frame(real_annsum)
 random <- as.data.frame(dm_annsum)
 real$SNV <- 'gained'

@@ -21,8 +21,8 @@ ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_tex
 )
 
 
-ggplot(d, aes(x=model, y=estimate, color=model)) +  geom_point(stat="identity", size=3) +
-    geom_errorbar(aes(ymin=lower, ymax=upper, x=model, width=0.1, color=model), size=0.6)+theme_bw()+ggtitle('dN/dS nonsyn+truncating')+ylab('ML estimate')+xlab('')+
+ggplot(d, aes(x=model, y=estimate, color=model)) +  geom_point(stat="identity", size=2) +
+    geom_errorbar(aes(ymin=lower, ymax=upper, x=model, width=0.1, color=model), size=0.2)+theme_bw()+ggtitle('dN/dS nonsyn+truncating')+ylab('ML estimate')+xlab('')+
   ctheme+scale_color_manual(values=cbPalette2)
 
 ggsave(outfile)
