@@ -28,7 +28,8 @@ confidence_interval <- function(vector, interval) {
   # Mean of sample
   vec_mean <- mean(vector)
   # Error according to t distribution
-  error <- qt((interval + 1)/2, df = n - 1) * vec_sd / sqrt(n)
+  #error <- qt((interval + 1)/2, df = n - 1) * vec_sd / sqrt(n)
+  error <- vec_sd
   # Confidence interval as a vector
   result <- c("lower" = vec_mean - error, "upper" = vec_mean + error, "mean" = vec_mean)
   return(result)
@@ -71,6 +72,10 @@ if (!all(met$smodel==pri$smodel)) {
 wt <- wilcox.test(met$intercept, pri$intercept, alternative="greater", paired=TRUE)
 
 sink(log_f)
+print('num pri')
+length(pri$intercept)
+print('num met')
+length(met$intercept)
 print(wt)
 sink()
 

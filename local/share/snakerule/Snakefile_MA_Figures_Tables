@@ -1,4 +1,30 @@
 include: 'conf.sk'
+
+### Supporting rules
+SORTED_MR='sorted_MR_avg.tsv'
+# rule whose end job is done by hand because 1599PR and LM needs manual positioning
+rule avg:
+    input: REF_DATASET+"/MR_edu_SNV_averaged.tsv"
+    output: "sorted_MR_avg.tmp.tsv"
+    shell: 
+        """
+            head -n1 {input} > {output}
+            sed 1d {input} | grep -w CRC0282 {input} >> {output}
+            sed 1d {input} | grep -v -w CRC0282 | sort -gk3,3 >> {output}
+        """
+
+### Figure 1
+rule figure_1b_mr:
+    input: MR=REF_DATASET+"/MR_edu_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='fig_1b_MR.svg', avgdata="fig_1b_avg.tsv"
+    log: log="fig_1b_MR.log"
+    script: SRC_DIR+'/fig1b_MR.R'
+
+rule figure_1c_dnds:
+    input: dnds=REF_DATASET+"/dnds1vitro_overall.tsv", theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot='fig_1c_dnds.svg'
+    script: SRC_DIR+'/fig1c_dnds.R'
+
 ### Figure 3
 rule fig_3b_wilcox_mb:
     #input: #TCGA=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_TCGA.rds", WES=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_wes.rds", # alt for our servers

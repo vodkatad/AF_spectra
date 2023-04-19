@@ -38,7 +38,7 @@ p <- ggplot(data=merged, aes(x=MR_edu, y=n)) +
   geom_point(aes(color=model_clone, shape=PDT, fill=model_clone), stat="identity", size=2, position=position_dodge(0.2))+
   unmute_theme+scale_color_manual(values=pal, guide="none")+scale_shape_manual(values=c(24,25,22,23))+#scale_shape_manual(values=c(18,23,20,19))+
   scale_fill_manual(values=pal, guide="none")+
-  xlab('MR, mut/(division*bp) *10^-9')+ylab('# subclonal SNVs')+theme(legend.position="right")
+  xlab('MR')+ylab('# subclonal SNVs')+theme(legend.position="right")
 
 # average errors ############
 confidence_interval <- function(vector, interval) {
