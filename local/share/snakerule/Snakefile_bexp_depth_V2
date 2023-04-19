@@ -73,7 +73,7 @@ rule shared_clone:
 # $4==1 keeps only first 6 months in vitro samples
 def kind_MR(wildcards):
     if wildcards.kind == "SNV":
-        return expand("{model}/platypus_nobin_00/all.MR_ov", model=MODELS)
+        return expand("{model}/platypus_nobin_00/all.MR_ov", model=MODELS_NO327_2)
     elif wildcards.kind == "indel":
         return expand("{model}/platypus_nobin_indels_00/all.MR_ov", model=MODELS)
     elif wildcards.kind == "mrca":

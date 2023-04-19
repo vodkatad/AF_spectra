@@ -76,7 +76,7 @@ p <- ggplot() +
    geom_errorbar(data=pdata, aes(x=mean.x, y=mean.y, ymin=lower.y, ymax=upper.y), width=.05, size=.2)+
    geom_errorbar(data=pdata, aes(x=mean.x, y=mean.y, xmin=lower.x, xmax=upper.x), width=.05, size=.2)+
    scale_fill_manual(values=pal, guide="none")+
-   xlab('MR, mut/(division*bp) *10^-9')+ylab('# subclonal SNVs')+theme(legend.position="right")
+   xlab('MR')+ylab('# subclonal SNVs')+theme(legend.position="right")
 
 
 # pearson pvalue

@@ -22,6 +22,7 @@ ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
 #MODELS=['CRC0282', 'CRC0282_clones_all', 'CRC0327','CRC0441','CRC1078', 'CRC1078_clones_all', 'CRC1307','CRC1307_clones_all','CRC1502', 'CRC1502_clones_all','CRC1599LM', 'CRC1599LM_clones_all', 'CRC1599PR']
 # we put CRC0282 clones of the secound round out for a moment, funny things (high MR + George's doubts)
 MODELS=['CRC0282', 'CRC0282_clones_all','CRC0327','CRC0327_clones_all', 'CRC0441','CRC1078', 'CRC1078_clones_all', 'CRC1307','CRC1307_clones_all','CRC1502', 'CRC1502_clones_all','CRC1599LM', 'CRC1599LM_clones_all', 'CRC1599PR']
+MODELS_NO327_2=['CRC0282', 'CRC0282_clones_all','CRC0327', 'CRC0441','CRC1078', 'CRC1078_clones_all', 'CRC1307','CRC1307_clones_all','CRC1502', 'CRC1502_clones_all','CRC1599LM', 'CRC1599LM_clones_all', 'CRC1599PR']
 MODELS_NOREP=['CRC0282','CRC0327','CRC0441','CRC1078', 'CRC1078_clones_all', 'CRC1307','CRC1307_clones_all','CRC1502','CRC1502_clones_all','CRC1599LM', 'CRC1599LM_clones_all', 'CRC1599PR']
 MODELS_NOREP_TRUE=['CRC0282','CRC0327','CRC0441','CRC1078','CRC1307','CRC1502','CRC1599LM', 'CRC1599PR']
 MODELS_NOREP_TRUE_NOMSI=['CRC0327','CRC0441','CRC1078','CRC1307','CRC1502','CRC1599LM', 'CRC1599PR']
