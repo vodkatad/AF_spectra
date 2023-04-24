@@ -46,11 +46,13 @@ rule all_sign_input:
 
 rule all_sign:
     input: "signinput_vitrovivobulk_merged"
-    output: heat="vitrovivobulk_heatmap_{merged}_cosmic.png", cosine="vitrovivobulk_cosine_{merged}_cosmic.png"
+    output: heat="vitrovivobulk_heatmap_{merged}_cosmic.png", cosine="vitrovivobulk_cosine_{merged}_cosmic.png",
+            heat_tsv="vitrovivobulk_heatmap_{merged}_cosmic.tsv", cosine_tsv="vitrovivobulk_cosine_{merged}_cosmic.tsv",
     params: tool=BIN_DIR+"/mut_pat_signatures_fit", colors=COLORS_MODELS_2
+    log: log="vitrovivobulk_heatmap_{merged}_cosmic.png.log"
     shell:
         """
-            {params.tool} {input} {output.heat} {output.cosine} '{params.colors}'
+            {params.tool} {input} {output.heat} {output.cosine} '{params.colors}' {log.log} {output.heat_tsv} {output.cosine_tsv}
         """
 
 
