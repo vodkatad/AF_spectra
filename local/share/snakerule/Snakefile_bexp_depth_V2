@@ -1,19 +1,19 @@
 include: "conf.sk"
 
+# CRC0327 has a 2nd round in vivo only, so we use MODELS_NO327_2 everywhere and MODELS only for in vivo
+# loss unused right now
 def input_signatures(wildcards):
     import glob
     if wildcards.kind == "vitro":
-        return glob.glob("CRC*/platypus_nobin_00/vitro.merged.vcf.gz")
+        return expand("{model}/platypus_nobin_00/vitro.merged.vcf.gz", model=MODELS_NO327_2)
     elif wildcards.kind == "vivo":
-        return glob.glob("CRC*/platypus_nobin_00/vivo.merged.vcf.gz") 
+        return expand("{model}/platypus_nobin_00/vivo.merged.vcf.gz", model=MODELS)
     elif wildcards.kind == "vitroloss":
-        return glob.glob("CRC*/platypus_nobin_00/vitro.mergedloss.vcf.gz")
+        return expand("{model}/platypus_nobin_00/vitro.mergedloss.vcf.gz", model=MODELS_NO327_2)
     elif wildcards.kind == "vivoloss":
-        return glob.glob("CRC*/platypus_nobin_00/vivo.mergedloss.vcf.gz")
+        return expand("{model}/platypus_nobin_00/vivo.mergedloss.vcf.gz", model=MODELS)
     elif wildcards.kind == "vitrovivobulk":
-        return glob.glob("CRC*/platypus_nobin_00/vitro.merged.vcf.gz") + glob.glob("CRC*/platypus_nobin_00/vivo.merged.vcf.gz") + BULK_VCF
-    elif wildcards.kind == "allstartingvcf":
-        print("TODO!")
+        return expand("{model}/platypus_nobin_00/vitro.merged.vcf.gz", model=MODELS_NO327_2) + expand("{model}/platypus_nobin_00/vivo.merged.vcf.gz", model=MODELS) + BULK_VCF
     else:
         print("wrong option, baby")
 
@@ -282,7 +282,6 @@ rule correlation_vitrovivo_nn:
         """
 
 ### all dnds
-# TODO FIXME NAMES
 rule all_dnds:
     input: expand("{model}/platypus_nobin_00/all_gained_named.tsv", model=MODELS)
     output: "dnds.tsv", "dnds.Rdata"
@@ -898,157 +897,6 @@ rule bed_repeatmask:
             zcat {input} | cut -f 6,7,8 |sort -k1,1 -k2,2n |uniq | bedtools merge -i - > {output}
         """
 
-#### Rule new de novo signature input
-## SparseSignatures
-def kind_signin(wildcards):
-    if wildcards.kind == "MSS":
-        return expand("{model}/platypus_nobin/all_signin.tsv", model=MODELS[1:])
-    else:
-        return expand("{model}/platypus_nobin/all_signin.tsv", model=MODELS)
-
-rule sparsesign_input:
-    input: kind_signin
-    output: "{kind}_signin.tsv"
-    shell:  
-        """
-            echo -e "sample\\tchrom\\tstart\\tend\\tref\\talt" > {output}
-            cat {input} | grep -v -w sample >> {output}  
-        """
-
-## sigProfilerExtractor
-def kind_sigprof_input(wildcards):
-    import glob
-    res = []
-    if wildcards.kind == "MSS":
-        for m in MODELS_NOREP_TRUE[1:]:
-            f = glob.glob(m+"/platypus_nobin/*signin.vcf")
-            res.append(f)
-    flat_list = [item for sublist in res for item in sublist]
-    return flat_list
-
-rule sigprofiler_input_dir:
-    input: kind_sigprof_input
-    output: directory("{kind}_sigprof")
-    shell:  
-        """
-            mkdir -p {output}
-            cp {input} {output}
-        """
-
-# failed test cause sigprofiler vcf wtf?
-#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset/MSS_mutpat$ for f in ../MSS_sigprof/*vcf; do b=`basename $f`; cat $f| bawk 'NR==1{print $1,$2,"ID",$4,$5} NR!=1 {print $1,$2,NR,$4,$5}'> $b ; done 
-
-# MutPat
-def kind_mutpatstarting_input(wildcards):
-    import glob
-    res = []
-    if wildcards.kind == "MSS":
-        ms = MODELS[1:]
-    else:
-        ms = MODELS
-    for m in ms:
-        f = glob.glob(m+"/platypus_nobin/*mutpatin.vcf")
-        res.append(f)
-    flat_list = [item for sublist in res for item in sublist]
-    return flat_list
-
-
-# we still have 2nd round clones as separate samples...keep only first round to start with, then FIXME TODO HOW
-rule mutpat_input_startingclones:
-    input: kind_mutpatstarting_input
-    output: "{kind}_mutpatin_startingclones.tsv"
-    run:
-        import os
-        import re
-        with open(output[0],'w') as o:
-            for i in input:
-                bn = os.path.basename(i)
-                bns = bn.split('.')
-                if not re.match('.+clones_all.+', i):
-                    o.write('{}\t{}\n'.format(i, bns[0]))
-                
-
-#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ nsnakemake mutpat_input > meh
-#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ paste meh <(tr "/" "\t" < meh| cut -f 3 | sed 's/\.mutpatin\.vcf//g') > mehh
-
-rule modelmerged_nobulk:
-    input: 'signinput_vitrovivobulk_merged'
-    output: 'all_signinput_vitrovivo_merged'
-    shell: "grep -v _bulk {input} > {output}"
-
-rule modelmerged_nobulk_MSS:
-    input: 'all_signinput_vitrovivo_merged'
-    output: 'MSS_signinput_vitrovivo_merged'
-    shell: "grep -v CRC0282 {input} > {output}"
-
-rule sign_1:
-    input: "{kind}_mutpatin_startingclones.tsv"
-    output: directory("{k}_{kind}_mutpat_denovo")
-    params: tool=BIN_DIR+"/mut_pat_signatures_denovo", colors=COLORS_MODELS
-    shell:
-        """
-            mkdir -p {output}
-            {params.tool} {input} {output} '{params.colors}' {wildcards.k} mutpat.Rdata
-        """
-        
-rule sign_2:
-    input: "{kind}_signinput_vitrovivo_merged"
-    output: directory("{k}_{kind}_mutpat2_denovo")
-    params: tool=BIN_DIR+"/mut_pat_signatures_denovo", colors=COLORS_MODELS
-    shell:
-        """
-            mkdir -p {output}
-            {params.tool} {input} {output} '{params.colors}' {wildcards.k} mutpat.Rdata
-        """
-
-# risky with glob, FIXME TODO
-def kind_mutpatstarting_input3(wildcards):
-    import glob
-    res = []
-    if wildcards.kind == "MSS":
-        ms = MODELS[1:]
-    else:
-        ms = MODELS
-    for m in ms:
-        f = glob.glob(m+"/platypus_nobin/*gain.vcf.gz")
-        res.append(f)
-    flat_list = [item for sublist in res for item in sublist]
-    return flat_list
-
-rule sign_3_input:
-    input:  kind_mutpatstarting_input3
-    output: "{kind}_signinput3.tsv"
-    shell:
-        """
-            echo {input} | tr " " "\\n" | sort | perl -ane 'if ($_ =~ /\/(CRC\d+.*?)_/) {{print $1."\\n"}}' > {output}.tmp
-            echo {input} | tr " " "\\n" | sort > {output}.tmp2
-            paste {output}.tmp2 {output}.tmp > {output}
-        """
-
-# wtf?
-#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ tail all_signinput3.tsv
-#CRC1599LM/platypus_nobin/CRC1599LM-03-1-E_CRC1599LM-03-0.gain.vcf.gz    CRC1599LM-07-MI-D
-#CRC1599LM/platypus_nobin/CRC1599LM-07-MI-C_CRC1599LM-07-0.gain.vcf.gz   CRC1599LM-07-MI-E
-#CRC1599LM/platypus_nobin/CRC1599LM-07-MI-D_CRC1599LM-07-0.gain.vcf.gz   CRC1599PR-01-1-E
-#CRC1599LM/platypus_nobin/CRC1599LM-07-MI-E_CRC1599LM-07-0.gain.vcf.gz   CRC1599PR-01-1-F
-#CRC1599PR/platypus_nobin/CRC1599PR-01-1-E_CRC1599PR-01-0.gain.vcf.gz    CRC1599PR-01-1-L
-#CRC1599PR/platypus_nobin/CRC1599PR-01-1-F_CRC1599PR-01-0.gain.vcf.gz    CRC1599PR-10-1-E
-#CRC1599PR/platypus_nobin/CRC1599PR-01-1-L_CRC1599PR-01-0.gain.vcf.gz    CRC1599PR-10-1-F
-#CRC1599PR/platypus_nobin/CRC1599PR-10-1-E_CRC1599PR-10-0.gain.vcf.gz    CRC1599PR-10-1-G
-#CRC1599PR/platypus_nobin/CRC1599PR-10-1-F_CRC1599PR-10-0.gain.vcf.gz
-#CRC1599PR/platypus_nobin/CRC1599PR-10-1-G_CRC1599PR-10-0.gain.vcf.gz
-
-#rm {output}.tmp*
-rule sign_3:
-    input:  "kind_signinput3.tsv"
-    output: directory("{k}_{kind}_mutpat3_denovo")
-    params: tool=BIN_DIR+"/mut_pat_signatures_denovo", colors=COLORS_MODELS
-    shell:
-        """
-            mkdir -p {output}
-            {params.tool} {input} {output} '{params.colors}' {wildcards.k} mutpat.Rdata
-        """
-
 # gain all merged then pcgr, to get a MAF
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset$ for f in */*/vitro.merged.vcf.gz; do tabix $f; done
 rule merge_all:
@@ -1136,22 +984,6 @@ rule evil_muts:
     params: target='CRC1502-09C', targetT1='CRC1502-09-1-C', nbrothers=3
     output: muts="CRC1502-09C_CRC1502-09C_CRC1502-09-1-C.{altclass}.private.tsv"
     script: SRC_DIR+'/wip_common_muts.R'
-
-rule supplementary_wilcox_mut_burden:
-    input: genes="CRC1502-09C_CRC1502-09C_CRC1502-09-1-C.00.private.tsv", wilcox=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_{ref}"
-    output: tsv="supplementary_wilcox_mut_burden_{ref}.tsv"
-    script: SRC_DIR+'/filter_correct.R'
-
-rule supplementary_ed7_xlsx:
-    input: TCGA="supplementary_wilcox_mut_burden_TCGA.tsv", WES="supplementary_wilcox_mut_burden_wes.tsv"
-    output: "Extended_Data_Table_7_wilcox_mutburden.xlsx"
-    shell: "tsv_to_xls -i {input.TCGA},{input.WES} -s TCGA,WES -o {output}"
-
-rule fig_3b_wilcox_mb:
-    input: TCGA=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_TCGA.rds", WES=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_wes.rds",
-           theme=GGTHEME
-    output: plot="fig_3b_wilcox_mb.pdf"
-    script: SRC_DIR+"/fig3b_wilcox.R"
 
 # regions
 # annotatr
