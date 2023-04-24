@@ -367,13 +367,28 @@ rule merged_vcf:
     output: "{kind}.merged.vcf.gz"
     shell:
         """
-            for f in {input}; do 
-                tabix -f $f;
-            done;
-            bcftools merge {input} | bgzip > {output}
+            v="{input}"
+            echo "_"$v"_"
+            if [ -z "$v" ]; then
+                echo "touch";
+	        	touch {output};
+            else
+                i=0;
+                for f in {input}; do  
+                        tabix -f $f;
+                        i=$((i + 1));
+                done;
+                echo $i;
+                if [ $i -gt 1 ]; then
+                    echo "merge";
+                    bcftools merge {input} | bgzip > {output};
+                else
+                    echo "cp";
+                    cp {input} {output};
+                fi;
+            fi;
         """
 
-# TODO remove repeated code by having lost/gain as wildcard usable in find_kind_vcf and find_pairs_vcf
 
 def find_kind_vcf_lost(wildcards):
     import re
