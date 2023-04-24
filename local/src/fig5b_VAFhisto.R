@@ -25,7 +25,7 @@ dM <- load_data(lm_vafs)
 Mp <- ggplot(data=dM, aes(x=VAF))+geom_histogram(bins=50, fill="#ff9900", color="black", size=0.2)+ylim(0, 21)+
   ylab('')+unmute_theme+ggtitle('CRC1599LMX')+
   geom_vline(xintercept=0.24, linetype="dashed", color = "darkgrey", size=0.2)
-Pp <- ggplot(data=dP, aes(x=VAF))+geom_histogram(bins=50, fill="#ffff00", color="black", size=0.2)+ylim(0, 21)+
+Pp <- ggplot(data=dP, aes(x=VAF))+geom_histogram(bins=50, fill="#ffcc33", color="black", size=0.2)+ylim(0, 21)+
   ylab('# of alterations')+unmute_theme+ggtitle('CRC1599PRX')+
   geom_vline(xintercept=0.24, linetype="dashed", color = "darkgrey", size=0.2)
 
