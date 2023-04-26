@@ -1,5 +1,9 @@
 include: 'conf.sk'
 
+rule ggplot_themes:
+	output: Rimage='theme_{size}.Rdata'
+	script: SRC_DIR+'/ggthemes.R'
+
 ### Supporting rules
 SORTED_MR='sorted_MR_avg.tsv'
 # rule whose end job is done by hand because 1599PR and LM needs manual positioning

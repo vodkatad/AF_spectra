@@ -35,7 +35,7 @@ merged$model_clone <- paste0(merged$model, "_", merged$clone)
 merged$time <- sapply(merged$sample, function(x) {y<-strsplit(x, '-')[[1]][3]; return(y[1])})
 
 p <- ggplot(data=merged, aes(x=MR_edu, y=n)) +
-  geom_point(aes(color=model_clone, shape=PDT, fill=model_clone), stat="identity", size=2, position=position_dodge(0.2))+
+  geom_point(aes(color=model_clone, shape=PDT, fill=model_clone), stat="identity", size=1, position=position_dodge(0.2))+
   unmute_theme+scale_color_manual(values=pal, guide="none")+scale_shape_manual(values=c(24,25,22,23))+#scale_shape_manual(values=c(18,23,20,19))+
   scale_fill_manual(values=pal, guide="none")+
   xlab('MR')+ylab('# subclonal SNVs')+theme(legend.position="right")
@@ -70,7 +70,7 @@ pdatasub$model <- rownames(pdatasub)
 pdata <- merge(pdataMR, pdatasub, by='model')
 # 
 p <- ggplot() +
-   geom_point(data=merged, aes(x=MR_edu, y=n, color=model_clone, shape=PDT, fill=model_clone), stat="identity", size=2, position=position_dodge(0.2))+
+   geom_point(data=merged, aes(x=MR_edu, y=n, color=model_clone, shape=PDT, fill=model_clone), stat="identity", size=1, position=position_dodge(0.2))+
    unmute_theme+scale_color_manual(values=pal, guide="none")+scale_shape_manual(values=c(24,25,22,23))+#scale_shape_manual(values=c(18,23,20,19))+
    geom_point(data=pdata, aes(x=mean.x, y=mean.y), shape=1, size=2)+
    geom_errorbar(data=pdata, aes(x=mean.x, y=mean.y, ymin=lower.y, ymax=upper.y), width=.05, size=.2)+

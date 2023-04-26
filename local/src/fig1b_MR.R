@@ -60,7 +60,7 @@ pdata$model <- factor(pdata$model, levels=orderdf$model)
 p <- ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=2) +
   geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+ylab('MR')+xlab('')+
   geom_point(data=our, aes(x=model, y=MR, color=model_clone), stat="identity", size=2, shape=18, position=position_dodge(0.5))+
-  unmute_theme+scale_color_manual(values=pal)+theme(legend.position="none", axis.text.x = element_blank())
+  scale_color_manual(values=pal)+theme(legend.position="none", axis.text.x = element_blank())+unmute_theme
 
 ggsave(outplot, plot=p, width=89, height=56, units="mm")
 write.table(pdata, file=data_f, sep="\t", quote=FALSE)

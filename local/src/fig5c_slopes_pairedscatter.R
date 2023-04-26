@@ -36,11 +36,6 @@ confidence_interval <- function(vector, interval) {
 }
 
 
-ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_text(size=15, angle=90, vjust=0.5, hjust=1), 
-                           axis.title.y=element_text(size=20), axis.text.y=element_text(size=15), 
-                           plot.title = element_text(face = "bold", size = 20, hjust = 0.5), legend.position='none'
-)
-
 LEVEL <- 0.99
 ic_clones <- sapply(unique(fit_r2$mp), function(x) { confidence_interval(fit_r2[fit_r2$mp==x,'intercept'], LEVEL) })
 colnames(ic_clones) <- unique(fit_r2$mp)
@@ -54,7 +49,7 @@ p <- ggplot(data=fit_r2, aes(x=model, y=intercept, color=mp, group=smodel)) +
   geom_jitter(data=fit_r2, aes(x=mp, y=intercept, color=mp), size=2, shape=18, position=pd)+
   geom_line(data=fit_r2, aes(group=smodel), position=pd, color="lightgrey", linetype = "dashed",)+
   geom_point(data=pdata, aes(x=model, y=mean, group=NULL, color=NULL), stat="identity", shape=1, size=2) +
-  geom_segment(data=pdata, aes(y=lower, yend=upper, x=model, xend=model, group=NULL, color=NULL), size=0.6) + ctheme+
+  geom_segment(data=pdata, aes(y=lower, yend=upper, x=model, xend=model, group=NULL, color=NULL), size=0.6) +
   scale_color_manual(values=c('#adacac', '#595959'))+
   scale_y_continuous(breaks = seq(0, 70, by = 10))+
   ylab('μ/β')+xlab('')+unmute_theme+theme(legend.position='none')
