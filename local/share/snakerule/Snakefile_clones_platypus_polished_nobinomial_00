@@ -54,7 +54,6 @@ def find_pairs_raw_ov(wildcards):
 
 FUN_OV=find_pairs_raw_ov
 include: "./conf.sk"
-VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus_00"
 ######################################################################
 rule all_tsv:
     input: expand("{sample}.tsv.gz", sample=SAMPLES)

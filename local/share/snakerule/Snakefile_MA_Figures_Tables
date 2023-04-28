@@ -37,6 +37,44 @@ rule fig_3b_wilcox_mb:
     output: plot='fig_3b_wilcox_mb.svg'
     script: SRC_DIR+'/fig3b_wilcox.R'
 
+### Figure 2
+# bulk + vitro 1st
+rule fig2_a:
+    input: sign=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="fig_2a_cosmic.pdf"
+    params: wanted="bulk", legend="yes", addlm="yes"
+    script: SRC_DIR+'/fig2_cosmic.R'
+
+rule fig_2a_bis:
+    input: sign=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="fig_2abis_cosmic.pdf"
+    params: wanted="vitroMA", legend="no", addlm="yes"
+    script: SRC_DIR+'/fig2_cosmic.R'
+
+# vivo 1st
+rule fig_2b_bis:
+    input: sign=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="fig_2b_cosmic.pdf"
+    params: wanted="vivoMA", legend="no", addlm="yes"
+    script: SRC_DIR+'/fig2_cosmic.R'
+
+# cleverers
+rule fig_2c:
+    input: sign=REF_DATASET+"/cleverers_exposures.tsv", 
+           palette=MODELS_COLORS_PALETTE_CLEV, order=SORTED_CLEV
+    output: plot="fig_2c_cosmic.pdf"
+    params: wanted="shared", legend="yes", addlm="no"
+    script: SRC_DIR+'/fig2_cosmic.R'
+
+rule fig_2c_bis:
+    input: sign=REF_DATASET+"/cleverers_exposures.tsv", 
+           palette=MODELS_COLORS_PALETTE_CLEV, order=SORTED_CLEV
+    output: plot="fig_2cbis_cosmic.pdf"
+    params: wanted="private", legend="no", addlm="no"
+    script: SRC_DIR+'/fig2_cosmic.R'
 
 ### Figure 5
 rule figure_5a_subclonal:
@@ -65,7 +103,35 @@ rule supplementary_wilcox_mut_burden:
     output: tsv="supplementary_wilcox_mut_burden_{ref}.tsv"
     script: SRC_DIR+'/filter_correct.R'
 
-rule supplementary_edt8_xlsx:
+# TODO add LMX/PRX
+rule supplementary_edt_4_xlsx:
+    input: exposures=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", cosine=REF_DATASET+"/vitrovivobulk_cosine_merged_cosmic.tsv"
+    output: xls="Extended_Data_Table_4_signatures_vitrovivobulk.xlsx"
+    shell:
+        """
+            bawk 'NR==1{{print "model","class",$0}}' {input.exposures} | perl -pne 's/(\d+)/SBS$1/g'> {output}.tmp
+            tr "_" "\\t" < {input.exposures} | grep -v 2nd | sed 's/bulk/parental/' | sed 1d >> {output}.tmp
+            echo -e "model\\tclass\\tcosine_similarity\\n" > {output}.tmp2
+            sed 1d {input.cosine} | grep -v 2nd  | sed 's/bulk/parental/' | tr "_" "\\t" | cut -f 1,2,3 >> {output}.tmp2
+            tsv_to_xls -i {output}.tmp,{output}.tmp2 -s exposures,cosine -o {output}
+            rm {output}.tmp*
+        """
+
+# TODO add clevers
+rule supplementary_edt7_xlsx:
+    input: exposures=REF_DATASET+"/cleverers_exposures.tsv", cosine=REF_DATASET+"/cleverers_cosine.tsv"
+    output: xls="Extended_Data_Table_7_signatures_cleverers.xlsx"
+    shell:
+        """
+            bawk 'NR==1{{print "model","class",$0}}' {input.exposures} | cut -f 3 --complement | perl -pne 's/(\d+)/SBS$1/g'> {output}.tmp
+            tr "_" "\\t" < {input.exposures} | sed 1d >> {output}.tmp
+            echo -en "model\\tclass\\tcosine_similarity\\n" > {output}.tmp2
+            sed 1d {input.cosine} | tr "_" "\\t" | cut -f 1,2,3 >> {output}.tmp2
+            tsv_to_xls -i {output}.tmp,{output}.tmp2 -s exposures,cosine -o {output}
+            #rm {output}.tmp*
+        """
+
+rule supplementary_edt9_xlsx:
     input: TCGA="supplementary_wilcox_mut_burden_TCGA.tsv", WES="supplementary_wilcox_mut_burden_wes.tsv"
-    output: "Extended_Data_Table_8_wilcox_mutburden.xlsx"
+    output: "Extended_Data_Table_9_wilcox_mutburden.xlsx"
     shell: "tsv_to_xls -i {input.TCGA},{input.WES} -s TCGA,WES -o {output}"

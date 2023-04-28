@@ -1010,3 +1010,20 @@ rule annotatr:
     params: custom_annot="no"
     output: plot_n="gained_{kind}.genomicregions.svg", plot_corr="gained_{kind}.genomicregionsnorm.svg"
     script: SRC_DIR+"/annotatr.R"
+
+# cleverers
+rule cleverers_merge_exp:
+    input: expand('cleverers/{model}/cosmic_exposures.tsv', model=['CRC2566','CRC2573','CRC2608'])
+    output: "cleverers_exposures.tsv"
+    shell: """
+            head -n1 {input[0]} > {output}
+            cat {input} | grep CRC >> {output} 
+           """
+
+rule cleverers_merge_cosine:
+    input: expand('cleverers/{model}/cosmic_cosine.tsv', model=['CRC2566','CRC2573','CRC2608'])
+    output: "cleverers_cosine.tsv"
+    shell: """
+            head -n1 {input[0]} > {output}
+            cat {input} | grep CRC >> {output} 
+           """

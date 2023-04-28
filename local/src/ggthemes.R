@@ -15,7 +15,7 @@ largerSize <- textSize + 2
 
 #textSize <- textSize * (96/72) # these conversion were needed because the default dpi for text was 96?
 # in the svg the number passed to theme was reported as size = ..px.. rather than pt (?)
-#largerSize <- largerSize * (96/72)
+#largerSize <- largerSize * (96/72) 
 unmute_theme <- theme(
 	text = element_text(size = textSize, family='sans'),
 	axis.title = element_text(size = largerSize),
