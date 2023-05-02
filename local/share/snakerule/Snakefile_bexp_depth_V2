@@ -81,7 +81,7 @@ def kind_MR(wildcards):
     elif wildcards.kind == "mrca":
         return expand("{model}/platypus_nobin_00/all_mrca.tsv", model=MODELS_NOREP_TRUE)
     elif wildcards.kind == "subclonal":
-        return expand("{model}/mutect_nobin/all_subclonal_n.tsv", model=MODELS)
+        return expand("{model}/mutect_nobin/all_subclonal_n.tsv", model=MODELS_NO327_2)
     else: 
         print("boh!")
 
@@ -1027,3 +1027,36 @@ rule cleverers_merge_cosine:
             head -n1 {input[0]} > {output}
             cat {input} | grep CRC >> {output} 
            """
+
+# lagomarsino subclonal all
+rule all_thr_subcl:
+    input: kind_MR
+    output: "thr_{lowAF}-{highAF}_{kind}"
+    shell:
+        """
+            cat {input} | grep -v '\-M' |  bawk '$3=={wildcards.highAF} && $4=={wildcards.lowAF} {{print $1,$2}}' | tr "." "\\t" | cut -f 1,6 > {output}
+        """
+
+rule subclonal_all_thr:
+    input: subclonal="thr_{lowAF}-{highAF}_subclonal", MR='MR_edu_SNV',
+           theme=GGTHEME, colors=MANY_COLORS_PALETTE
+    output: plot='thr_{lowAF}-{highAF}_subclonal.png'
+    log: log='thr_{lowAF}-{highAF}_subclonal.log'
+    script: SRC_DIR+'/subclonal_all_lago.R'
+
+def my_expand_thr(wildcards):
+    exp = expand("thr_{lowAF}-{highAF}_subclonal.png", lowAF=[0.025, 0.05, 0.1, 0.12, 0.15], 
+                                                       highAF=[0.05, 0.1, 0.15, 0.2, 0.24, 0.3, 0.5])
+    res = []
+    import re
+    for e in exp:
+        sl = e.split('_')
+        sl = sl[1].split('-')
+        laf = float(sl[0])
+        haf = float(sl[1])
+        if laf < haf:
+            res.append(e)
+    return res
+
+rule all_subclonal_thr:
+    input: my_expand_thr
