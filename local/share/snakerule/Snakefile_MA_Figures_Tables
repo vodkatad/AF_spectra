@@ -134,14 +134,17 @@ rule supplementary_edt_4_xlsx:
 
 # TODO add clevers
 rule supplementary_edt7_xlsx:
-    input: exposures=REF_DATASET+"/cleverers_exposures.tsv", cosine=REF_DATASET+"/cleverers_cosine.tsv"
+    input: exposures=REF_DATASET+"/cleverers_exposures.tsv", cosine=REF_DATASET+"/cleverers_cosine.tsv", 
+           cleversexp=REF_DATASET+"/clevers/heatmap_cosmic.tsv", cleverscosine=REF_DATASET+"/clevers/cosine_cosmic.tsv"
     output: xls="Extended_Data_Table_7_signatures_cleverers.xlsx"
     shell:
         """
             bawk 'NR==1{{print "model","class",$0}}' {input.exposures} | cut -f 3 --complement | perl -pne 's/(\d+)/SBS$1/g'> {output}.tmp
             tr "_" "\\t" < {input.exposures} | sed 1d >> {output}.tmp
+            tr "_" "\\t" < {input.cleversexp} | sed 1d >> {output}.tmp
             echo -en "model\\tclass\\tcosine_similarity\\n" > {output}.tmp2
             sed 1d {input.cosine} | tr "_" "\\t" | cut -f 1,2,3 >> {output}.tmp2
+            sed 1d {input.cleverscosine} | tr "_" "\\t" | cut -f 1,2,3 >> {output}.tmp2
             tsv_to_xls -i {output}.tmp,{output}.tmp2 -s exposures,cosine -o {output}
             #rm {output}.tmp*
         """

@@ -69,9 +69,12 @@ wt <- wilcox.test(met$intercept, pri$intercept, alternative="greater", paired=TR
 sink(log_f)
 print('num pri')
 length(pri$intercept)
+median(pri$intercept)
 print('num met')
 length(met$intercept)
+median(met$intercept)
 print(wt)
+table(met$intercept > pri$intercept)
 sink()
 
 save.image(paste0(outplot, '.Rdata'))

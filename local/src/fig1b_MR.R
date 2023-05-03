@@ -84,7 +84,7 @@ m2 <- "CRC1599PR"
 print(paste0(m1, ' vs ', m2))
 print(as.character(op[1, 'model']))
 print(as.character(op[nrow(op)-1, 'model']))
-print(pdata[pdata$model=="CRC1307LM", 'mean']/pdata[pdata$model=="CRC1599PR", 'mean'])
+print(pdata[pdata$model==m1, 'mean']/pdata[pdata$model==m2, 'mean'])
 print(wilcox.test(our[our$model==m1, 'MR'], our[our$model==m2, 'MR']))
 
 sink()

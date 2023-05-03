@@ -49,7 +49,8 @@ confidence_interval <- function(vector, interval) {
    # Mean of sample
    vec_mean <- mean(vector)
    # Error according to t distribution
-   error <- qt((1+interval)/2, df = n - 1) * vec_sd / sqrt(n)
+   #error <- qt((1+interval)/2, df = n - 1) * vec_sd / sqrt(n)
+   error <- vec_sd
    # Confidence interval as a vector
    result <- c("lower" = vec_mean - error, "upper" = vec_mean + error, "mean" = vec_mean)
    return(result)
@@ -61,6 +62,26 @@ colnames(ic_clones) <- unique(merged$model)
 pdataMR <- as.data.frame(t(ic_clones))
 pdataMR$model <- rownames(pdataMR)
 
+sink(log_f)
+# fold change + wilcox CRC1307 CRC1078
+m1 <- "CRC1307"
+m2 <- "CRC1078"
+print(paste0(m1, ' vs ', m2))
+op <- pdataMR[order(pdataMR$mean),]
+print(as.character(op[nrow(op), 'model']))
+print(as.character(op[nrow(op)-1, 'model']))
+print(pdataMR[pdataMR$model==m1, 'mean']/pdataMR[pdataMR$model==m2, 'mean'])
+print(wilcox.test(merged[merged$model==m1, 'MR'], merged[merged$model==m2, 'MR']))
+
+# fold change + wilcox CRC1599PR CRC1599LM
+m1 <- "CRC1599LM"
+m2 <- "CRC1599PR"
+print(paste0(m1, ' vs ', m2))
+print(as.character(op[1, 'model']))
+print(as.character(op[nrow(op)-1, 'model']))
+print(pdataMR[pdataMR$model==m1, 'mean']/pdataMR[pdataMR$model==m2, 'mean'])
+print(wilcox.test(merged[merged$model==m1, 'MR'], merged[merged$model==m2, 'MR']))
+sink()
 
 ic_clones <- sapply(unique(merged$model), function(x) { confidence_interval(merged[merged$model==x,'n'], LEVEL) })
 colnames(ic_clones) <- unique(merged$model)
@@ -80,7 +101,7 @@ p <- ggplot() +
 
 
 # pearson pvalue
-sink(log_f)
+sink(log_f, append=TRUE)
 for (me in c('spearman', 'pearson')) {
   print('all')
   print(cor.test(merged$MR_edu, merged$n, method=me))
