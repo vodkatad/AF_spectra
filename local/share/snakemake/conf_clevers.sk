@@ -1,0 +1,17 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+
+PRJ_ROOT=find_prj_root()
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+SNAKE_ROOT="/mnt/trcanmed/snaketree"
+SROOT="/scratch/trcanmed"
+
+DATA=PRJ_ROOT+'/local/share/data/clevers/suppl/'
+VCF_HEADER=PRJ_ROOT+'/local/share/data/clevers/vcfheader'
+

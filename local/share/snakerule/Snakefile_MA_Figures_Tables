@@ -76,6 +76,21 @@ rule fig_2c_bis:
     params: wanted="private", legend="no", addlm="no"
     script: SRC_DIR+'/fig2_cosmic.R'
 
+# clevers suppl
+rule edfig_8:
+    input: sign=REF_DATASET+"/clevers/heatmap_cosmic.tsv", 
+           palette=MODELS_COLORS_PALETTE_CLE, order=SORTED_CLE
+    output: plot="edfig_8_cosmic.pdf"
+    params: wanted="trunk", legend="yes", addlm="no"
+    script: SRC_DIR+'/fig2_cosmic.R'
+
+rule edfig_8_bis:
+    input: sign=REF_DATASET+"/clevers/heatmap_cosmic.tsv", 
+           palette=MODELS_COLORS_PALETTE_CLE, order=SORTED_CLE
+    output: plot="edfig_8bis_cosmic.pdf"
+    params: wanted="leaves", legend="no", addlm="no"
+    script: SRC_DIR+'/fig2_cosmic.R'
+
 ### Figure 5
 rule figure_5a_subclonal:
     input: subclonal=REF_DATASET+'/fixedthr_subclonal', MR=REF_DATASET+'/MR_edu_SNV',

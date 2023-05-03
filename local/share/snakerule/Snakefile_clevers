@@ -1,0 +1,61 @@
+include: "conf.sk"
+
+PATIENTS=['P1', 'P2', 'P3']
+#/home/data/Dropbox/work/log/diary_september2021.txt: 2018  perl /home/data/Dropbox/work/evol/MA/clevers_tree.pl vcfheader P2 < clevers_singlecell_subs_P2.txt 
+#/home/data/Dropbox/work/log/diary_september2021.txt: 2019  perl /home/data/Dropbox/work/evol/MA/clevers_tree.pl vcfheader P3 < clevers_singlecell_subs_P3.txt
+
+rule P_leaves:
+    input: suppl=DATA+"clevers_singlecell_subs_{patient}.txt", header=VCF_HEADER
+    output: touch("{patient}_leaves_vcf")
+    params: tool=BIN_DIR+"/clevers_tree_Tleaves"
+    shell:  """
+                {params.tool} {input.header} {wildcards.patient} < {input.suppl}
+            """
+
+rule P_trunk:
+    input: suppl=DATA+"clevers_singlecell_subs_{patient}.txt", header=VCF_HEADER
+    output: touch("{patient}_trunk_vcf")
+    params: tool=BIN_DIR+"/clevers_tree_Ttrunk"
+    shell:  """
+                {params.tool} {input.header} {wildcards.patient} < {input.suppl}
+            """
+
+rule all_trees:
+    input: expand("{patient}_leaves_vcf", patient=PATIENTS), expand("{patient}_trunk_vcf", patient=PATIENTS)
+
+
+rule index_lazy:
+    output: "listinput_vcf"
+    shell:
+        """
+            for f in leaves*vcf; do
+                bf=$f
+                bf="${{bf##*/}}"
+                bf="${{bf%.vcf}}"
+                bcftools sort $f | bgzip -c > $bf.vcf.gz
+                tabix $bf.vcf.gz
+                p=$(echo $f | tr "_" "\\t" |  tr "." "\\t" | bawk '{{print $2"-"$3"-"$4}}')
+                echo -en "${{bf}}.vcf.gz\\t${{p}}_leaves\\n" >> {output}
+            done
+            for f in trunk*vcf; do
+                bf=$f
+                bf="${{bf##*/}}"
+                bf="${{bf%.vcf}}"
+                bcftools sort $f | bgzip -c > $bf.vcf.gz
+                tabix $bf.vcf.gz
+                p=$(echo $f | tr "_" "\\t" |  tr "." "\\t" |cut -f 2)
+                echo -en "${{bf}}.vcf.gz\\t${{p}}_trunk\\n" >> {output}
+            done
+        """
+
+
+rule all_sign:
+    input: "listinput_vcf"
+    output: heat="heatmap_cosmic.png", cosine="cosine_cosmic.png",
+            heat_tsv="heatmap_cosmic.tsv", cosine_tsv="cosine_cosmic.tsv",
+    params: tool=BIN_DIR+"/mut_pat_signatures_fit_clev", colors='#cc3300,#f607b9,#9900ff'
+    log: log="heatmap_cosmic.png.log"
+    shell:
+        """
+            {params.tool} {input} {output.heat} {output.cosine} '{params.colors}' {log.log} {output.heat_tsv} {output.cosine_tsv}
+        """

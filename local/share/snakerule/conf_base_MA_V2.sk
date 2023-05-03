@@ -83,4 +83,7 @@ SOURCE_DATA=PRJ_ROOT+'/local/share/data/SourceData'
 MODELS_COLORS_PALETTE_CLEV=PRJ_ROOT+'/local/share/data/cleverers_palette.rds'
 SORTED_CLEV=PRJ_ROOT+'/local/share/data/sorted_clevers.tsv'
 
+MODELS_COLORS_PALETTE_CLE=PRJ_ROOT+'/local/share/data/clevers_palette.rds'
+SORTED_CLE=PRJ_ROOT+'/local/share/data/sorted_cleversreal.tsv'
+
 GGTHEME='../dataset_Figures_Tables/theme_5.Rdata'
