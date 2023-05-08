@@ -30,6 +30,12 @@ rule figure_1c_dnds:
     script: SRC_DIR+'/fig1c_dnds.R'
 
 ### Figure 3
+rule figure_3a_mr:
+    input: MR=REF_DATASET+"/MR_edu_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='fig_3a_MR.svg', avgdata="fig_3a_avg.tsv"
+    log: log="fig_3a_MR.log"
+    script: SRC_DIR+'/fig3a_MR.R'
+
 rule fig_3b_wilcox_mb:
     #input: #TCGA=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_TCGA.rds", WES=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_wes.rds", # alt for our servers
     input: TCGA=SOURCE_DATA+'/all_genes_mb_wilcox_TCGA.rds', WES=SOURCE_DATA+'/all_genes_mb_wilcox_wes.rds',
