@@ -1,0 +1,248 @@
+SAMPLES=['CRC0282_clones_all', 'CRC0327_clones_all','CRC0441','CRC1078_clones_all','CRC1307_clones_all','CRC1502_clones_all','CRC1599LM_clones_all','CRC1599PR']
+
+rule alltobin_merged:
+    input: expand("../{model}/sequenza/merged.tsv.gz", model=SAMPLES) 
+    output: m="merged.tsv.gz"
+    run:
+        import pandas as pd
+        res = pd.read_csv(input[0], sep="\t") 
+        samples = SAMPLES
+        for i in range(1, len(input)):
+            print('adding ' + samples[i])
+            current = pd.read_csv(input[i], sep="\t") 
+            current = current.drop(columns=['chr','b','e'])
+            res = pd.concat([res, current], axis=1, sort=False)            
+        res.to_csv(output.m, sep="\t", compression='gzip', index=False)
+
+        
+rule heatmap:
+    input: "merged.tsv.gz"
+    output: "{clu}_merged_heatmap.png"
+    run:
+        import numpy as np
+        import pandas as pd
+        import seaborn as sns
+        import matplotlib.colors as colors
+        import matplotlib 
+        import matplotlib.cm as cm
+        import matplotlib.ticker as ticker
+        import matplotlib.pyplot as plt
+        import matplotlib.colors as colors
+        import matplotlib.transforms as transforms
+        if wildcards.clu == "clu":
+            clusters = True
+        else:
+            clusters = False
+        cnvs = pd.read_csv(input[0], sep="\t") 
+        #divnorm = colors.Normalize(vmin=0, vmax=12)
+        #divnorm = colors.Normalize(vmin=0, vmax=12)
+        boundaries = cnvs[['chr','b','e']].copy()
+        cnvs = cnvs.drop(columns=['chr','b','e']).transpose()
+        names = list(cnvs.index.values)
+        #print(names)
+        models = [x.split('-')[0] for x in names]
+        clones = [x.split('-')[1] for x in names]
+        times = [x.split('-')[2] for x in names]
+        letter = [x.split('-')[3] if len(x.split('-'))==4 else '' for x in names]
+        p = pd.DataFrame(data={'m':models,'c':clones, 't': times, 'l':letter})
+        p = p.sort_values(by=['m','c','t','l'])
+        sorted_names= []
+        for i in range(0, len(p)):
+            if p.iloc[i]['l'] != "":
+                sorted_names.append(str(p.iloc[i]['m']) +'-'+ str(p.iloc[i]['c'])+ '-' +str(p.iloc[i]['t']) +'-'+ str(p.iloc[i]['l']))
+            else: 
+                sorted_names.append(str(p.iloc[i]['m']) +'-'+ str(p.iloc[i]['c'])+ '-' +str(p.iloc[i]['t']))
+        #print(sorted_names)
+
+        cnvs = cnvs.reindex(sorted_names)
+        samples = p['m'].tolist()
+        # Create a categorical palette to identify the samples
+        sample_pal = sns.color_palette("bright", len(np.unique(samples)))
+        #sample_pal = sns.husl_palette(len(samples), h=.5)
+        sample_lut = dict(zip(map(str, np.unique(samples)), sample_pal))
+        # Convert the palette to vectors that will be drawn on the side of the matrix
+        allsamples = cnvs.index.get_level_values(None)
+        sample_colors = pd.Series(samples, index=allsamples).map(sample_lut)
+        print(sample_colors)
+        print(sample_lut)
+        print(sample_pal)
+
+        verbose = True
+        metric = 'euclidean'
+        method = 'ward'
+
+        chr_limits = boundaries.index[boundaries['e'].isin(boundaries.groupby('chr', sort=False)['e'].max().values)].tolist()
+        chr_boundaries = np.append(0, chr_limits)
+        chr_list = boundaries['chr'].unique().tolist()
+        chrN_list = []
+
+        for x in chr_list:
+            x = x[3:] #remove 'chr' for readability
+            chrN_list.append(x)
+
+        #compute the position where chromosome labels will be placed on the plots
+        start = 0
+        pos_list = []
+        for end in chr_limits:
+            pos_list.append((start+end)/2)
+            start = end+1
+
+        if clusters:
+            yticklabels = True
+        else:
+            yticklabels = False
+
+        cbar_kws={"ticks":np.arange(0,13,1)}
+        #import sys
+        #sys.setrecursionlimit(10000)
+        #h = sns.clustermap(cnvs, method=method, metric=metric, col_cluster=False, yticklabels = yticklabels,  cmap='RdBu_r', vmin=0, vmax=12,norm=divnorm, cbar_kws=cbar_kws)
+        h = sns.clustermap(cnvs, row_colors=sample_colors, col_cluster=False, row_cluster=clusters, yticklabels = True, cmap='RdBu_r', vmin=0, vmax=12,center=2, cbar_kws=cbar_kws)
+        #Z = h.dendrogram_row.linkage
+        ax = h.ax_heatmap
+        #place vertical lines to identify chromosomes
+        for pos in chr_limits:
+            ax.axvline(x=pos, color='black')
+
+        #place chromosome ticks at the right position
+        ax.xaxis.set_major_locator(ticker.FixedLocator((pos_list)))
+        ax.xaxis.set_major_formatter(ticker.FixedFormatter((chrN_list)))
+        ax.tick_params(axis='x', rotation=0, labelsize=20)
+        ax.tick_params(axis='y', rotation=0, labelsize=15)
+    
+        ax.xaxis.set_minor_locator(ticker.FixedLocator(chr_boundaries))
+        ax.tick_params(axis='x', length=20, which='minor')
+
+        ax.set_xlabel("Chromosomes", fontweight='bold', fontsize=25)
+        if clusters:
+            ax.set_ylabel("Clusters", fontweight='bold', fontsize=25)
+        else:
+            ax.set_ylabel("Clones", fontsize=25, fontweight='bold')
+
+        plt.gcf().set_size_inches(37, 21)
+    
+        if clusters:
+            plt.gcf().suptitle("Clusters mean CNV heatmap", fontsize=30, fontweight='bold')
+            plt.savefig(output[0])
+        else:
+            plt.gcf().suptitle("CNV heatmap", fontsize=30, fontweight='bold')
+            plt.savefig(output[0])
+        plt.clf()
+
+# very bad repeated code for stupid issues
+
+rule vitro_alltobin_merged:
+    input: all="merged.tsv.gz"
+    output: vitro="vitro_merged.tsv.gz"
+    run:
+        import pandas as pd
+        res = pd.read_csv(input.all, sep="\t") 
+        cols = res.columns
+        vitro_cols = [i for i, x in enumerate(cols) if not re.match('.+\-M.+',x) and not re.match('.+PRO\-.+',x)]
+        # there are little inconsistencies  between clones_all and not in PRO/LMO, we get rid of 1599PRO here.
+        n_v_c = cols[vitro_cols]
+        res = res[[c for c in res.columns if c in n_v_c]]
+        res.to_csv(output.vitro, sep="\t", compression='gzip', index=False) 
+        # always adorable https://stackoverflow.com/questions/40636514/selecting-pandas-dataframe-column-by-list
+
+        
+rule vitro_heatmap:
+    input: cn="vitro_merged.tsv.gz"
+    output: "vitromerged_heatmap.pdf"
+    run:
+        import numpy as np
+        import pandas as pd
+        import seaborn as sns
+        import matplotlib.colors as colors
+        import matplotlib 
+        import matplotlib.cm as cm
+        import matplotlib.ticker as ticker
+        import matplotlib.pyplot as plt
+        import matplotlib.colors as colors
+        import matplotlib.transforms as transforms
+        from matplotlib.patches import Rectangle
+
+        cnvs = pd.read_csv(input[0], sep="\t") 
+        #divnorm = colors.Normalize(vmin=0, vmax=12)
+        #divnorm = colors.Normalize(vmin=0, vmax=12)
+        boundaries = cnvs[['chr','b','e']].copy()
+        cnvs = cnvs.drop(columns=['chr','b','e']).transpose()
+        names = list(cnvs.index.values)
+        #print(names)
+        models = [x.split('-')[0] for x in names]
+        clones = [x.split('-')[1] for x in names]
+        times = [x.split('-')[2] for x in names]
+        letter = [x.split('-')[3] if len(x.split('-'))==4 else '' for x in names]
+        p = pd.DataFrame(data={'m':models,'c':clones, 't': times, 'l':letter})
+        p = p.sort_values(by=['m','c','t','l'])
+        sorted_names= []
+        for i in range(0, len(p)):
+            if p.iloc[i]['l'] != "":
+                sorted_names.append(str(p.iloc[i]['m']) +'-'+ str(p.iloc[i]['c'])+ '-' +str(p.iloc[i]['t']) +'-'+ str(p.iloc[i]['l']))
+            else: 
+                sorted_names.append(str(p.iloc[i]['m']) +'-'+ str(p.iloc[i]['c'])+ '-' +str(p.iloc[i]['t']))
+        #print(sorted_names)
+
+        cnvs = cnvs.reindex(sorted_names)
+        samples = p['m'].tolist()
+        # Create a categorical palette to identify the samples
+        #sample_pal = sns.color_palette("bright", len(np.unique(samples)))
+        sample_pal = sns.color_palette(["#cc3300","#f607b9","#9900ff","#155d00","#77a003","#0829fc","#ff9900","#ffff00"])
+        #sample_pal = sns.husl_palette(len(samples), h=.5)
+        sample_lut = dict(zip(map(str, np.unique(samples)), sample_pal))
+        # Convert the palette to vectors that will be drawn on the side of the matrix
+        allsamples = cnvs.index.get_level_values(None)
+        sample_colors = pd.Series(samples, index=allsamples).map(sample_lut)
+        print(sample_colors)
+        print(sample_lut)
+        print(sample_pal)
+
+        verbose = True
+        metric = 'euclidean'
+        method = 'ward'
+
+        chr_limits = boundaries.index[boundaries['e'].isin(boundaries.groupby('chr', sort=False)['e'].max().values)].tolist()
+        chr_boundaries = np.append(0, chr_limits)
+        chr_list = boundaries['chr'].unique().tolist()
+        chrN_list = []
+
+        for x in chr_list:
+            x = x[3:] #remove 'chr' for readability
+            chrN_list.append(x)
+
+        #compute the position where chromosome labels will be placed on the plots
+        start = 0
+        pos_list = []
+        for end in chr_limits:
+            pos_list.append((start+end)/2)
+            start = end+1
+
+        yticklabels = False
+
+        cbar_kws={"ticks":np.arange(0,13,1)}
+        #import sys
+        #sys.setrecursionlimit(10000)
+        #h = sns.clustermap(cnvs, method=method, metric=metric, col_cluster=False, yticklabels = yticklabels,  cmap='RdBu_r', vmin=0, vmax=12,norm=divnorm, cbar_kws=cbar_kws)
+        h = sns.clustermap(cnvs, row_colors=sample_colors, col_cluster=False, row_cluster=False, yticklabels = True, cmap='RdBu_r', vmin=0, vmax=12,center=2, cbar_kws=cbar_kws)
+        #Z = h.dendrogram_row.linkage
+        ax = h.ax_heatmap
+        for pos in chr_limits:
+            ax.axvline(x=pos, color='black')
+
+        #place chromosome ticks at the right position
+        ax.xaxis.set_major_locator(ticker.FixedLocator((pos_list)))
+        ax.xaxis.set_major_formatter(ticker.FixedFormatter((chrN_list)))
+        ax.tick_params(axis='x', rotation=0, labelsize=5)
+        #ax.tick_params(axis='y', rotation=125, labelsize=15)
+    
+        ax.xaxis.set_minor_locator(ticker.FixedLocator(chr_boundaries))
+        ax.tick_params(axis='x', length=20, which='minor')
+
+        ax.set_xlabel("Chromosomes", fontweight='bold', fontsize=7)
+        ax.set_ylabel("Clones", fontsize=7, fontweight='bold')
+
+        # A4 is 8-1/4 x 11-3/4 in
+        plt.gcf().set_size_inches(7, 3.8) # w, h
+        # cannot find a way to get tolerable linewidth cause linewidth parameter seem to be ignored, will
+        # scale by hand
+        plt.savefig(output[0], dpi=300)
+        plt.clf()

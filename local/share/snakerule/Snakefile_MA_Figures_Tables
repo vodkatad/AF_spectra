@@ -97,6 +97,13 @@ rule edfig_8_bis:
     params: wanted="leaves", legend="no", addlm="no"
     script: SRC_DIR+'/fig2_cosmic.R'
 
+### Figure 4
+rule vitro_heatmap:
+    input: cn=REF_DATASET+'/cn_heatmap/vitro_merged.tsv.gz', order=SORTED_MR
+    output: plot="fig_4a_cn_heatmap.pdf"
+    log: log="fig_4a_cn_heatmap.log"
+    script: SRC_DIR+'/heatmap_cn.py'
+
 ### Figure 5
 rule figure_5a_subclonal:
     input: subclonal=REF_DATASET+'/fixedthr_subclonal', MR=REF_DATASET+'/MR_edu_SNV',

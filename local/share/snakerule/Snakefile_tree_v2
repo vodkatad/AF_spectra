@@ -17,4 +17,21 @@ rule phangorn_plot:
     script: SRC_DIR+"/phangorn_plots.R"
 
 
+rule cn_distances:
+    input: tree=PRJ_ROOT+"/local/share/data/trees_cn/"+MODEL+"_final_tree.new"
+    output: dist="cn_distances.tsv"
+    params: model=MODEL, nexus="no"
+    script: SRC_DIR+"/newick_cn.R"
 
+
+rule snvindel_distances:
+    input: tree="tree_bulk_vitro.nexus"
+    output: dist="snvindel_distances.tsv"
+    params: model=MODEL, nexus="yes"
+    script: SRC_DIR+"/newick_cn.R"
+
+
+rule t1_t2_distances:
+    input: dist="{kind}_distances.tsv"
+    output: tips="{kind}_tips.tsv"
+    script: SRC_DIR+"/tips.R"

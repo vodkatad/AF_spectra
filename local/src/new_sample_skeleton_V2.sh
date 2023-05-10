@@ -27,7 +27,11 @@
 #ln -s ../../../local/share/snakerule/Snakefile_mutationalpatterns Snakefile
 #ln -s ../../../local/share/snakemake/conf_$1_mutect_platypus_polished.sk conf.sk
 
-mkdir $1/tree
-cd $1/tree
-ln -s ../../../local/share/snakerule/Snakefile_tree_v2 Snakefile
+#mkdir $1/tree
+#cd $1/tree
+#ln -s ../../../local/share/snakerule/Snakefile_tree_v2 Snakefile
+#ln -s ../../../local/share/snakemake/conf_$1_mutect_platypus_polished.sk conf.sk
+mkdir $1/sequenza
+cd $1/sequenza
+ln -s ../../../local/share/snakerule/Snakefile_sequenza Snakefile
 ln -s ../../../local/share/snakemake/conf_$1_mutect_platypus_polished.sk conf.sk
