@@ -104,6 +104,26 @@ rule vitro_heatmap:
     log: log="fig_4a_cn_heatmap.log"
     script: SRC_DIR+'/heatmap_cn.py'
 
+rule figure_4b_mr:
+    input: MR=REF_DATASET+"/fixedcn_tree", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='fig_4b_CN.svg', avgdata="fig_4b_avg.tsv"
+    log: log="fig_4b_CN.log"
+    script: SRC_DIR+'/fig4b_CN.R'
+
+
+rule figure_4_support_MR_also2nd:
+    input: MR=REF_DATASET+"/MR_edu_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='support_4.svg', avgdata="support_4_avgMR.tsv"
+    log: log="fig_4_support.log"
+    script: SRC_DIR+'/fig4b_CN.R'
+
+rule figure_4c_cor:
+    input: mr="support_4_avgMR.tsv", cn="fig_4b_avg.tsv",  theme=GGTHEME, palette=MODELS_COLORS_PALETTE
+    output: plot='fig_4c_cor.svg'
+    log: log="fig_4c_cor.log"
+    script: SRC_DIR+'/fig4c_cor.R'
+    
+
 ### Figure 5
 rule figure_5a_subclonal:
     input: subclonal=REF_DATASET+'/fixedthr_subclonal', MR=REF_DATASET+'/MR_edu_SNV',

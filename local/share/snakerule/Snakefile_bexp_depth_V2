@@ -82,6 +82,8 @@ def kind_MR(wildcards):
         return expand("{model}/platypus_nobin_00/all_mrca.tsv", model=MODELS_NOREP_TRUE)
     elif wildcards.kind == "subclonal":
         return expand("{model}/mutect_nobin/all_subclonal_n.tsv", model=MODELS_NO327_2)
+    elif wildcards.kind == "tree":
+        return expand("{model}/tree/{{lesion}}_tips.tsv", model=MODELS_1_OR_2)
     else: 
         print("boh!")
 
@@ -189,6 +191,33 @@ rule overall_SNV_gained_vivo:
     shell:
         """
             cat {input} | bawk '$4!=1 && $4 != 2 && $4!="class"{{print $2,$5}}' > {output}
+        """
+
+rule overall_tree_tips:
+    output: "{lesion}_{kind}"
+    input: kind_MR
+    shell:
+        """
+            cat {input} | grep -w -v from | cut -f1,3 > {output}
+        """
+
+rule rename_removefiltered_cn:
+    input: "cn_tree"
+    output: "fixedcn_tree"
+    shell:  
+        """
+            grep -v -w 'CRC0282-01A-2-3' {input} | grep -v -w 'CRC0282-07E-2-2' | \
+            sed 's/CRC1307-08D-2-4/CRC1307-09E-2-4/' {input} | sed 's/CRC1307-08D-2-3/CRC1307-09E-2-3/' | \
+            sed 's/CRC1307-08D-2-5/CRC1307-09E-2-5/' | sed 's/CRC1307-02B-2-2/CRC1307-08D-2-2/' | sed 's/CRC1307-02B-2-5/CRC1307-08D-2-5/' > {output}
+        """
+
+# for consistency with CN we build also snvindel tree with the two filtered MSI 2nd round and remove them afterwards
+rule rename_removefiltered_snvindel:
+    input: "snvindel_tree"
+    output: "fixedsnvindel_tree"
+    shell:  
+        """
+            grep -v -w 'CRC0282-01A-2-3' {input} | grep -v -w 'CRC0282-07E-2-2'  > {output}
         """
 
 rule average_model:
@@ -457,6 +486,14 @@ rule MSS_gainednn_plot:
             rm {output}.tmp
         """
 
+rule tree_plot:
+    input: data="{lesion}_tree", ggtheme=GGTHEME
+    output: "treedist_{lesion}.png"
+    params: tool=BIN_DIR+"/MR_plot", colors=MANY_COLORS_PALETTE
+    shell:
+        """
+            {params.tool} {input.data} {output} {params.colors} {input.ggtheme}
+        """
 
 ### MutationalPatterns bed
 #rule chain:

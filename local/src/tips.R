@@ -1,7 +1,7 @@
 dist <- snakemake@input[['dist']]
 
 data <- read.table(dist, sep="\t", stringsAsFactors=FALSE)
-colnames(data) <- gsub('.', '-', colnames(data), fixed=T)
+colnames(data) <- gsub('.', '-', colnames(data), fixed=TRUE)
 save.image('pippo.Rdata')
 names <- rownames(data)
 time <- sapply(names, function(x) {y<-strsplit(x, '-')[[1]][3]; return(y[1])})
@@ -33,5 +33,5 @@ res <- sapply(seq(1, length(names)), maiscrivereifor)
 res <- as.data.frame(t(res), stringsAsFactor=FALSE)
 colnames(res) <- c('from', 'to', 'dist')
 res <- res[res$dist != "",]
-res$dist <- as.numeric(res$dist)
+res$dist <- as.numeric(as.character(res$dist))
 write.table(res, file=snakemake@output[['tips']], sep="\t", quote=FALSE, row.names=FALSE)
