@@ -14,7 +14,7 @@ SNAKE_ROOT=os.getenv('SNAKE_ROOT')
 ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
 
 HROOT='/home/egrassi'
-DATA=PRJ_ROOT+"/local/share/data/CRC1502_150x"
+DATA=PRJ_ROOT+"/local/share/data/CRC0282_150x"
 SDATA=DATA
 BIN_DIR=PRJ_ROOT+"/local/bin"
 SRC_DIR=PRJ_ROOT+"/local/src"
@@ -28,9 +28,9 @@ CNLEN=BIN_DIR+"/cn_len_plot"
 CNLEN2=BIN_DIR+"/cn_len_plot2"
 
 DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
-CALLABLE=DATA+"/{sample}_callable_200x.covered.bed.gz"
+CALLABLE=DATA+"/{sample}_callable_10x.covered.bed.gz"
 
-SAMPLES=['CRC1502-03-1-A']
+SAMPLES=['CRC0282-05-0', 'CRC0282-05-1-C']
 BULK=['plh']
 CLONE2=['plh']
 CLONE8=['plh']
@@ -45,4 +45,6 @@ wildcard_constraints:
 SAMPLES_HIGH=["plh"] # list comprehens TODO
 
 PLOIDY=3
+
 DNDSCV_RDA=DATA+"/../RefCDS_human_GRCh38.p12.rda"
+

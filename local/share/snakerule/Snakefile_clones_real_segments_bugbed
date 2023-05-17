@@ -87,7 +87,7 @@ rule intersect_cnv:
     shell:
         """
             bedtools intersect -b {input.callable} -a <(sed 1d {input.sequenza} | bawk '{{print $1, $2-1, $3, $10}}') | filter_1col 1 {input.chrs} | gzip > {output.callable};
-            bedtools intersect -wo -a {input.var} -b {output.callable} | bawk '{{print $1, $2, $3, $4":"$8}}' |  gzip > {output.var}
+            bedtools intersect -wo -a <(zcat {input.var}) -b <(zcat {output.callable}) | bawk '{{print $1, $2, $3, $4":"$8}}' |  gzip > {output.var}
         """
 
 rule all_AF_spectra:
@@ -593,7 +593,7 @@ rule subclonal_calls:
     output: "{sample}.subclonal_mut_{loweraf}_{higheraf}.tsv"
     shell:
         """
-            zcat {input} | sed 1d | bawk -v S={wildcards.sample} '$11 > {wildcards.loweraf} && $11 < {wildcards.higheraf} {{print S, $1}}' | sort | uniq > {output}
+            zcat {input} | sed 1d | bawk -vS={wildcards.sample} '$11 > {wildcards.loweraf} && $11 < {wildcards.higheraf} {{print S, $1}}' | sort | uniq > {output}
         """
 
 rule dnds:
