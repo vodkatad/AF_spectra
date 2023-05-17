@@ -1031,6 +1031,8 @@ def all_gained_bed(wildcards):
         return expand("{model}/platypus_nobin_00/all.gain.bed", model=MODELS_NOREP_TRUE)
     elif wildcards.kind == "all":
         return expand("{model}/platypus_nobin_indels_00/all.gain.bed", model=MODELS)
+    elif wildcards.kind == "bulk":
+        return expand("{model}/tree/bulk.bed", model=MODELS_NOREP_TRUE)
     else: 
         print("boh!")
 

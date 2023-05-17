@@ -9,6 +9,43 @@ rule phangorn_bulk:
     params: model=MODEL, normal=NORMAL, chrs=','.join(['chr'+str(x) for x in list(range(1,23)) + ['X','Y']])
     script: SRC_DIR+"/phangorn2_nothr.R"
 
+try:
+    BULKNAME_VCF
+except NameError:
+    BULKNAME_VCF=BULKNAME
+
+rule bulk_vars:
+    input:  vcf=DATA+'/../' + SHIPMENT + '/'+BULKNAME+'.pass.vcf.gz', chrs=DATA+"/chrs"
+    output: "bulk.tsv.gz"
+    params: tool=VCFTOBED1, multi=MULTI, kind=KIND, sample=BULKNAME_VCF
+    log: "bulk.multiallelic"
+    shell: 
+        """
+            bcftools view -s {params.sample} {input.vcf} | bcftools annotate -I +'%CHROM:%POS:%REF:%ALT' - \\
+            | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
+        """
+
+# we guess sequenza is 1 based cause it starts from pileups...end...included? Looked around in code, sic, going with "assumptions".
+# we start with CALLABLE == to the clones cause right now we do not have the callable on bulk - not ideal.
+rule intersect_cnv_bulk:
+    input: var="bulk.tsv.gz", sequenza=DATA+'/../' + SHIPMENT + '/'+BULKNAME+'_segments.txt', callable=CALLABLE, chrs=DATA+"/chrs"
+    output: var="bulk.var_cnv.tsv.gz", callable="bulk.callable.bed.gz"
+    shell:
+        """
+            bedtools intersect -b {input.callable} -a <(sed 1d {input.sequenza} | bawk '{{print $1, $2-1, $3, $10}}') | filter_1col 1 {input.chrs} | gzip > {output.callable};
+            bedtools intersect -wo -a <(zcat {input.var}) -b {output.callable} | bawk '{{print $1, $2, $3, $4":"$8}}' |  gzip > {output.var}
+        """
+
+rule bulk_bed:
+    input: var="bulk.var_cnv.tsv.gz"
+    output: var="bulk.bed"
+    params: cn=WANTED_CN
+    shell:
+        """ 
+            echo {params.cn} | tr "," "\\n" > {output}.tmp
+            zcat {input.var} | tr ":" "\\t" | filter_1col 11 {output}.tmp | bawk '{{print $1,$2,$3}}' > {output}
+            rm {output}.tmp
+        """
 
 # TODO add tmp to rimage output of phangon_bulk rule once we are satisfied with the plot
 rule phangorn_plot:

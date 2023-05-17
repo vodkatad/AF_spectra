@@ -17,5 +17,5 @@ for M in ${MODELS[@]}; do
   #../local/src/new_sample_skeleton_V2.sh $M
   ../local/src/new_sample_snakes_V2.sh $M
   #../local/src/new_sample_skeleton_V2.sh ${M}_clones_all
-  ../local/src/new_sample_snakes_V2.sh ${M}_clones_all
+  #../local/src/new_sample_snakes_V2.sh ${M}_clones_all
 done

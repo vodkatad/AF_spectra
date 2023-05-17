@@ -32,4 +32,4 @@
 #snakemake tree_bulk_vitro.pdf nobs_tree_bulk_vitro.svg
 
 cd $1/tree
-snakemake cn_tips.tsv snvindel_tips.tsv
+snakemake bulk.bed

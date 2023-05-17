@@ -34,6 +34,7 @@ VCF_DIR=PRJ_ROOT+"/dataset/CRC1599LM/platypus_nobin"
 ##############################################################
 
 VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
+VCFTOBED1=BIN_DIR+"/vcf_to_bed"
 CNLEN=BIN_DIR+"/cn_len_plot"
 CNLEN2=BIN_DIR+"/cn_len_plot2"
 
