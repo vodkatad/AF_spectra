@@ -193,13 +193,13 @@ rule overall_SNV_gained_vivo:
             cat {input} | bawk '$4!=1 && $4 != 2 && $4!="class"{{print $2,$5}}' > {output}
         """
 
-rule overall_tree_tips:
-    output: "{lesion}_{kind}"
-    input: kind_MR
-    shell:
-        """
-            cat {input} | grep -w -v from | cut -f1,3 > {output}
-        """
+#rule overall_tree_tips:
+    #output: "{lesion}_{kind}"
+    #input: kind_MR
+    #shell:
+    #    """
+    #        cat {input} | grep -w -v from | cut -f1,3 > {output}
+    #    """
 
 rule rename_removefiltered_cn:
     input: "cn_tree"

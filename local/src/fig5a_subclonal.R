@@ -4,7 +4,9 @@ colors <- snakemake@input[['colors']]
 
 log_f <- snakemake@log[['log']]
 outplot <- snakemake@output[['plot']]
+outtsv <- snakemake@output[['tsv']]
 theme <- snakemake@input[['theme']]
+
 save.image(paste0(outplot, '.Rdata'))
 library(ggplot2)
 library(ggpubr)
@@ -19,7 +21,7 @@ colnames(subclonal) <- c('sample', 'n')
 MR <- read.table(MR_f, header=FALSE, sep="\t", stringsAsFactors=FALSE)
 colnames(MR) <- c('sample', 'MR')
 MR$MR_edu <- MR$MR / 0.000000001
-
+subclonal$n <- subclonal$n / 1000
 merged <- merge(subclonal, MR, by='sample')
 merged$smodel <- substr(merged$sample, 0, 7)
 wanted <- c('CRC1599', 'CRC1307', 'CRC1078')
@@ -89,15 +91,26 @@ pdatasub <- as.data.frame(t(ic_clones))
 pdatasub$model <- rownames(pdatasub)
 
 pdata <- merge(pdataMR, pdatasub, by='model')
-# 
+#
+
+y_breaks <- guess_ticks(merged$n)
+x_breaks <- guess_ticks(merged$MR_edu)
+print(y_breaks)
+print(x_breaks)
+
+ratio_to_caperrorbars <- y_breaks[2] / x_breaks[2]
 p <- ggplot() +
    geom_point(data=merged, aes(x=MR_edu, y=n, color=model_clone, shape=PDT, fill=model_clone), stat="identity", size=1, position=position_dodge(0.2))+
    unmute_theme+scale_color_manual(values=pal, guide="none")+scale_shape_manual(values=c(24,25,22,23))+#scale_shape_manual(values=c(18,23,20,19))+
    geom_point(data=pdata, aes(x=mean.x, y=mean.y), shape=1, size=2)+
-   geom_errorbar(data=pdata, aes(x=mean.x, y=mean.y, ymin=lower.y, ymax=upper.y), width=.05, size=.2)+
-   geom_errorbar(data=pdata, aes(x=mean.x, y=mean.y, xmin=lower.x, xmax=upper.x), width=.05, size=.2)+
+   geom_errorbar(data=pdata, aes(x=mean.x, y=mean.y, ymin=lower.y, ymax=upper.y), width=.1, size=.2)+
+   geom_errorbarh(data=pdata, aes(y=mean.y, xmin=lower.x, xmax=upper.x), height=.1*ratio_to_caperrorbars, size=.2)+
    scale_fill_manual(values=pal, guide="none")+
-   xlab('MR')+ylab('# subclonal SNVs')+theme(legend.position="right")
+   xlab('MR')+ylab('# subclonal SNVs')+
+   scale_y_continuous(breaks=y_breaks, limits=c(0,max(y_breaks)), expand = c(0, 0))+
+   scale_x_continuous(breaks=x_breaks, limits=c(0,max(x_breaks)), expand = c(0, 0))+
+   theme(legend.position="right",  legend.spacing.y = unit(0.15, "mm")) + 
+   guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))
 
 
 # pearson pvalue
@@ -118,6 +131,10 @@ for (me in c('spearman', 'pearson')) {
 }
 sink()
 
-
 ggsave(outplot, plot=p, width=89, height=56, units="mm")
+
+res <- merged[, c('sample', 'n')]
+colnames(res) <- c('clone_id', 'n_subclonal')
+write.table(res, file=outtsv, sep="\t", quote=FALSE, row.names=FALSE)
+
 save.image(paste0(outplot, '.Rdata'))

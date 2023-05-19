@@ -71,11 +71,18 @@ pdata <- merge(pdata, orderdf, by="model")
 our$ord_x_time <- our$x_ord + 1/3*as.numeric(our$time)
 pdata$ord_x_time <- pdata$x_ord + 1/3*as.numeric(pdata$time)
 
+
+y_breaks <- guess_ticks(our$MR)
+print(y_breaks)
 our$model_time <- as.factor(our$model_time)
 p <- ggplot(pdata, aes(x=reorder(model_time, ord_x_time), y=mean)) +  geom_point(stat="identity", shape=1, size=2) +
   geom_segment(aes(y=lower, yend=upper, x=reorder(model_time, ord_x_time), xend=reorder(model_time, ord_x_time)), size=0.6)+ylab('MR')+xlab('')+
   geom_point(data=our, aes(x=reorder(model_time, ord_x_time), y=MR, color=model_clone), stat="identity", size=2, shape=18, position=position_dodge(0.5))+
-  scale_color_manual(values=pal)+unmute_theme+theme(legend.position="none", axis.text.x = element_blank())
+  scale_color_manual(values=pal)+unmute_theme+
+  scale_y_continuous(breaks=y_breaks) +#, expand = c(0, 0))+
+  theme(legend.position="right", axis.text.x = element_blank(), 
+                     axis.ticks.x = element_blank(),
+                     legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))
 
 ggsave(outplot, plot=p, width=89, height=89, units="mm")
 write.table(pdata, file=data_f, sep="\t", quote=FALSE)

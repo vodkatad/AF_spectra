@@ -52,7 +52,9 @@ p <- ggplot(data=fit_r2, aes(x=model, y=intercept, color=mp, group=smodel)) +
   geom_segment(data=pdata, aes(y=lower, yend=upper, x=model, xend=model, group=NULL, color=NULL), size=0.6) +
   scale_color_manual(values=c('#adacac', '#595959'))+
   scale_y_continuous(breaks = seq(0, 70, by = 10))+
-  ylab('μ/β')+xlab('')+unmute_theme+theme(legend.position='none')
+  ylab('μ/β')+xlab('')+unmute_theme+theme(legend.position='none')+
+  scale_y_continuous(breaks=y_breaks)
+
   #geom_signif(data=fit_r2, mapping=aes(x=mp, y=intercept), 
   #            comparisons = list(c("LMX", "PRX")), test="t.test", test.args=list(alternative = "greater", paired=TRUE))
 

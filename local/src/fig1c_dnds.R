@@ -34,9 +34,15 @@ d$model <- paste0(d$model, ifelse(!grepl('\\d$', d$model), '', ifelse(d$model=="
 names(pal) <- paste0(names(pal), ifelse(!grepl('\\d$', names(pal)), '', ifelse(names(pal)=="CRC0282", 'PR', 'LM')))
 d$order <- seq(1, nrow(d))
 
-p <- ggplot(d, aes(x=order(order, model), y=estimate, color=model)) +  geom_point(stat="identity", size=2) +
-  geom_errorbar(aes(ymin=lower, ymax=upper, x=order(order,model), width=0.1, color=model), size=0.2)+ylab('dN/dS estimate')+xlab('')+
-  unmute_theme+scale_color_manual(values=pal)+theme(legend.position="top", axis.text.x = element_blank())
+y_breaks <- guess_ticks(d$lower)
 
+p <- ggplot(d, aes(x=order(order, model), y=estimate, color=model)) +  geom_point(stat="identity", size=1.3) +
+  geom_errorbar(aes(ymin=lower, ymax=upper, x=order(order,model)), width=0.3, size=0.3, color='black')+ylab('dN/dS estimate')+xlab('')+
+  scale_color_manual(values=pal)+
+  unmute_theme+theme(legend.position="right", axis.text.x = element_blank(), 
+                     axis.ticks.x = element_blank(),
+                     legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))+
+  scale_y_continuous(breaks=y_breaks, limits=c(0,max(y_breaks)), expand = c(0, 0))# + ylim(NA,max(y_breaks))
+                     
 ggsave(outplot, plot=p, width=89, height=56, units="mm")
 save.image(paste0(outplot, '.Rdata'))

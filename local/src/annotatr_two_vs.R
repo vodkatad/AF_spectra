@@ -3,8 +3,8 @@ library(rtracklayer)
 library(ggplot2)
 #bed_gained <- '/scratch/trcanmed/AF_spectra/datasetV2/gained_first.bed'
 #bed_bulk <- '/scratch/trcanmed/AF_spectra/datasetV2/gained_bulk.bed'
-bed_gained <- '/scratch/trcanmed/AF_spectra/datasetV2/CRC0282/tree/bulk.bed'
-bed_bulk <- '/scratch/trcanmed/AF_spectra/datasetV2/CRC0282/platypus_nobin_00/all.gain.bed'
+bed_gained <- '/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/tree/bulk.bed'
+bed_bulk <- '/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/platypus_nobin_00/all.gain.bed'
 
 custom_annot <- 'no'
 #bed <- snakemake@input[['gained_bed']]
@@ -104,3 +104,7 @@ df <- pd %>%
 ggplot(df, aes(x = "", y = perc, fill = annot.type)) +
   geom_col() +
   coord_polar(theta = "y")+facet_grid(~SNV)+theme_light()
+
+
+ggplot(df, aes(x = "", y = perc, fill = annot.type)) +
+  geom_col() +facet_grid(~SNV)+theme_light()

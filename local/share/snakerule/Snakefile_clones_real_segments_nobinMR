@@ -700,3 +700,36 @@ rule pair_length_ov_3:
             {params.tool} {output.ovbed}.tmp {params.cns} {output.barplot} {output.cumplot} {output.len} {output.ovbed};
             rm {output.ovbed}.*tmp 
         """
+
+###
+def wanted_one_pair(ancestor_clone):
+    res = []
+    for cl in CLONES:
+        if cl[0] == ancestor_clone:
+            #yield expand("{t1sample}_"+cl[0], t1sample=cl[1:])  # TypeError: can only concatenate list (not "str") to list
+            res = res + expand("{t1sample}_"+cl[0], t1sample=cl[1:])
+    return res
+    
+def find_clone_ovcnok(wildcards):
+    return [x+".ovcnokdelta.tsv.gz" for x in wanted_one_pair(wildcards.hsample)]
+
+def find_all_MR_hsample(wildcards):
+    return '-'.join(wildcards.hsample.split('-')[0:2]) + ".MR_ov"
+
+rule shared_clone:
+    input: find_all_MR_hsample, find_clone_ovcnok
+    output: plot="{hsample}.shared.png", n="{hsample}.shared.tsv", muts="{hsample}.sharedmuts.tsv", mrca="{hsample}.mrca.tsv"
+    params: tool=BIN_DIR+"/private_shared_gains_sninput"
+    shell: 
+        """
+            {params.tool} {wildcards.hsample} {output.plot} {output.n} {output.muts} {output.mrca} {input}
+        """
+
+rule all_shared:
+    input: expand("{sample}.mrca.tsv", sample=SAMPLES_ZERO)
+    output: "all_mrca.tsv"
+    shell: 
+        """
+            head -n1 {input[0]} > {output}
+            cat {input} | grep -v clone_ref >> {output}
+        """

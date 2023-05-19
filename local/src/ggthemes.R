@@ -35,6 +35,24 @@ theme(
 	text = element_blank()
 )
 
+
+# function that given values to be plotted on an axis will return:
+# vector of breaks, trying to guess which max will be the best one
+# this will be used as scale_y_continuous(breaks=  and as ylim(min, max) to have the - also limits-c()
+# last tick at the extremity of the axis.
+# other parameter is n. of ticks
+guess_ticks <- function(values, nticks=5, fixed_max=NULL) {
+  vmax <- max(values)
+  if (is.null(fixed_max)) { 
+    round_max <- ceiling(vmax)
+  } else {
+    round_max <- fixed_max
+  }
+  my_breaks <- seq(0, round_max, length.out=nticks)
+  return(my_breaks)
+}
+
+
 save.image(snakemake@output[['Rimage']])
 
 #pdata <- data.frame(x=rnorm(100), y=rnorm(100))

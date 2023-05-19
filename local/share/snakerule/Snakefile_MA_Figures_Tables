@@ -128,7 +128,7 @@ rule figure_4c_cor:
 rule figure_5a_subclonal:
     input: subclonal=REF_DATASET+'/fixedthr_subclonal', MR=REF_DATASET+'/MR_edu_SNV',
            theme=GGTHEME, colors=MANY_COLORS_PALETTE
-    output: plot='fig_5a_subclonal.svg'
+    output: plot='fig_5a_subclonal.svg', tsv="fig_5a_subclonal.tsv"
     log: log='fig_5a_subclonal.log'
     script: SRC_DIR+'/fig5a_subclonal.R'
 
@@ -151,7 +151,7 @@ rule supplementary_wilcox_mut_burden:
     output: tsv="supplementary_wilcox_mut_burden_{ref}.tsv"
     script: SRC_DIR+'/filter_correct.R'
 
-# TODO add LMX/PRX
+# Note: LM/PR were added by hand on drive for the first run of this. Automatize if need to re-run.
 rule supplementary_edt_4_xlsx:
     input: exposures=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", cosine=REF_DATASET+"/vitrovivobulk_cosine_merged_cosmic.tsv"
     output: xls="Extended_Data_Table_4_signatures_vitrovivobulk.xlsx"
@@ -165,7 +165,6 @@ rule supplementary_edt_4_xlsx:
             rm {output}.tmp*
         """
 
-# TODO add clevers
 rule supplementary_edt7_xlsx:
     input: exposures=REF_DATASET+"/cleverers_exposures.tsv", cosine=REF_DATASET+"/cleverers_cosine.tsv", 
            cleversexp=REF_DATASET+"/clevers/heatmap_cosmic.tsv", cleverscosine=REF_DATASET+"/clevers/cosine_cosmic.tsv"
@@ -182,7 +181,14 @@ rule supplementary_edt7_xlsx:
             #rm {output}.tmp*
         """
 
+# List of muts and details added by hand on drive (?)
 rule supplementary_edt9_xlsx:
     input: TCGA="supplementary_wilcox_mut_burden_TCGA.tsv", WES="supplementary_wilcox_mut_burden_wes.tsv"
     output: "Extended_Data_Table_9_wilcox_mutburden.xlsx"
     shell: "tsv_to_xls -i {input.TCGA},{input.WES} -s TCGA,WES -o {output}"
+
+rule supplementary_edt10_xlsx:
+    input: tsv="fig_5a_subclonal.tsv"
+    output: "Extended_Data_Table_10_nsubclonal.xlsx"
+    shell: "tsv_to_xls -i {input.tsv} -s n_subclonal -o {output}"
+    

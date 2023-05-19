@@ -10,7 +10,6 @@ theme <- snakemake@input[['theme']]
 save.image(paste0(outplot, '.Rdata'))
 
 library(ggplot2)
-library(ggpubr)
 load(theme)
 
 palette_df <- readRDS(colors)
@@ -56,10 +55,26 @@ orderdf$model <- paste0(orderdf$model, ifelse(!grepl('\\d$', orderdf$model), '',
 our$model <- factor(our$model, levels=orderdf$model)
 pdata$model <- factor(pdata$model, levels=orderdf$model)
 
-p <- ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=2) +
-  geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+ylab('MR')+xlab('')+
-  geom_point(data=our, aes(x=model, y=MR, color=model_clone), stat="identity", size=2, shape=18, position=position_dodge(0.5))+
-  scale_color_manual(values=pal)+theme(legend.position="none", axis.text.x = element_blank())+unmute_theme
+y_breaks <- guess_ticks(our$MR)
+
+#p <- ggplot() + 
+#  geom_point(data=our, aes(x=model, y=MR, color=model_clone), stat="identity", size=2, shape=18, position=position_dodge(0.5))+
+#  geom_point(data=pdata, aes(x=model, y=mean), stat="identity", shape=1, size=2) +
+#  geom_segment(data=pdata, aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+ylab('MR')+xlab('')+
+#  scale_color_manual(values=pal)+theme(legend.position="none", axis.text.x = element_blank(), axis.ticks = element_blank())+
+#  scale_y_continuous(breaks=y_breaks, limits=min(y_breaks),max(y_breaks))+
+#  unmute_theme
+pdata$xmodel <- as.numeric(pdata$model)
+p <- ggplot() + 
+  geom_point(data=our, aes(x=model, y=MR, color=model_clone), stat="identity", size=2, shape=18, position=position_dodge(0.7))+
+  geom_segment(data=pdata, aes(x=xmodel-0.4, y=mean, yend=mean, xend=xmodel+0.4), size=0.3) +
+  geom_errorbar(data=pdata, aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+ylab('MR (SNV/(Gbp*division))')+xlab('')+
+  scale_color_manual(values=pal)+
+  scale_y_continuous(breaks=y_breaks, expand = c(0, 0))+# + ylim(min(y_breaks),max(y_breaks))+
+  unmute_theme+theme(legend.position="right", axis.text.x = element_blank(), 
+                     axis.ticks.x = element_blank(),
+                     legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))
+                     
 
 ggsave(outplot, plot=p, width=89, height=56, units="mm")
 write.table(pdata, file=data_f, sep="\t", quote=FALSE)
