@@ -1050,6 +1050,12 @@ rule annotatr:
     output: plot_n="gained_{kind}.genomicregions.svg", plot_corr="gained_{kind}.genomicregionsnorm.svg"
     script: SRC_DIR+"/annotatr.R"
 
+rule annotatr_bis:
+    input: gained_bed="gained_first.bed", bulk_bed="gained_bulk.bed"
+    params: custom_annot="no"
+    output: outf="annotatr_locations.tsv"
+    script: SRC_DIR+'/annotatr_two_vs.R'
+
 # cleverers
 rule cleverers_merge_exp:
     input: expand('cleverers/{model}/cosmic_exposures.tsv', model=['CRC2566','CRC2573','CRC2608'])

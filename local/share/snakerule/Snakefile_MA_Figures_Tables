@@ -191,4 +191,10 @@ rule supplementary_edt10_xlsx:
     input: tsv="fig_5a_subclonal.tsv"
     output: "Extended_Data_Table_10_nsubclonal.xlsx"
     shell: "tsv_to_xls -i {input.tsv} -s n_subclonal -o {output}"
-    
+
+# Supplementary Figures
+rule supplementary_edf4a_localiz:
+    input: data=REF_DATASET+'/annotatr_locations.tsv', theme=GGTHEME
+    output: plot='edf4a_localiz.svg'
+    log: log='edf4a_localiz.log'
+    script: SRC_DIR+'/edfig4a_localiz.R'

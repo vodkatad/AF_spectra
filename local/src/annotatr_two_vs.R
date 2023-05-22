@@ -3,17 +3,18 @@ library(rtracklayer)
 library(ggplot2)
 #bed_gained <- '/scratch/trcanmed/AF_spectra/datasetV2/gained_first.bed'
 #bed_bulk <- '/scratch/trcanmed/AF_spectra/datasetV2/gained_bulk.bed'
-bed_gained <- '/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/tree/bulk.bed'
-bed_bulk <- '/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/platypus_nobin_00/all.gain.bed'
+#bed_gained <- '/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/tree/bulk.bed'
+#bed_bulk <- '/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/platypus_nobin_00/all.gain.bed'
 
 custom_annot <- 'no'
-#bed <- snakemake@input[['gained_bed']]
-#custom_annot <- snakemake@params[['custom_annot']]
+#bed_gained <- snakemake@input[['gained_bed']]
+#bed_bulk <- snakemake@input[['bulk_bed']]
+custom_annot <- snakemake@params[['custom_annot']]
 if (custom_annot == "yes") {
   annot_beds <- snakemake@input[['annot_beds']]  
 }
-output_plot_n <- snakemake@output[['plot_n']]
-output_plot_corr <- snakemake@output[['plot_corr']]
+output_f <- snakemake@output[['outf']]
+
 
 if (custom_annot=="no") {
   annots <- c('hg38_basicgenes', 'hg38_genes_intergenic')
@@ -60,8 +61,8 @@ ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_tex
 
 real <- as.data.frame(real_annsum)
 bulk <- as.data.frame(bulk_annsum)
-real$SNV <- 'gained'
-bulk$SNV <- 'parental'
+real$SNV <- 'de_novo'
+bulk$SNV <- 'truncal'
 
 pd <- rbind(real, bulk)
 pd$annot.type <- as.factor(pd$annot.type)
@@ -79,32 +80,32 @@ if (custom_annot=="no") {
 }
 levels(pd$annot.type) <- renamed_lev
 pd$annot.type <- as.character(pd$annot.type) # to unique inheriting the order from n
-orderpd <- pd[pd$SNV=="gained",]
+orderpd <- pd[pd$SNV=="truncal",]
 orderpd <- orderpd[order(-orderpd$n),]
 pd$annot.type <- factor(pd$annot.type, levels=unique(orderpd$annot.type))
 
-ggplot(data=pd, aes(x=annot.type,y=n,fill=SNV))+geom_bar(stat="identity", position='dodge')+ctheme+xlab('')+ylab('#')+
-  scale_fill_manual(values=c('darkgreen', 'darkgoldenrod'))
+write.table(pd, file=output_f, sep="\t", quote=FALSE, row.names=FALSE)
+#ggplot(data=pd, aes(x=annot.type,y=n,fill=SNV))+geom_bar(stat="identity", position='dodge')+ctheme+xlab('')+ylab('#')+
+#  scale_fill_manual(values=c('darkgreen', 'darkgoldenrod'))
 
 
-ns <- data.frame(row.names=pd[pd$SNV == "gained", "annot.type"], gained=pd[pd$SNV == "gained", "n"],
-                 bulk=pd[pd$SNV == "parental", "n"])
+#ns <- data.frame(row.names=pd[pd$SNV == "gained", "annot.type"], gained=pd[pd$SNV == "gained", "n"],
+#                 bulk=pd[pd$SNV == "parental", "n"])
 
-chisq.test(ns)
+#chisq.test(ns)
 
-library(dplyr)
+#library(dplyr)
 
-df <- pd %>% 
-  group_by(SNV) %>% # Variable to be transformed
-  mutate(perc = `n` / sum(`n`)) %>% 
-  arrange(perc) %>%
-  mutate(labels = scales::percent(perc))
-
-
-ggplot(df, aes(x = "", y = perc, fill = annot.type)) +
-  geom_col() +
-  coord_polar(theta = "y")+facet_grid(~SNV)+theme_light()
+#df <- pd %>% 
+#  group_by(SNV) %>% # Variable to be transformed
+#  mutate(perc = `n` / sum(`n`)) %>% 
+#  arrange(perc) %>%
+#  mutate(labels = scales::percent(perc))
 
 
-ggplot(df, aes(x = "", y = perc, fill = annot.type)) +
-  geom_col() +facet_grid(~SNV)+theme_light()
+#ggplot(df, aes(x = "", y = perc, fill = annot.type)) +
+#  geom_col() +
+#  coord_polar(theta = "y")+facet_grid(~SNV)+theme_light()
+
+#ggplot(df, aes(x = "", y = perc, fill = annot.type)) +
+#  geom_col() +facet_grid(~SNV)+theme_light()
