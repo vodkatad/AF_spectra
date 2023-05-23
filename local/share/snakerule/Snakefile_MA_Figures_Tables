@@ -204,3 +204,28 @@ rule supplementary_edf4b_essential:
     output: plot='edf4b_essential.svg'
     log: log='edf4b_essential.log'
     script: SRC_DIR+'/edfig4b_essential.R'
+
+
+### miscellanea
+# diary 25/05/23 for code run on newer R (4.3.0) on cog
+rule signal_fig2_a:
+    input: sign=DATA+'/exposures2.tsv', 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="fig_2a_signal.pdf"
+    params: wanted="bulk", legend="yes", addlm="yes"
+    script: SRC_DIR+'/fig2_signal.R'
+
+rule signal_fig_2a_bis:
+    input: sign=DATA+'/exposures2.tsv', 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="fig_2abis_signal.pdf"
+    params: wanted="vitroMA", legend="no", addlm="yes"
+    script: SRC_DIR+'/fig2_signal.R'
+
+# vivo 1st
+rule signal_fig_2b_bis:
+    input: sign=DATA+'/exposures2.tsv', 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="fig_2b_signal.pdf"
+    params: wanted="vivoMA", legend="no", addlm="yes"
+    script: SRC_DIR+'/fig2_signal.R'

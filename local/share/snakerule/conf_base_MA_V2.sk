@@ -72,7 +72,7 @@ import glob
 for m in MODELS:
     PLATY_VCF.append(glob.glob(os.path.join(PRJ_ROOT,'local/share/data', m, 'platypus_filtered.vcf.gz')))
 
-DATA=os.path.join(PRJ_ROOT,'local/share/data/CRC0282/')
+DATA=os.path.join(PRJ_ROOT,'local/share/data/')
 
 GGTHEME='theme_5.Rdata'
 
