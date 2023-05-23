@@ -212,14 +212,14 @@ rule signal_fig2_a:
     input: sign=DATA+'/exposures2.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2a_signal.pdf"
-    params: wanted="bulk", legend="yes", addlm="yes"
+    params: wanted="bulk", legend="yes", addlm="yes", norm="yes"
     script: SRC_DIR+'/fig2_signal.R'
 
 rule signal_fig_2a_bis:
     input: sign=DATA+'/exposures2.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2abis_signal.pdf"
-    params: wanted="vitroMA", legend="no", addlm="yes"
+    params: wanted="vitroMA", legend="no", addlm="yes", norm="yes"
     script: SRC_DIR+'/fig2_signal.R'
 
 # vivo 1st
@@ -227,5 +227,27 @@ rule signal_fig_2b_bis:
     input: sign=DATA+'/exposures2.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2b_signal.pdf"
-    params: wanted="vivoMA", legend="no", addlm="yes"
+    params: wanted="vivoMA", legend="no", addlm="yes", norm="yes"
+    script: SRC_DIR+'/fig2_signal.R'
+
+rule sigfit_fig2_a:
+    input: sign=DATA+'/sigfit.tsv', 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="fig_2a_sigfit.pdf"
+    params: wanted="bulk", legend="yes", addlm="yes", norm="no"
+    script: SRC_DIR+'/fig2_signal.R'
+
+rule sigfit_fig_2a_bis:
+    input: sign=DATA+'/sigfit.tsv', 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="fig_2abis_sigfit.pdf"
+    params: wanted="vitroMA", legend="no", addlm="yes", norm="no"
+    script: SRC_DIR+'/fig2_signal.R'
+
+# vivo 1st
+rule sigfit_fig_2b_bis:
+    input: sign=DATA+'/sigfit.tsv', 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="fig_2b_sigfit.pdf"
+    params: wanted="vivoMA", legend="no", addlm="yes", norm="no"
     script: SRC_DIR+'/fig2_signal.R'

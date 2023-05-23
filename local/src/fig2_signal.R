@@ -23,7 +23,9 @@ pal <- palette_df$palette
 names(pal) <- palette_df$model
 
 data <- read.table(sign_f, sep="\t", header=TRUE, stringsAsFactors=FALSE, row.names=1)
-data = data/rowSums(data)
+if (snakemake@params[['norm']] != "no") {
+  data = data/rowSums(data)
+}
 
 if (!grepl('2nd', wanted)) {
   data <- data[grepl(wanted, rownames(data)),]
