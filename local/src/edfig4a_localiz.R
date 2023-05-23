@@ -38,6 +38,7 @@ sink()
 #  coord_polar(theta = "y")+facet_grid(~SNV)+theme_light()
 
 p <- ggplot(df, aes(x = "", y = perc, fill = annot.type)) +
-  geom_col() + facet_grid(~SNV)+ unmute_theme+scale_fill_brewer(palette="Dark2")
+  geom_col() + facet_grid(~SNV)+ unmute_theme+scale_fill_brewer(palette="Dark2")+scale_y_continuous(expand = c(0, 0))
+
 
 ggsave(outplot, plot=p, width=89, height=56, units="mm")

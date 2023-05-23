@@ -526,8 +526,12 @@ rule tree_plot:
 def all_nonsyn(wildcards):
     if wildcards.kind == "SNV":
         return expand("{model}/platypus_nobin_00/nonsyn.binary.tsv.gz", model=MODELS_NOREP_TRUE)
-    else:
+    elif wildcards.kind == "indel":
         return expand("{model}/platypus_nobin_indels_00/nonsyn.binary.tsv.gz", model=MODELS_NOREP_TRUE_NOMSI)
+    elif wildcards.kind == "bulk":
+        return expand("{model}/tree/bulk.nonsyn.binary.tsv.gz", model=MODELS_NOREP_TRUE)
+    else:
+        print('Boh in expansion for nonsyn binary')
 
 rule merge_binary_nonsyn:
     output: res="{kind}_nonsyn.binary.tsv.gz"

@@ -198,3 +198,9 @@ rule supplementary_edf4a_localiz:
     output: plot='edf4a_localiz.svg'
     log: log='edf4a_localiz.log'
     script: SRC_DIR+'/edfig4a_localiz.R'
+
+rule supplementary_edf4b_essential:
+    input: bulk=REF_DATASET+'/bulk_essential_n.tsv', gained=REF_DATASET+"/SNV_essential_n.tsv", theme=GGTHEME
+    output: plot='edf4b_essential.svg'
+    log: log='edf4b_essential.log'
+    script: SRC_DIR+'/edfig4b_essential.R'
