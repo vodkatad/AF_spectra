@@ -61,7 +61,7 @@ annot_colors <- list(model=pal)
 pdf(outplot, family="sans")#, width=2.2, height=1.4) # resize by hand cause otherwise it will be a mess
 ph <- pheatmap(data, cellwidth=5.67, cellheight=5.67, fontsize_row = 5, fontsize_col=5, fontsize.number=5, show_colnames = FALSE, show_rownames = TRUE,  
          cluster_cols=FALSE, annotation_col=annot_rows, annotation_colors = annot_colors,  
-         color=brewer.pal(9, 'Blues'), breaks=seq(0, 0.5, by=0.05),
+         color=brewer.pal(9, 'Blues'), breaks=seq(0, 0.6, by=0.07),
          cluster_rows=FALSE, annotation_legend=FALSE)
 ph$gtable[[1]][[1]]$children[[1]]$gp$lwd <- 0.001
 ph
@@ -70,7 +70,7 @@ if (legendbool) {
   pdf(paste0('legend_', outplot), family="sans")#, width=2.2, height=1.4) # resize by hand cause otherwise it will be a mess
   pheatmap(data, cellwidth=5.67, cellheight=5.67, fontsize_row = 5, fontsize_col=5, fontsize.number=5, show_colnames = FALSE, show_rownames = TRUE,  
                  cluster_cols=FALSE, annotation_col=annot_rows, annotation_colors = annot_colors,  
-                 color=brewer.pal(9, 'Blues'), breaks=seq(0, 0.5, by=0.05),
+                 color=brewer.pal(9, 'Blues'), breaks=seq(0, 0.6, by=0.07),
                  cluster_rows=FALSE, annotation_legend=TRUE)
   graphics.off()
   
