@@ -79,7 +79,7 @@ rule fig_2c_bis:
     input: sign=REF_DATASET+"/cleverers_exposures.tsv", 
            palette=MODELS_COLORS_PALETTE_CLEV, order=SORTED_CLEV
     output: plot="fig_2cbis_cosmic.pdf"
-    params: wanted="private", legend="no", addlm="no"
+    params: wanted="private", legend="yes", addlm="no"
     script: SRC_DIR+'/fig2_cosmic.R'
 
 # clevers suppl

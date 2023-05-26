@@ -101,5 +101,8 @@ print(as.character(op[nrow(op)-1, 'model']))
 print(pdata[pdata$model==m1, 'mean']/pdata[pdata$model==m2, 'mean'])
 print(wilcox.test(our[our$model==m1, 'MR'], our[our$model==m2, 'MR']))
 
+print('kruskal')
+kruskal.test(our$MR, our$model)
 sink()
+
 save.image(paste0(outplot, '.Rdata'))
