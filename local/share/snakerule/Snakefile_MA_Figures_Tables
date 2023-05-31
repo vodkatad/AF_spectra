@@ -206,6 +206,18 @@ rule supplementary_edf4b_essential:
     script: SRC_DIR+'/edfig4b_essential.R'
 
 
+rule figure_edf6_mr:
+    input: MR=REF_DATASET+"/fixedsnvindel_tree", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='edf6_support.svg', avgdata="edf6_avg.tsv"
+    log: log="edf6_snvindel.log"
+    script: SRC_DIR+'/fig4b_CN.R'
+
+rule supplementary_edf6_tree_MR:
+    input: mr="support_4_avgMR.tsv", tree="edf6_avg.tsv",  theme=GGTHEME, palette=MODELS_COLORS_PALETTE
+    output: plot='edf6_cor.svg'
+    log: log="edf6_cor.log"
+    script: SRC_DIR+'/edfig6_cor.R'
+
 ### miscellanea
 # diary 25/05/23 for code run on newer R (4.3.0) on cog
 rule signal_fig2_a:
@@ -251,3 +263,17 @@ rule sigfit_fig_2b_bis:
     output: plot="fig_2b_sigfit.pdf"
     params: wanted="vivoMA", legend="no", addlm="yes", norm="no"
     script: SRC_DIR+'/fig2_signal.R'
+
+
+# check edf6 version gained muts
+rule figure_edf6bis_mr:
+    input: MR=REF_DATASET+"/vitro_T1gained_firstSNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='edf6bis_support.svg', avgdata="edf6bis_avg.tsv"
+    log: log="edf6bis_snvindel.log"
+    script: SRC_DIR+'/fig4b_CN.R'
+
+rule supplementary_edf6bis_tree_MR:
+    input: mr="support_4_avgMR.tsv", tree="edf6bis_avg.tsv",  theme=GGTHEME, palette=MODELS_COLORS_PALETTE
+    output: plot='edf6bis_cor.svg'
+    log: log="edf6bis_cor.log"
+    script: SRC_DIR+'/edfig6_cor.R'

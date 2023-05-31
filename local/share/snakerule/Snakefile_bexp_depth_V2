@@ -74,6 +74,7 @@ rule shared_clone:
 ## inputs
 # $4==1 keeps only first 6 months in vitro samples
 def kind_MR(wildcards):
+    print('kind MR')
     if wildcards.kind == "SNV":
         return expand("{model}/platypus_nobin_00/all.MR_ov", model=MODELS_NO327_2)
     elif wildcards.kind == "indel":
@@ -83,7 +84,9 @@ def kind_MR(wildcards):
     elif wildcards.kind == "subclonal":
         return expand("{model}/mutect_nobin/all_subclonal_n.tsv", model=MODELS_NO327_2)
     elif wildcards.kind == "tree":
-        return expand("{model}/tree/{{lesion}}_tips.tsv", model=MODELS_1_OR_2)
+        return expand("{model}/tree/{{lesion}}_tips.tsv", model=MODELS_NOREP_TRUE)
+    elif wildcards.kind == "firstSNV":
+        return expand("{model}/platypus_nobin_00/all.MR_ov", model=MODELS_NOREP_TRUE)
     else: 
         print("boh!")
 
@@ -184,6 +187,14 @@ rule overall_SNV_gained:
         """
             cat {input} | bawk '$4==1 || $4==2 {{print $2,$5}}' > {output}
         """
+        
+rule overall_SNV_gained_T1:
+    output: "vitro_T1gained_{kind}"
+    input: kind_MR
+    shell:
+        """
+            cat {input} | bawk '$4==1 {{print $2,$5}}' > {output}
+        """
 
 rule overall_SNV_gained_vivo:
     output: "vivo_gained_{kind}"
@@ -193,16 +204,16 @@ rule overall_SNV_gained_vivo:
             cat {input} | bawk '$4!=1 && $4 != 2 && $4!="class"{{print $2,$5}}' > {output}
         """
 
-#rule overall_tree_tips:
-    #output: "{lesion}_{kind}"
-    #input: kind_MR
-    #shell:
-    #    """
-    #        cat {input} | grep -w -v from | cut -f1,3 > {output}
-    #    """
+rule overall_tree_tips:
+    output: "tree_{lesion}_{kind}"
+    input: kind_MR
+    shell:
+        """
+            cat {input} | grep -w -v from | cut -f1,3 > {output}
+        """
 
 rule rename_removefiltered_cn:
-    input: "cn_tree"
+    input: "tree_cn_tree"
     output: "fixedcn_tree"
     shell:  
         """
@@ -213,7 +224,7 @@ rule rename_removefiltered_cn:
 
 # for consistency with CN we build also snvindel tree with the two filtered MSI 2nd round and remove them afterwards
 rule rename_removefiltered_snvindel:
-    input: "snvindel_tree"
+    input: "tree_snvindel_tree"
     output: "fixedsnvindel_tree"
     shell:  
         """
