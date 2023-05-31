@@ -32,4 +32,4 @@
 #snakemake tree_bulk_vitro.pdf nobs_tree_bulk_vitro.svg
 
 cd $1/tree
-snakemake bulk.nonsyn.binary.tsv.gz
+snakemake -f cn_plot.pdf nobs_tree_bulk_vitro.pdf

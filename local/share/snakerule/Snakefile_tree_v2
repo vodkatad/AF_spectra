@@ -82,9 +82,14 @@ rule bulk_binary_nonsyn:
 # TODO add tmp to rimage output of phangon_bulk rule once we are satisfied with the plot
 rule phangorn_plot:
     input: rimage="tree_bulk_{vv}.Rdata"
-    output: pdf="nobs_tree_bulk_{vv}.svg"
+    output: pdf="nobs_tree_bulk_{vv}.pdf"
     script: SRC_DIR+"/phangorn_plots.R"
 
+rule cn_plot:
+    input: tree=PRJ_ROOT+"/local/share/data/trees_cn/"+MODEL+"_final_tree.new"
+    output: plot="cn_plot.pdf"
+    params: model=MODEL, nexus="no"
+    script: SRC_DIR+"/newick_plot.R"
 
 rule cn_distances:
     input: tree=PRJ_ROOT+"/local/share/data/trees_cn/"+MODEL+"_final_tree.new"
