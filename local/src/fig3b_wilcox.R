@@ -28,6 +28,7 @@ wes_p <- ggplot(muts_wes, aes_string(x='status', y='burden', fill='status'))+
   unmute_theme+
   scale_y_continuous(breaks=y_breaks, limits=c(0, max(y_breaks)), expand = c(0, 0))
 
+
 p <- ggarrange(tcga_p, wes_p,  common.legend = TRUE, legend="right")
 
 
