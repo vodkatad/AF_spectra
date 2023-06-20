@@ -576,8 +576,8 @@ rule upsetR:
     shell:
         """
             for f in {input}; do \\
-                zcat $f | bawk -v N=$f '$13==1{{print $1,N}}'; done | sed 's/\.calls\.tsv\.gz//1' > {output}.tmp; 
-            done;
+                zcat $f | bawk -v N=$f '$13==1{{print $1,N}}' | sed 's/\.calls\.tsv\.gz//1'; \\
+            done > {output}.tmp
             {params.tool} {output}.tmp {output}
             rm {output}.tmp
         """
