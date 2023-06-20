@@ -55,18 +55,22 @@ orderdf <- read.table(order_f, sep="\t", quote="", header=TRUE, stringsAsFactor=
 orderdf$model <- paste0(orderdf$model, ifelse(!grepl('\\d$', orderdf$model), '', ifelse(orderdf$model=="CRC0282", 'PR', 'LM')))
 our$model <- factor(our$model, levels=orderdf$model)
 pdata$model <- factor(pdata$model, levels=orderdf$model)
-y_breaks <- guess_ticks(our$MR+1)
+y_breaks <- guess_ticks(our$MR+1,fixed_max=60)
+pdata$xmodel <- as.numeric(pdata$model)
+
 pdf('fig_4b_CN.pdf')
-p <- ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=2) +
+p <-  ggplot()+
+#ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=2) +
   geom_point(data=our, aes(x=model, y=MR, color=model_clone), stat="identity", size=2, shape=18, position=position_dodge(0.5))+
-  geom_errorbar(aes(ymin=lower, ymax=upper, x=as.numeric(model)-0.015), size=0.5)+ylab('MR')+xlab('')+#, xmin=model
-  scale_color_manual(values=pal)+unmute_theme+theme(legend.position="right", axis.text.x = element_blank(), 
+  geom_errorbar(data=pdata,aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+ylab('MR [SNVs/(Gbp*division)]')+xlab('PDTs')+#, xmin=model
+  geom_segment(data=pdata, aes(x=xmodel-0.2, yend=mean,y=mean,  xend=xmodel+0.2),size=.3) +
+  scale_color_manual(values=pal)+unmute_theme+theme(legend.position="none", axis.text.x = element_blank(), 
                      axis.ticks.x = element_blank(),
                      legend.spacing.y = unit(0.15, "mm"))+
   scale_y_continuous(breaks=y_breaks, limits=c(0,max(y_breaks)), expand = c(0, 0))
 print(p)
 graphics.off()
-ggsave(outplot, plot=p, width=89, height=56, units="mm")
+ggsave(outplot, plot=p, width=89, height=89, units="mm")
 write.table(pdata, file=data_f, sep="\t", quote=FALSE)
 
 sink(log_f)

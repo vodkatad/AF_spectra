@@ -34,10 +34,11 @@ d$model <- paste0(d$model, ifelse(!grepl('\\d$', d$model), '', ifelse(d$model=="
 names(pal) <- paste0(names(pal), ifelse(!grepl('\\d$', names(pal)), '', ifelse(names(pal)=="CRC0282", 'PR', 'LM')))
 d$order <- seq(1, nrow(d))
 
-y_breaks <- guess_ticks(d$lower)
+y_breaks <- guess_ticks(d$lower,nticks=7)
 pdf('fig_1c_dnds.pdf')
-p <- ggplot(d, aes(x=order(order, model), y=estimate, color=model)) +  geom_point(stat="identity", size=3) +
-  geom_errorbar(aes(ymin=lower, ymax=upper, x=order(order,model)), width=0.3, size=0.3, color='black')+ylab('dN/dS estimate')+xlab('')+
+p <- ggplot(d, aes(x=order(order, model), y=estimate, color=model)) +  geom_point(stat="identity", size=1.5) +
+  geom_hline(yintercept=1,linetype=2,size=0.2)+
+  geom_errorbar(aes(ymin=lower, ymax=upper, x=order(order,model)), width=0.3, size=0.3, color='black')+ylab('dN/dS estimate')+xlab('PDTs')+
   scale_color_manual(values=pal)+
   unmute_theme+theme(legend.position="right", axis.text.x = element_blank(), 
                      axis.ticks.x = element_blank(),

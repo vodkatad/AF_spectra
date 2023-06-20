@@ -75,11 +75,12 @@ pdata$xmodel <- as.numeric(pdata$model)
   #unmute_theme+theme(legend.position="right", axis.text.x = element_blank(), 
                      #axis.ticks.x = element_blank(),
                      #legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))
+ratio_to_caperrorbars <- y_breaks[2] 
 pdf('fig_1b_MR.pdf')
 p <- ggplot() + 
   geom_point(data=our, aes(x=model, y=MR, color=model_clone), stat="identity", size=2, shape=18, position=position_dodge(0.7))+
-  geom_segment(data=pdata, aes(x=xmodel-0.4, y=mean, yend=mean, xend=xmodel+0.4), size=0.3) +
-  geom_errorbar(data=pdata, aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+ylab('MR (SNV/(Gbp*division))')+xlab('')+
+  geom_segment(data=pdata, aes(x=xmodel-0.2, yend=mean,y=mean,  xend=xmodel+0.2),size=.3) +
+  geom_errorbar(data=pdata, aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+ylab('MR [SNV/(Gbp*division)]')+xlab('PDTs')+
   scale_color_manual(values=pal)+
   scale_y_continuous(breaks=y_breaks,limits=c(0, max(y_breaks)),expand = c(0, 0))+# + ylim(min(y_breaks),max(y_breaks))+
   unmute_theme+theme(legend.position="right", axis.text.x = element_blank(), 
@@ -87,9 +88,9 @@ p <- ggplot() +
                      legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))                   
 print(p)
 graphics.off()
-ggsave(outplot, plot=p, width=89, height=56, units="mm")
+print(our)
+ggsave(outplot, plot=p, width=89, height=89, units="mm")
 write.table(pdata, file=data_f, sep="\t", quote=FALSE)
-
 sink(log_f)
 print('n clones')
 print(nrow(our))

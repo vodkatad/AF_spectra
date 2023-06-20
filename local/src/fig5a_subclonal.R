@@ -36,12 +36,6 @@ merged$clone2 <- sapply(merged$sample, function(x) {y<-strsplit(x, '-')[[1]][4];
 merged$model_clone <- paste0(merged$model, "_", merged$clone)
 merged$time <- sapply(merged$sample, function(x) {y<-strsplit(x, '-')[[1]][3]; return(y[1])})
 
-p <- ggplot(data=merged, aes(x=MR_edu, y=n)) +
-  geom_point(aes(color=model_clone, shape=PDT, fill=model_clone), stat="identity", size=1, position=position_dodge(0.2))+
-  unmute_theme+scale_color_manual(values=pal, guide="none")+scale_shape_manual(values=c(24,25,22,23))+#scale_shape_manual(values=c(18,23,20,19))+
-  scale_fill_manual(values=pal, guide="none")+
-  xlab('MR')+ylab('# subclonal SNVs')+theme(legend.position="right")
-
 # average errors ############
 confidence_interval <- function(vector, interval) {
    # Standard deviation of sample
@@ -100,16 +94,16 @@ print(x_breaks)
 
 ratio_to_caperrorbars <- y_breaks[2] / x_breaks[2]
 p <- ggplot() +
-   geom_point(data=merged, aes(x=MR_edu, y=n, color=model_clone, shape=PDT, fill=model_clone), stat="identity", size=1, position=position_dodge(0.2))+
+   geom_point(data=merged, aes(x=MR_edu, y=n, color=model_clone, shape=PDT, fill=model_clone), stat="identity", size=1, position=position_dodge(0.7))+
    unmute_theme+scale_color_manual(values=pal, guide="none")+scale_shape_manual(values=c(24,25,22,23))+#scale_shape_manual(values=c(18,23,20,19))+
    geom_point(data=pdata, aes(x=mean.x, y=mean.y), shape=1, size=2)+
    geom_errorbar(data=pdata, aes(x=mean.x, y=mean.y, ymin=lower.y, ymax=upper.y), width=.1, size=.2)+
    geom_errorbarh(data=pdata, aes(y=mean.y, xmin=lower.x, xmax=upper.x), height=.1*ratio_to_caperrorbars, size=.2)+
    scale_fill_manual(values=pal, guide="none")+
-   xlab('MR')+ylab('# subclonal SNVs')+
+   xlab('MR [SNVs/(Gbp*division)]')+ylab('# subclonal SNVs')+
    scale_y_continuous(breaks=y_breaks, limits=c(0,max(y_breaks)), expand = c(0, 0))+
    scale_x_continuous(breaks=x_breaks, limits=c(0,max(x_breaks)), expand = c(0, 0))+
-   theme(legend.position="right",  legend.spacing.y = unit(0.15, "mm")) + 
+   theme(legend.position="none",  legend.spacing.y = unit(0.15, "mm")) + 
    guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))
 
 
@@ -130,8 +124,13 @@ for (me in c('spearman', 'pearson')) {
   print(nrow(pdata))
 }
 sink()
+pdf('fig_5a_subclonal.pdf')
+print(p)
+graphics.off()
+ggsave(outplot, plot=p, width=60, height=60, units="mm")
 
-ggsave(outplot, plot=p, width=89, height=56, units="mm")
+pp <- p + theme(legend.position= "none")
+ggsave(paste0('nolegend_', outplot), plot=pp, width=60, height=60, units="mm")
 
 res <- merged[, c('sample', 'n')]
 colnames(res) <- c('clone_id', 'n_subclonal')
