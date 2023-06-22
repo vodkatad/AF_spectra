@@ -32,7 +32,7 @@ print(vcf_files)
 sink()
 
 catalogs <- VCFsToCatalogs(vcf_files, ref.genome = "hg38",
-                           variant.caller = "unknown", region = "genome", filter.status="PASS")
+                           variant.caller = "unknown", region = "genome", filter.status="PASS", names.of.VCFs	= sample_names)
 
 
 spectra_from_cat <- catalogs$catSBS96[,seq(1, length(vcf_files)) , drop=FALSE]
