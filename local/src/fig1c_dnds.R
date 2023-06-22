@@ -40,11 +40,11 @@ p <- ggplot(d, aes(x=order(order, model), y=estimate, color=model)) +  geom_poin
   geom_hline(yintercept=1,linetype=2,size=0.2)+
   geom_errorbar(aes(ymin=lower, ymax=upper, x=order(order,model)), width=0.3, size=0.3, color='black')+ylab('dN/dS estimate')+xlab('PDTs')+
   scale_color_manual(values=pal)+
-  unmute_theme+theme(legend.position="right", axis.text.x = element_blank(), 
+  unmute_theme+theme(legend.position="none", axis.text.x = element_blank(), 
                      axis.ticks.x = element_blank(),
                      legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))+
   scale_y_continuous(breaks=y_breaks, limits=c(0,max(y_breaks)), expand = c(0, 0))# + ylim(NA,max(y_breaks))
 print(p)
 graphics.off()       
-ggsave(outplot, plot=p, width=89, height=56, units="mm")
+ggsave(outplot, plot=p, width=89, height=89, units="mm")
 save.image(paste0(outplot, '.Rdata'))

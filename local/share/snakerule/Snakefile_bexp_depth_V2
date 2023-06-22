@@ -55,6 +55,17 @@ rule all_sign:
             {params.tool} {input} {output.heat} {output.cosine} '{params.colors}' {log.log} {output.heat_tsv} {output.cosine_tsv}
         """
 
+# manually remove 282 clones all from signinput_vitrovivobulk_merged 22/06/23
+rule msigact:
+    input: "signinput_vitrovivobulk_merged"
+    output: chip="msigact.png", 
+            chip_tsv="msigact.tsv",
+    params: tool=BIN_DIR+"/msigact", colors=COLORS_MODELS_2
+    log: log="msigact.png.log"
+    shell:
+        """
+            {params.tool} {input} {output.chip} {output.chip_tsv} '{params.colors}' {log.log}
+        """ 
 
 #### shared muts
 # right now selection of files is done inside R with list.files, this is DANGEROUS, FIXME

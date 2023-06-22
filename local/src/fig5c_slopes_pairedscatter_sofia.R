@@ -53,7 +53,7 @@ p <- ggplot(data=fit_r2, aes(x=model, y=intercept, color=mp, group=smodel)) +
   geom_segment(data=pdata, aes(y=lower, yend=upper, x=model, xend=model, group=NULL, color=NULL), size=0.6) +
   scale_color_manual(values=c('#adacac', '#595959'))+
   scale_y_continuous(breaks = seq(0, 70, by = 10))+
-  ylab('μ/β')+xlab('PDXs')+unmute_theme+theme(legend.position="none")+
+  ylab('μ/β')+xlab('')+unmute_theme+theme(legend.position='none')+
   scale_y_continuous(breaks=y_breaks, limits=c(0,max(y_breaks)), expand = c(0, 0))
   #scale_y_continuous(breaks=y_breaks)
 
@@ -63,12 +63,7 @@ pdf('fig_5c_slopes_pairedscatter.pdf')
 print(p)
 graphics.off()
 
-ggsave(outplot, plot=p, width=60, height=60, units="mm")
-
-
-pp <- p + theme(legend.position= "none")
-ggsave(paste0('nolegend_', outplot), plot=pp, width=60, height=60, units="mm")
-
+ggsave(outplot, plot=p, width=89, height=56, units="mm")
 
 met <- fit_r2[fit_r2$mp == "LMX",]
 pri <- fit_r2[fit_r2$mp == "PRX",]

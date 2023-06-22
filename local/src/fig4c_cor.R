@@ -36,16 +36,16 @@ m <- merge(mr, cn, by="row.names")
 m$model <- m$Row.names
 m$mean_mr<-m$mean_mr*1000000000
 ci <- cor.test(m$mean_cn, m$mean_mr, method="spearman")
-y_breaks <- guess_ticks(m$mean_cn+6)
+y_breaks <- guess_ticks(m$mean_cn+6,fixed_max=40)
 x_breaks<-guess_ticks(m$mean_mr)
 pdf('fig_4c_cor.pdf')
 p <- ggplot(m, aes(x=mean_mr, y=mean_cn)) +  geom_point(aes(color=model), size=1) + geom_smooth(method='lm')+
-  unmute_theme+labs(caption=paste0('pearson=', round(ci$estimate,2), ' pval=',round(ci$p.value, 4))) + scale_color_manual(values=pal)+xlab('MR')+ylab('MEDICC2 Events dist')+
+  unmute_theme+theme(legend.position="none") + scale_color_manual(values=pal)+xlab('MR [SNVs/(Gbp*division)]')+ylab('MEDICC2 events')+#+labs(caption=paste0('pearson=', round(ci$estimate,2), ' pval=',round(ci$p.value, 4)))
   scale_y_continuous(breaks=y_breaks, limits=c(0,max(y_breaks)), expand = c(0, 0))+
   scale_x_continuous(breaks=x_breaks, limits=c(0,max(x_breaks)),expand=c(0,0))
 print(p)
 graphics.off()
-ggsave(outplot, plot=p, width=89, height=56, units="mm")
+ggsave(outplot, plot=p, width=89, height=89, units="mm")
 
 sink(log_f)
 print('n models')

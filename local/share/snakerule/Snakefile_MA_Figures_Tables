@@ -41,7 +41,7 @@ rule fig_3b_wilcox_mb:
     input: TCGA=SOURCE_DATA+'/all_genes_mb_wilcox_TCGA.rds', WES=SOURCE_DATA+'/all_genes_mb_wilcox_wes.rds',
            theme=GGTHEME
     output: plot='fig_3b_wilcox_mb.svg'
-    script: SRC_DIR+'/fig3b_wilcox_sofia.R'
+    script: SRC_DIR+'/fig3b_wilcox.R'
 
 ### Figure 2
 # bulk + vitro 1st
@@ -130,20 +130,20 @@ rule figure_5a_subclonal:
            theme=GGTHEME, colors=MANY_COLORS_PALETTE
     output: plot='fig_5a_subclonal.svg', tsv="fig_5a_subclonal.tsv"
     log: log='fig_5a_subclonal.log'
-    script: SRC_DIR+'/fig5a_subclonal_sofia.R'
+    script: SRC_DIR+'/fig5a_subclonal.R'
 
 rule figure_5b_vaf_histo:
     input: LM=SOURCE_DATA+'/CRC1599LMX0A02001TUMD03000V2.pass.table.snv.gz', PR=SOURCE_DATA+'/CRC1599PRX0A02002TUMD03000V2.pass.table.snv.gz',
            theme=GGTHEME
     output: plot='fig_5b_VAFhistogram.svg'
-    script: SRC_DIR+'/fig5b_VAFhisto_sofia.R'
+    script: SRC_DIR+'/fig5b_VAFhisto.R'
 
 rule figure_5c_vaf_histo:
     input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',
            theme=GGTHEME
     output: plot='fig_5c_slopes_pairedscatter.svg'
     log: log='fig_5c_slopes_pairedscatter.log'
-    script: SRC_DIR+'/fig5c_slopes_pairedscatter_sofia.R'
+    script: SRC_DIR+'/fig5c_slopes_pairedscatter.R'
 
 # Supplementaty tables
 rule supplementary_wilcox_mut_burden:

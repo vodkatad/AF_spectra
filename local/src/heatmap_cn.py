@@ -40,6 +40,7 @@ for i in range(0, len(m)):
 cnvs = cnvs.reindex(sorted_names)
 with open(snakemake.log.log, 'w') as f:
     f.write(str(sorted_names))
+    f.write(str(cnvs.shape))
 
 samples = m['model'].tolist()
 # Create a categorical palette to identify the samples
@@ -90,6 +91,10 @@ ax.tick_params(axis='x', length=20, which='minor')
 
 ax.set_xlabel("Chromosomes", fontweight='bold', fontsize=7)
 ax.set_ylabel("Clones", fontsize=7, fontweight='bold')
+
+# legend is not a leged but a ax_cbar
+cax = plt.gcf().axes[-1]
+cax.tick_params(labelsize=5) # nope
 
 # A4 is 8-1/4 x 11-3/4 in
 plt.gcf().set_size_inches(7, 3.8) # w, h

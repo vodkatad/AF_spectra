@@ -83,7 +83,7 @@ p <- ggplot() +
   geom_errorbar(data=pdata, aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+ylab('MR [SNV/(Gbp*division)]')+xlab('PDTs')+
   scale_color_manual(values=pal)+
   scale_y_continuous(breaks=y_breaks,limits=c(0, max(y_breaks)),expand = c(0, 0))+# + ylim(min(y_breaks),max(y_breaks))+
-  unmute_theme+theme(legend.position="right", axis.text.x = element_blank(), 
+  unmute_theme+theme(legend.position="nonte", axis.text.x = element_blank(), 
                      axis.ticks.x = element_blank(),
                      legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))                   
 print(p)

@@ -16,9 +16,6 @@ input <- args[1]
 outputdf <- args[2]
 sample_name <- args[3]
 
-vcfs <- read_vcfs_as_granges(input, sample_name, ref_genome)
-mut_mat <- mut_matrix(vcf_list = vcfs, ref_genome = ref_genome)
-
 ### cosmic
 cosmic <- paste("https://cancer.sanger.ac.uk/cancergenome/assets/","signatures_probabilities.txt", sep = "")
 sp_url <- paste(cosmic, sep = "")

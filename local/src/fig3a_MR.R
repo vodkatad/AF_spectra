@@ -92,6 +92,12 @@ graphics.off()
 ggsave(outplot, plot=p, width=89, height=89, units="mm")
 write.table(pdata, file=data_f, sep="\t", quote=FALSE)
 print(pdata$ord_x_time)
+
+sink(log_f)
+print('n clones')
+print(table(our$time))
+sink()
+
 save.image(paste0(outplot, '.Rdata'))
  #ggplot(pdata, aes(x=reorder(model_time, ord_x_time), y=mean)) +  #geom_point(stat="identity", shape=1, size=2) +
   #geom_segment(data=pdata, aes(x=reorder(model_time, ord_x_time), yend=mean,y=mean,  xend=reorder(model_time, ord_x_time))),size=.2)+
