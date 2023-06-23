@@ -59,13 +59,23 @@ colnames(pd) <- 'pval'
 colnames(pd2) <- 'pval'
 ppd <- rbind(pd, pd2)
 colnames(ppd) <- c('pval', 'sbs')
-ppd$sample <- row.names(ppd)
-ggplot(data=ppd)+geom_col(aes(x=sample,y=pval, fill=sbs), position="dodge")+
-  theme_bw()+scale_y_log10()+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+ppd$sample <- c(rownames(pd), rownames(pd2))
 
-ggsave(outputheat)
-#data$model <- unlist(lapply(strsplit(rownames(data),'-'), function(x){ x[1] })
+ function(x){ x[1] })
 write.table(ppd, file=outputcosine, sep="\t", quote=FALSE)
 
-save.image('pippo.Rdata')
+ppd$kind <-  as.factor(unlist(lapply(strsplit(ppd$sample,'_'), function(x){ x[length(x)] })))
+ppd$model <- unlist(lapply(strsplit(ppd$sample,'_'), function(x){ x[1] }))
+
+ppd$adjpval <- p.adjust(ppd$pval)
+p <- function(x, data) {
+  p1 <- data[data$kind==x,]
+  return(ggplot(data=p1)+geom_col(aes(x=sample,y=-log10(adjpval), fill=sbs), position="dodge")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+ggtitle(x))
+}
+
+
+plots <- lapply(levels(ppd$kind), p, ppd)
+ggarrange(plotlist = plots, ncol=3)
+ggsave(outputheat)
