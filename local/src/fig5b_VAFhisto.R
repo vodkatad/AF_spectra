@@ -40,7 +40,7 @@ p <- ggarrange(Pp, Mp,  common.legend = TRUE)
 pdf('fig_5b_VAFhistogram.pdf')
 print(p)
 graphics.off()
-ggsave(outplot, plot=p, width=60, height=120, units="mm")
+ggsave(outplot, plot=p, width=120, height=60, units="mm")
 
 
 

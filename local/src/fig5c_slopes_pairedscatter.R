@@ -16,6 +16,7 @@ data$mp <- factor(data$mp, levels=c('PRX', 'LMX'))
 
 fit_r2 <- data
 fit_keep <- fit_r2[fit_r2$r > 0.90 & fit_r2$subcl > 10,]
+n <- nrow(fit_keep)
 
 pairs <- as.data.frame(table(fit_keep$smodel))
 with_pair <- fit_keep[fit_keep$smodel %in% pairs[pairs$Freq == 2,'Var1'],]
@@ -78,6 +79,8 @@ if (!all(met$smodel==pri$smodel)) {
 wt <- wilcox.test(met$intercept, pri$intercept, alternative="greater", paired=TRUE)
 
 sink(log_f)
+print('num samples > thr R2 subcl')
+print(n)
 print('num pri')
 length(pri$intercept)
 median(pri$intercept)

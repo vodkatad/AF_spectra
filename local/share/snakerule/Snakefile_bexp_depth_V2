@@ -476,13 +476,13 @@ rule gained_nn_plot:
         
 ### quick and dirty remove 282
 rule MSS_MR_edu_plot:
-    input: "MR_edu_{kind}"
+    input: data="MR_edu_{kind}", ggtheme=GGTHEME
     output: "MSSMR_edu_{kind}.png"
     params: tool=BIN_DIR+"/MR_plot", colors=MANY_COLORS_PALETTE
     shell:
         """
-            grep -v CRC0282 {input} > {output}.tmp
-            {params.tool} {output}.tmp {output} {params.colors}
+            grep -v CRC0282 {input.data} > {output}.tmp
+            {params.tool} {output}.tmp {output} {params.colors} {input.ggtheme}
             rm {output}.tmp
         """
 

@@ -193,6 +193,20 @@ rule supplementary_edt10_xlsx:
     shell: "tsv_to_xls -i {input.tsv} -s n_subclonal -o {output}"
 
 # Supplementary Figures
+# XXX these two have total N and N normalized by len only, so the
+# transformation of y axis should be removed/changed
+rule supplementary_edf3a_N:
+    input: MR=REF_DATASET+"/vitro_gained_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='edf3a_N.svg', avgdata="edf3a_N_avg.tsv"
+    log: log="edf3a_N.log"
+    script: SRC_DIR+'/fig1b_MR.R'
+
+rule supplementary_edf3b_nN:
+    input: MR=REF_DATASET+"/vitro_gained_norm_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='edf3b_nN.svg', avgdata="edf3b_nN_avg.tsv"
+    log: log="edf3b_nN.log"
+    script: SRC_DIR+'/fig1b_MR.R'
+
 rule supplementary_edf4a_localiz:
     input: data=REF_DATASET+'/annotatr_locations.tsv', theme=GGTHEME
     output: plot='edf4a_localiz.svg'
