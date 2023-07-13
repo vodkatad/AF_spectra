@@ -193,6 +193,12 @@ rule supplementary_edt10_xlsx:
     shell: "tsv_to_xls -i {input.tsv} -s n_subclonal -o {output}"
 
 # Supplementary Figures
+rule supplementary_edf2_indel:
+    input: MR=REF_DATASET+"/vitro_gained_indel", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='edf2_indel.svg', avgdata="edf2_indel_avg.tsv"
+    log: log="edf2_indel.log"
+    script: SRC_DIR+'/fig1b_MR.R'
+
 # XXX these two have total N and N normalized by len only, so the
 # transformation of y axis should be removed/changed
 rule supplementary_edf3a_N:

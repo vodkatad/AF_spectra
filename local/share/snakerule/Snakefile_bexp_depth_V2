@@ -90,6 +90,8 @@ def kind_MR(wildcards):
         return expand("{model}/platypus_nobin_00/all.MR_ov", model=MODELS_NO327_2)
     elif wildcards.kind == "sSNV":
         return expand("{model}/mutect_nobin/all.MR_ov", model=MODELS_NO327_2)
+    elif wildcards.kind == "clSNV":
+        return expand("{model}/mutect_VAF/all.MR_ov", model=MODELS_NO327_2)
     elif wildcards.kind == "indel":
         return expand("{model}/platypus_nobin_indels_00/all.MR_ov", model=MODELS)
     elif wildcards.kind == "mrca":

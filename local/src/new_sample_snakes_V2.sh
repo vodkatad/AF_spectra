@@ -17,8 +17,8 @@
 #snakemake dnds_double_vitro.tsv
 #cd ../mutect_nobin/
 #snakemake all_R
-cd $1/mutect_nobin/
-snakemake all.MR_ov
+cd $1/mutect_VAF/
+snakemake -j 6 all.MR_ov
 #cd $1/mutect_nobin
 #snakemake subclonal_mr_corr.png
 #cd ../sequenza
