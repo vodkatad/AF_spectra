@@ -7,8 +7,8 @@ library(ggplot2)
 #bed_bulk <- '/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/platypus_nobin_00/all.gain.bed'
 
 custom_annot <- 'no'
-#bed_gained <- snakemake@input[['gained_bed']]
-#bed_bulk <- snakemake@input[['bulk_bed']]
+bed_gained <- snakemake@input[['gained_bed']]
+bed_bulk <- snakemake@input[['bulk_bed']]
 custom_annot <- snakemake@params[['custom_annot']]
 if (custom_annot == "yes") {
   annot_beds <- snakemake@input[['annot_beds']]  

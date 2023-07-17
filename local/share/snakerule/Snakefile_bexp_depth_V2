@@ -1071,7 +1071,7 @@ rule overall_bed:
     input: all_gained_bed
     shell:
         """
-            cat {input} | sort | uniq > {output}
+            cat {input} | cut -f 1,2,3 | sort | uniq > {output}
         """
 
 rule annotatr:

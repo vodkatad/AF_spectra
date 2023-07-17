@@ -25,6 +25,14 @@ rule bulk_vars:
             | grep -v "^#" |  filter_1col 1 {input.chrs} | {params.tool} {params.kind} {params.multi} 2> {log} | gzip > {output}
         """
 
+rule sequenza_bed:
+    input: sequenza=DATA+'/../' + SHIPMENT + '/'+BULKNAME+'_segments.txt'
+    output: var="bulk.sequenza.bed"
+    shell:
+        """
+            sed 1d {input.sequenza} | bawk '{{print $1, $2-1, $3, $10}}' > {output}
+        """
+
 # we guess sequenza is 1 based cause it starts from pileups...end...included? Looked around in code, sic, going with "assumptions".
 # we start with CALLABLE == to the clones cause right now we do not have the callable on bulk - not ideal.
 rule intersect_cnv_bulk:
