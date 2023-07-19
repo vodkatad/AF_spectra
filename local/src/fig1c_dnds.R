@@ -13,6 +13,8 @@ load(theme)
 
 d <- read.table(dnds_f, sep="\t", quote="", header=FALSE, stringsAsFactors = TRUE)
 colnames(d) <- c('model','estimate', 'upper', 'lower')
+d$model <- gsub('_2nd', '', d$model, fixed=TRUE)
+
 
 palette_df <- readRDS(colors)
 pal <- palette_df$palette

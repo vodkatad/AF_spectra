@@ -238,7 +238,14 @@ rule supplementary_edf6_tree_MR:
     log: log="edf6_cor.log"
     script: SRC_DIR+'/edfig6_cor.R'
 
-### miscellanea
+SORTED_MR_T2=PRJ_ROOT+'/local/share/data/sorted_MR_avg_T2.tsv'
+rule supplementary_edf9a:
+    input: dnds=REF_DATASET+"/dnds_t2_vitro_overall.tsv", theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR_T2
+    output: plot='edf9a_dnds.svg'
+    script: SRC_DIR+'/fig1c_dnds.R'
+
+
+######################## miscellanea
 # diary 25/05/23 for code run on newer R (4.3.0) on cog
 rule signal_fig2_a:
     input: sign=DATA+'/exposures2.tsv', 

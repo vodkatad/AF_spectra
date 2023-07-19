@@ -408,6 +408,17 @@ rule dnds_1voverall:
           done | sed 's/clones_all/2nd/i'> {output}
         """
 
+rule dnds_T2voverall:
+    input: expand("{model}/platypus_nobin_00/dndsvitro.tsv", model=MODELS_T2)
+    output: "dnds_t2_vitro_overall.tsv"
+    shell:
+        """
+          for f in {input}; do \\
+            n=$(echo $f | tr "\/" "\\t" | cut -f 1); \\
+            bawk -v name=$n '$1=="wall"{{print name,$3,$4,$5}}' $f; \\
+          done | sed 's/clones_all/2nd/i'> {output}
+        """
+
 rule dndsdouble_1voverall:
     input: expand("{model}/platypus_nobin_indels_00/dnds_double_vitro.tsv", model=MODELS_NOREP_TRUE)
     output: "dnds1vitrodouble_overall.tsv"
