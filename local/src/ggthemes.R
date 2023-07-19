@@ -42,14 +42,14 @@ theme(
 # this will be used as scale_y_continuous(breaks=  and as ylim(min, max) to have the - also limits-c()
 # last tick at the extremity of the axis.
 # other parameter is n. of ticks
-guess_ticks <- function(values, nticks=5, fixed_max=NULL) {
+guess_ticks <- function(values, nticks=5, fixed_max=NULL, fixed_min=0) {
   vmax <- max(values)
   if (is.null(fixed_max)) { 
     round_max <- ceiling(vmax)
   } else {
     round_max <- fixed_max
   }
-  my_breaks <- seq(0, round_max, length.out=nticks)
+  my_breaks <- seq(fixed_min, round_max, length.out=nticks)
   return(my_breaks)
 }
 
