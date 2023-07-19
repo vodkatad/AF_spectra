@@ -41,6 +41,9 @@ if (what == "subcl") {
   column <- 'subcl'
   fit_r2$intercept <- fit_r2$subcl
 } else {
+  # TODO remove outliers
+  remove <- unique(fit_r2[fit_r2$intercept > 38, 'smodel'])
+  fit_r2 <- fit_r2[!fit_r2$smodel %in% remove,]
   column <- 'intercept'
 }
 
@@ -58,7 +61,6 @@ if (what == "subcl") {
   fit_r2$intercept <- fit_r2$subcl
   ylab <- '# subclonal SNVs'
 } else {
-  # TODO remove outliers
   ylab <- 'μ/β'
 }
 p <- ggplot(data=fit_r2, aes(x=model, y=intercept, color=mp, group=smodel)) +
