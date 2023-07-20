@@ -193,6 +193,11 @@ rule supplementary_edt10_xlsx:
     shell: "tsv_to_xls -i {input.tsv} -s n_subclonal -o {output}"
 
 # Supplementary Figures
+rule supplementary_edf1b_edu:
+    input: edu=PRJ_ROOT+'/local/share/data/edf1b_EDU.txt', theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='edf1b_EDU.svg'
+    script: SRC_DIR+'/edfig1b_EDU.R'
+
 rule supplementary_edf2_indel:
     input: MR=REF_DATASET+"/vitro_gained_indel", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf2_indel.svg', avgdata="edf2_indel_avg.tsv"
@@ -248,6 +253,12 @@ rule supplementary_edf10:
     input: N=REF_DATASET+"/vitro_gained_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf10_hyp.svg'
     script: SRC_DIR+'/edfig10_hyp.R'
+
+rule edf_12a_R2:
+    input: data=SOURCE_DATA+'/all_bets.tsv',
+           theme=GGTHEME
+    output: plot='edfig_12a_R2.svg'
+    script: SRC_DIR+'/edfig_12a_R2.R'
 
 rule figure_12b_slopes_noout:
     input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',
