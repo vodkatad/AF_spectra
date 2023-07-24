@@ -17,7 +17,9 @@
 #snakemake dnds_double_vitro.tsv
 #cd ../mutect_nobin/
 #snakemake all_R
-cd $1/mutect_VAF/
+#cd $1/mutect_VAF/
+#snakemake -j 6 all.MR_ov
+cd $1/binomial/
 snakemake -j 6 all.MR_ov
 #cd $1/mutect_nobin
 #snakemake subclonal_mr_corr.png
@@ -32,4 +34,4 @@ snakemake -j 6 all.MR_ov
 #snakemake tree_bulk_vitro.pdf nobs_tree_bulk_vitro.svg
 
 #cd $1/tree
-#snakemake -f cn_plot.pdf nobs_tree_bulk_vitro.pdf
+#snakemake -f bulk.nonsyn.binary.tsv.gz
