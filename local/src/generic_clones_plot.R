@@ -9,11 +9,7 @@ colors <- args[3]
 yname <- args[4]
 
 our <- read.table(infile, sep="\t", header=FALSE, stringsAsFactors=FALSE)
-<<<<<<< Updated upstream
 colnames(our) <- c('sample', 'MR_edu')
-=======
-colnames(our) <- c('sample','', '', 'MR_edu')
->>>>>>> Stashed changes
 our <- our[!is.na(our$MR_edu),]
 #our$MR <- our$MR_edu / 0.000000001
 our$model <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
@@ -53,21 +49,13 @@ our$model_clone <- paste0(our$model, "_", our$clone)
 n <- length(levels(as.factor(our$model_clone)))
 # shape clones
 our$time <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][3]; return(y[1])})
-<<<<<<< Updated upstream
 palette_df <- readRDS(colors)
-=======
-palette_df <- readRDS('/scratch/trcanmed/AF_spectra/local/share/data/palette.rds')
->>>>>>> Stashed changes
 pal <- palette_df$palette
 names(pal) <- palette_df$model_clone
 
 save.image('mrca.Rdata')
 ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=3) +
-<<<<<<< Updated upstream
 geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ylab(yname)+
-=======
-geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('MR EDU')+ylab('MRCA gen')+
->>>>>>> Stashed changes
   geom_point(data=our, aes(x=model, y=MR, color=model_clone, shape=time), stat="identity", size=4, position=position_dodge(0.2))+
   theme(axis.text.x = element_text(size=15, angle=90, vjust=0.5, hjust=1), legend.position="none", axis.title.y=element_text(size=15))+scale_color_manual(values=pal)+scale_shape_manual(values=c(18,20))
 
