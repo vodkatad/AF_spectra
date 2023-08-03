@@ -104,9 +104,13 @@ def kind_MR(wildcards):
         return expand("{model}/tree/{{lesion}}_tips.tsv", model=MODELS_NOREP_TRUE)
     elif wildcards.kind == "firstSNV":
         return expand("{model}/platypus_nobin_00/all.MR_ov", model=MODELS_NOREP_TRUE)
+    elif wildcards.kind == "univ":
+        return expand("{model}/univMutect/all.MR_ov", model=MODELS_NOREP_TRUE)
     else: 
         print("boh!")
 
+# == 0 for MR_univ PORCOPORCOPORCOPORCO
+            #cat {input} | bawk '$4==0 {{print $3,$8}}' > {output}
 rule overall_MR_edu_vitro:
     output: "MR_edu_{kind}"
     input: kind_MR
@@ -114,6 +118,7 @@ rule overall_MR_edu_vitro:
         """
             cat {input} | bawk '$4==1 || $4 == 2 {{print $2,$8}}' > {output}
         """
+
 
 rule check_noplaty:
     input: 'CRC1307_clones_all/mutect_nobin/all.MR_ov', 'CRC1307/mutect_nobin/all.MR_ov', 'CRC1502_clones_all/mutect_nobin/all.MR_ov', 'CRC1502/mutect_nobin/all.MR_ov'

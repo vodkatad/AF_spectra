@@ -35,7 +35,6 @@ colnames(cn) <- paste0(colnames(cn), "_cn")
 m <- merge(mr, cn, by="row.names")
 m$model <- m$Row.names
 m$mean_mr<-m$mean_mr*1000000000
-ci <- cor.test(m$mean_cn, m$mean_mr, method="spearman")
 y_breaks <- guess_ticks(m$mean_cn+6,fixed_max=40)
 x_breaks<-guess_ticks(m$mean_mr)
 pdf('fig_4c_cor.pdf')
