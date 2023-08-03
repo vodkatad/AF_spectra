@@ -345,3 +345,28 @@ rule perle:
             mkdir -p perlati
             perl -pne "s/textLength='.+px'//; " < {input} > {output}
         """
+
+
+# msigact
+# input generated on rotpunkt via msigact.R and manual removal of LMO/O for bulk
+rule msigact_fig2_a:
+    input: sign=SOURCE_DATA+'/lmsigact.tsv', 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="fig_2a_msigact.pdf"
+    params: wanted="bulk", legend="yes", addlm="yes", norm="no"
+    script: SRC_DIR+'/fig2_msigact.R'
+
+rule msigact_fig_2a_bis:
+    input: sign=SOURCE_DATA+'/lmsigact.tsv', 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="fig_2abis_msigact.pdf"
+    params: wanted="vitroMA", legend="no", addlm="yes", norm="no"
+    script: SRC_DIR+'/fig2_msigact.R'
+
+# vivo 1st
+rule msigact_fig_2b_bis:
+    input: sign=SOURCE_DATA+'/lmsigact.tsv', 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="fig_2b_msigact.pdf"
+    params: wanted="vivoMA", legend="no", addlm="yes", norm="no"
+    script: SRC_DIR+'/fig2_msigact.R'
