@@ -116,12 +116,17 @@ def kind_MR(wildcards):
         return expand("{model}/platypus_nobin/all.MR_ov", model=MODELS)
     elif wildcards.kind == "indel":
         return expand("{model}/platypus_nobin_indels/all.MR_ov", model=MODELS)
+<<<<<<< Updated upstream
     elif wildcards.kind == "mrca":
         return expand("{model}/platypus_nobin/all_mrca.tsv", model=MODELS_NOREP_TRUE)
     elif wildcards.kind == "subclonal":
         return expand("{model}/mutect_nobin/all_subclonal_n.tsv", model=MODELS_NOREP_TRUE)
     else: 
         print("boh!")
+=======
+    else:
+        return expand("{model}/platypus_nobin/all_mrca.tsv", model=MODELS_NOREP_TRUE)
+>>>>>>> Stashed changes
 
 def kind_MR_large(wildcards):
     #res = kind_MR(wildcards) # get all and keep all for doubles, now, lazy and tired
@@ -174,6 +179,7 @@ rule overall_mrca:
             cat {input} | grep -v clone_other  | grep -v '\-M' | bawk '{{print $2"_"$3,$4}}' > {output}
         """
 
+<<<<<<< Updated upstream
 rule overall_subcl:
     input: kind_MR
     output: "fixedthr_{kind}"
@@ -182,6 +188,8 @@ rule overall_subcl:
             cat {input} | grep -v '\-M' |  bawk '$3==0.24 && $2==0.05 {print $1,$2}' | tr "-" "\\t" | cut -f 1,4 > {output}
         """
 
+=======
+>>>>>>> Stashed changes
 rule mrca_plot:
     input: "shared_mrca"
     output: "mrca.png"

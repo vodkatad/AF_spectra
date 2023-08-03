@@ -151,3 +151,36 @@ rule vcf_single:
         """
             bcftools view -s {wildcards.sample} {input.vcf} | bgzip > {output}
         """
+
+
+## bed of non mutated regions ploidy 2-3 then union
+#egrassi@godot:/mnt/trcanmed/snaketree/prj/AF_spectra/dataset/CRC1307_150x_30x_mpileup$ time zcat CRC1307-02-0.callable_ploidy-2_pseudompileup.gz | /scratch/trcanmed/AF_spectra/local/src/mpileup_counts.pl | gzip > non_mut_CRC1307-02-0.bed.gz
+#522774403       4402693
+#real    8m22.573s
+#user    11m3.759s
+#sys     0m16.422s
+rule notmut:
+    input: "{sample}.callable_ploidy-{p}_pseudompileup.gz"
+    output: "non_mut_{sample}-{p}.bed.gz"
+    log: "non_mut_{sample}-{p}.log"
+    params: tool='/scratch/trcanmed/AF_spectra/local/src/mpileup_counts.pl'
+    shell:
+        """
+            zcat {input} | {params.tool} | gzip > {output} 2> {log}
+        """
+
+rule all_notmut:
+    input: a="non_mut_{sample}-2.bed.gz", b="non_mut_{sample}-3.bed.gz"
+    output: "{sample}_not_mut.bed"
+    shell:
+        """
+            zcat {input.a} | bawk '{{print $0, "2"}}' > {output}.tmp2
+            zcat {input.b} | bawk '{{print $0, "3"}}' > {output}.tmp3
+            cat {output}.tmp2 {output}.tmp3 | sort -k1,1 -k2,2n  > {output}.tmp
+            bedtools merge -c 4 -o min -i {output}.tmp > {output}
+            rm {output}.tmp*
+        """
+
+T0=['CRC1307-09-0', 'CRC1307-02-0']
+rule all_all_notmut: 
+    input: expand("{sample}_not_mut.bed", sample=T0)

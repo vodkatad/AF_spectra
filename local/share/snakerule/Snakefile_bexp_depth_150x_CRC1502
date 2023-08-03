@@ -60,7 +60,7 @@ rule dir_and_call:
 ### overlap between pileups and regions with ploidy = 3 ################################
 SAMPLES=['CRC1502-03-1-A','CRC1502-03-0']
 #PILEUPS_D='/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1502_120x/varscan_paired' # CRC1307-02-1-E.mpileup.gz
-PILEUPS_D='/scratch/trcanmed/AF_spectra/local/share/data/mpile1502'
+PILEUPS_D='/mnt/trcanmed/snaketree/prj/AF_spectra/local/share/data/mpile1502'
 #CN_D='./mutect_nobin_10x/' # mutect_nobin_100x/CRC1307-02-1-E.callable.bed.gz # this has depth included and we want to be as generic as possible now
 GNOMAD_TASK_DIR='/mnt/trcanmed/snaketree/task/annotations/dataset/gnomad'
 CALLABLE_BED=GNOMAD_TASK_DIR+'/wgs_calling_regions.hg38.bed.gz'
@@ -97,15 +97,15 @@ rule intersect_cnv:
 
 # we keep also A and B from sequenza to remove LOH regions
 rule intersect_mpileup:
-    input: callable="{sample}.callable.bed.gz", pileup=PILEUPS_D+'/{sample}.mpileup.gz'
-    output: "{sample}.callable_ploidy-{p}_pseudompileup.gz"
+    input: callable="{sample}.callable.bed.gz", pileup=PILEUPS_D+'/{sample}.noovrem_mpileup.gz'
+    output: "{sample}.callable_ploidy-{p}_noovrem_pseudompileup.gz"
     shell:
         """
             bedtools intersect -b <(zcat {input.callable} | bawk '$4=={wildcards.p}') -a <(zcat {input.pileup} | bawk '{{print $1, $2-1, $2, $3, $4, $5}}') | gzip > {output}
         """
 
 rule all_int_mpileup:
-    input: expand("{sample}.callable_ploidy-{p}_pseudompileup.gz", sample=SAMPLES, p=2)
+    input: expand("{sample}.callable_ploidy-{p}_pseudompileup.gz", sample=SAMPLES, p=[2,3])
 
 #input: expand("{sample}.callable_ploidy-{p}_pseudompileup.gz", sample=SAMPLES, p=[2,3])
 
