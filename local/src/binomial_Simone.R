@@ -28,7 +28,6 @@ rbinom <- function(mut) {
     return(0)
   }
 }
-save.image('cc.Rdata')
 new_binom <- apply(data, 1, rbinom)
 data$binomp <- new_binom
 
