@@ -21,14 +21,15 @@ while (<STDIN>) {
     if ($lastchr ne '' && $line[0] ne $lastchr && $b != 0) {
         print $lastchr . "\t" . $b . "\t" . $laste . "\n";
         $already = 1;
+        $b = 0;
     }
     if ($bases =~ /[ACGTNacgtn><*]/) {
         $totmut++;
         #end of a non mutated interval (or going on with muts)
         if ($b != 0) {
             if ($already == 0) {
-                $already = 0;
                 $e = $line[1];
+                $chr = $line[0]; 
                 print $chr . "\t" . $b . "\t" . $e . "\n";
             }
             $chr = '';
@@ -37,12 +38,12 @@ while (<STDIN>) {
         }
     } else {
         if ($b == 0) { # we open a non mutated interval
-            $already = 0;
             $chr = $line[0];
             $b = $line[1];
         } 
         # if $b !=0 we are extending our non mutated interval
     }
+    $already = 0;
     $tot++;
     $laste = $line[2];
     $lastchr = $line[0];
@@ -51,4 +52,5 @@ while (<STDIN>) {
 if ($b != 0) {
     print $lastchr . "\t" . $b . "\t" . $laste . "\n";
 }
-print STDERR "$tot\t$totmut\n";
+my $totwt = $tot - $totmut;
+print STDERR "$tot\t$totmut\t$totwt\n";

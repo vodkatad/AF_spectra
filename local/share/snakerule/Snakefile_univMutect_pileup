@@ -121,7 +121,7 @@ rule real_binomial:
     params: cn=WANTED_CN, tool=BIN_DIR+"/binomial_Simone"
     shell:
         """
-            zcat {input.vars} | tr ":" "\\t" | sed 's/@0\/1//g' | sed 's/@1\/0//g' | sed 's/@1\/1//g' | sed 's/@0\/0//g' > {output}.tmp
+            zcat {input.vars} | tr ":" "\\t" > {output}.tmp
             cat {input.header} > {output}.3tmp
             echo {params.cn} | tr "," "\\n" > {output}.2tmp
             cat {output}.tmp | filter_1col 11 {output}.2tmp | bawk '{{print $4":"$5":"$6":"$7,$0, 1, 0, 1}}' >> {output}.3tmp
@@ -131,15 +131,18 @@ rule real_binomial:
         """
 
 #######################
-# we filter only regions without muts with cn=2/3 (not general WARNING TODO FIXME) - we also filter variants for wantedCN but it's not needed
-# CAUTION PROBABLY WE NEED TO OVERALAP WITH CALLABLE T1 too to have a reasonable length
+# w we also filter variants for wantedCN but it's not needed - checked without filter in t0 on $12==1 and it's the same)
+# overlap with callable in T1, what we cannot call there it's not our universe.
 rule bed_notmut:
     input: t0="{t0sample}.calls.tsv.gz", ovbed="{t0sample}.callable.bed.gz", ovbed2="{t1sample}_{t0sample}.callable.bed.gz"
     output: t0="{t0sample}_{t1sample}_not_mut.bed", t0_strict="{t0sample}_{t1sample}_not_mut_strict.bed"
+    params: cn=WANTED_CN
     shell:
         """
-            bedtools subtract -b <(zcat {input.t0} | sed 1d | cut -f1 --complement | bawk '$12==1') -a {input.ovbed} | bawk '$4==2 || $4==3'> {output.t0}
+            echo {params.cn} | tr "," "\\n" > {output.t0}.tmp
+            bedtools subtract -b <(zcat {input.t0} | sed 1d | cut -f1 --complement | bawk '$12==1') -a {input.ovbed} | filter_1col 4 {output.t0}.tmp > {output.t0}
             bedtools intersect -wa -a {output.t0} -b {input.ovbed2} > {output.t0_strict}
+            rm {output.t0}.tmp
         """
 
 rule bed_len:
@@ -159,6 +162,7 @@ rule pair_ov:
             bedtools intersect -a <(zcat {input.t1} | sed 1d | cut -f1 --complement) -b {input.ovbed} | bawk '{{print $4":"$5":"$6":"$7, $0}}' |  gzip > {output.t1}
         """
 
+# check on $13 is redundant, $14 is binomp
 rule pair_ov_nobcnok:
     input: t0='{t0sample}_{t1sample}_not_mut.bed', t1="{t1sample}_{t0sample}.callsov.tsv.gz"
     output: binom="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz"
@@ -209,7 +213,7 @@ rule all_all_raw_ov:
 rule raw_ov:
     input: len="{t0sample}_{t1sample}_universe_len.txt", calls="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", gens=DATA+"/generations.txt"
     output: "{t1sample}_{t0sample}.MR_ov.tsv"
-    params: tool=BIN_DIR+"/gain_MA_noloss"
+    params: tool=BIN_DIR+"/gain_MA_noloss_T0univ"
     shell:
         """
             {params.tool} {input.len} {input.calls} {input.gens} {output}
@@ -588,3 +592,6 @@ rule all_seg_changes:
         """
             cat {input} > {output}
         """
+
+rule n_subclonal:
+    shell: "echo dummy"
