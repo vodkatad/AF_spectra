@@ -28,7 +28,7 @@ if (!grepl('2nd', wanted)) {
   data <- data[grepl(wanted, rownames(data)),]
   data <- data[!grepl('2nd', rownames(data)),]
 } else {
-  stop('Still to be implemented')
+  data <- data[grepl(wanted, rownames(data)),]
 }
 # now we have each model only once so we can user match to get the right order
 # not for clevers :(

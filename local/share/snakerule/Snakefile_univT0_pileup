@@ -142,13 +142,14 @@ rule pair_ov:
         """
 
 # limit on ploidy ovbed2 here?
-# why sort uniq?
+# why sort uniq? added -u here but it's not working
+# not_mut intervals are large and overlap mani different callable regions, but why -u does not work?
 rule bed_notmut:
     input: bed=T0_BED_DIR+'/{t0sample}_not_mut.bed', ovbed2="{t1sample}_{t0sample}.callable.bed.gz"
     output: t0_strict="{t0sample}_{t1sample}_not_mut_strict.bed"
     shell:
         """
-            bedtools intersect -wa -a {input.bed} -b {input.ovbed2} > {output.t0_strict}
+            bedtools intersect -u -a {input.bed} -b {input.ovbed2} | sort | uniq > {output.t0_strict}
         """
 
 rule bed_len:
@@ -218,7 +219,7 @@ rule raw_ov:
 rule raw_ov_TOPI:
     input: len="{t0sample}_{t1sample}_universe_len.txt", calls="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", gens=DATA+"/generations_TOPI.txt"
     output: "{t1sample}_{t0sample}.MR_ovtopi.tsv"
-    params: tool=BIN_DIR+"/gain_MA_topi_noloss"
+    params: tool=BIN_DIR+"/gain_MA_noloss_T0univ"
     shell:
         """
             {params.tool} {input.len} {input.calls} {input.gens} {output}

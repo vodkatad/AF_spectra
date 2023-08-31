@@ -4,7 +4,7 @@
 #mkdir $1/platypus_nobin_indels_00 $1/sequenza $1/mutect_nobin $1/platypus_nobin_00 $1/MutationalPatterns
 #mkdir $1/platypus_nobin_indels_00 
 #mkdir -p $1/mutect_VAF
-mkdir -p $1/binomial
+#mkdir -p $1/univMutect
 #cd $1/platypus_nobin_00
 #if [ "$1" == "CRC1599PR" ]
 #then
@@ -25,8 +25,8 @@ mkdir -p $1/binomial
 #cd $1/mutect_VAF/
 #ln -s ../../../local/share/snakerule/Snakefile_clones_real_segments_VAFthr Snakefile
 #ln -s ../../../local/share/snakemake/conf_$1_mutect_platypus_polished.sk conf.sk
-cd $1/binomial/
-ln -s ../../../local/share/snakerule/Snakefile_binomial Snakefile
+cd $1/univMutect
+ln -s ../../../local/share/snakerule/Snakefile_univMutect_pileup Snakefile
 ln -s ../../../local/share/snakemake/conf_$1_mutect_platypus_polished.sk conf.sk
 #cd ../sequenza
 #ln -s ../../../local/share/snakerule/Snakefile_sequenza Snakefile

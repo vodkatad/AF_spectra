@@ -60,10 +60,8 @@ if (addlm!= "no") {
 #colnames(data) <- gsub('X', 'SBS', colnames(data))
 data <- t(data)  
 
-rownames(data) <- gsub('.Colorectal_common', '', rownames(data), fixed=TRUE)
-rownames(data) <- gsub('.Colorectal_rare', '', rownames(data), fixed=TRUE)
-sbs_n <- unlist(str_extract(rownames(data), '\\d+')) # no numbers will be NA and 93.112 93
-data <- data[order(as.numeric(sbs_n)),]
+data <- data[grepl('mean', rownames(data)),]
+rownames(data) <- gsub('mean.Signature.', 'SBS', rownames(data), fixed=TRUE)
 
 annot_colors <- list(model=pal)
 pdf(outplot, family="sans")#, width=2.2, height=1.4) # resize by hand cause otherwise it will be a mess

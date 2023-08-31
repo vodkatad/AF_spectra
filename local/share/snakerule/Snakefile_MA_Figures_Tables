@@ -181,6 +181,21 @@ rule supplementary_edt7_xlsx:
             #rm {output}.tmp*
         """
 
+# Note: LM/PR were added by hand on drive for the first run of this. Automatize if need to re-run.
+rule supplementary_edt8_sign_xlsx:
+    input: exposures=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", cosine=REF_DATASET+"/vitrovivobulk_cosine_merged_cosmic.tsv"
+    output: xls="Extended_Data_Table_8_signaturesT2.xlsx"
+    shell:
+        """
+            bawk 'NR==1{{print "model","class",$0}}' {input.exposures} | perl -pne 's/(\d+)/SBS$1/g'> {output}.tmp
+            tr "_" "\\t" < {input.exposures} | grep 2nd | grep -v vivoMA >> {output}.tmp
+            echo -e "model\\tclass\\tcosine_similarity\\n" > {output}.tmp2
+            sed 1d {input.cosine} | grep 2nd | grep -v vivoMA | tr "_" "\\t" | cut -f 1,2,3 >> {output}.tmp2
+            tsv_to_xls -i {output}.tmp,{output}.tmp2 -s exposures,cosine -o {output}
+            rm {output}.tmp*
+        """
+
+
 # List of muts and details added by hand on drive (?)
 rule supplementary_edt9_xlsx:
     input: TCGA="supplementary_wilcox_mut_burden_TCGA.tsv", WES="supplementary_wilcox_mut_burden_wes.tsv"
@@ -197,21 +212,25 @@ rule supplementary_edf1b_edu:
     input: edu=PRJ_ROOT+'/local/share/data/edf1b_EDU.txt', theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf1b_EDU.svg'
     script: SRC_DIR+'/edfig1b_EDU.R'
-
+#controllare si /0.0000001 e unità di misura asse y MR
 rule supplementary_edf2_indel:
-    input: MR=REF_DATASET+"/vitro_gained_indel", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    input: MR=REF_DATASET+"/MR_edu_indel", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf2_indel.svg', avgdata="edf2_indel_avg.tsv"
     log: log="edf2_indel.log"
     script: SRC_DIR+'/fig1b_MR.R'
 
 # XXX these two have total N and N normalized by len only, so the
 # transformation of y axis should be removed/changed
+# y axis here is absolute n of SNVs ( SNVs )
+
+#controllare no /0.00000001, e unità di misura asse y deve essere SNVs
 rule supplementary_edf3a_N:
     input: MR=REF_DATASET+"/vitro_gained_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf3a_N.svg', avgdata="edf3a_N_avg.tsv"
     log: log="edf3a_N.log"
     script: SRC_DIR+'/fig1b_MR.R'
 
+# y axis here is SNVs/Gbp (do / 0.000000001)
 rule supplementary_edf3b_nN:
     input: MR=REF_DATASET+"/vitro_gained_norm_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf3b_nN.svg', avgdata="edf3b_nN_avg.tsv"
@@ -249,6 +268,14 @@ rule supplementary_edf9a:
     output: plot='edf9a_dnds.svg'
     script: SRC_DIR+'/fig1c_dnds.R'
 
+rule supplementary_edf9b:
+    input: sign=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="edf9b_cosmic.pdf"
+    params: wanted="2nd_vitroMA", legend="no", addlm="yes"
+    script: SRC_DIR+'/fig2_cosmic.R'
+
+
 rule supplementary_edf10:
     input: N=REF_DATASET+"/vitro_gained_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf10_hyp.svg'
@@ -258,7 +285,7 @@ rule edf_12a_R2:
     input: data=SOURCE_DATA+'/all_bets.tsv',
            theme=GGTHEME
     output: plot='edfig_12a_R2.svg'
-    script: SRC_DIR+'/edfig_12a_R2.R'
+    script: SRC_DIR+'/edfig_12a_R2_.R'
 
 rule figure_12b_slopes_noout:
     input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',
@@ -277,16 +304,17 @@ rule figure_12c_subcl:
     script: SRC_DIR+'/fig12bc_slopes.R'
 
 ######################## miscellanea
-# diary 25/05/23 for code run on newer R (4.3.0) on cog
+# diary 25/05/23 for code run on newer R (4.3.0) on cog + add LM to 1599BULK manually
+# edf7
 rule signal_fig2_a:
-    input: sign=DATA+'/exposures2.tsv', 
+    input: sign=SOURCE_DATA+'/exposures2.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2a_signal.pdf"
     params: wanted="bulk", legend="yes", addlm="yes", norm="yes"
     script: SRC_DIR+'/fig2_signal.R'
 
 rule signal_fig_2a_bis:
-    input: sign=DATA+'/exposures2.tsv', 
+    input: sign=SOURCE_DATA+'/exposures2.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2abis_signal.pdf"
     params: wanted="vitroMA", legend="no", addlm="yes", norm="yes"
@@ -294,33 +322,33 @@ rule signal_fig_2a_bis:
 
 # vivo 1st
 rule signal_fig_2b_bis:
-    input: sign=DATA+'/exposures2.tsv', 
+    input: sign=SOURCE_DATA+'/exposures2.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2b_signal.pdf"
     params: wanted="vivoMA", legend="no", addlm="yes", norm="yes"
-    script: SRC_DIR+'/fig2_signal.R'
+    script: SRC_DIR+'/fig2_sigfit.R'
 
 rule sigfit_fig2_a:
-    input: sign=DATA+'/sigfit.tsv', 
+    input: sign=SOURCE_DATA+'/sigfit.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2a_sigfit.pdf"
     params: wanted="bulk", legend="yes", addlm="yes", norm="no"
-    script: SRC_DIR+'/fig2_signal.R'
+    script: SRC_DIR+'/fig2_sigfit.R'
 
 rule sigfit_fig_2a_bis:
-    input: sign=DATA+'/sigfit.tsv', 
+    input: sign=SOURCE_DATA+'/sigfit.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2abis_sigfit.pdf"
     params: wanted="vitroMA", legend="no", addlm="yes", norm="no"
-    script: SRC_DIR+'/fig2_signal.R'
+    script: SRC_DIR+'/fig2_sigfit.R'
 
 # vivo 1st
 rule sigfit_fig_2b_bis:
-    input: sign=DATA+'/sigfit.tsv', 
+    input: sign=SOURCE_DATA+'/sigfit.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2b_sigfit.pdf"
     params: wanted="vivoMA", legend="no", addlm="yes", norm="no"
-    script: SRC_DIR+'/fig2_signal.R'
+    script: SRC_DIR+'/fig2_sigfit.R'
 
 
 # check edf6 version gained muts
