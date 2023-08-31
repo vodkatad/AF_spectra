@@ -95,7 +95,7 @@ def kind_MR(wildcards):
     elif wildcards.kind == "binSNV":
         return expand("{model}/binomial/all.MR_ov", model=MODELS_NO327_2)
     elif wildcards.kind == "indel":
-        return expand("{model}/platypus_nobin_indels_00/all.MR_ov", model=MODELS)
+        return expand("{model}/platypus_nobin_indels_00/all.MR_ov", model=MODELS_NO327_2)
     elif wildcards.kind == "mrca":
         return expand("{model}/platypus_nobin_00/all_mrca.tsv", model=MODELS_NOREP_TRUE)
     elif wildcards.kind == "subclonal":
@@ -118,6 +118,15 @@ rule overall_MR_edu_vitro:
         """
             cat {input} | bawk '$4==1 || $4 == 2 {{print $2,$8}}' > {output}
         """
+    
+rule overall_MR_conte_vitro:
+    output: "MR_conte_{kind}"
+    input: kind_MR
+    shell:
+        """
+            cat {input} | bawk '$4==1 || $4 == 2 {{print $2,$7}}' > {output}
+        """
+
 
 
 rule check_noplaty:
@@ -469,6 +478,16 @@ rule dnds_onebyone: # TODO
 rule MRedu_plot:
     input: data="MR_edu_{kind}", ggtheme=GGTHEME
     output: "MR_edu_{kind}.png"
+    params: tool=BIN_DIR+"/MR_plot", colors=MANY_COLORS_PALETTE
+    shell:
+        """
+            {params.tool} {input.data} {output} {params.colors} {input.ggtheme}
+        """
+
+
+rule MRconte_plot:
+    input: data="MR_conte_{kind}", ggtheme=GGTHEME
+    output: "MR_conte_{kind}.png"
     params: tool=BIN_DIR+"/MR_plot", colors=MANY_COLORS_PALETTE
     shell:
         """

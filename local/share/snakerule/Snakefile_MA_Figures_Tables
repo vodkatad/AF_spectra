@@ -230,9 +230,10 @@ rule supplementary_edf3a_N:
     log: log="edf3a_N.log"
     script: SRC_DIR+'/fig1b_MR.R'
 
-# y axis here is SNVs/Gbp (do / 0.000000001)
+# y axis here is MR [SNVs/(Gbp*effective_division)] (do / 0.000000001)
+# per avere idea del range plot basico brutto: datasetV2/MR_conte_SNV.png
 rule supplementary_edf3b_nN:
-    input: MR=REF_DATASET+"/vitro_gained_norm_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    input: MR=REF_DATASET+"/MR_conte_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf3b_nN.svg', avgdata="edf3b_nN_avg.tsv"
     log: log="edf3b_nN.log"
     script: SRC_DIR+'/fig1b_MR.R'
