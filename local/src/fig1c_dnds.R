@@ -37,6 +37,8 @@ names(pal) <- paste0(names(pal), ifelse(!grepl('\\d$', names(pal)), '', ifelse(n
 d$order <- seq(1, nrow(d))
 
 y_breaks <- guess_ticks(d$lower,nticks=7)
+y_breaks<- round(y_breaks, digits = 2)
+print(y_breaks)
 pdf('fig_1c_dnds.pdf')
 p <- ggplot(d, aes(x=order(order, model), y=estimate, color=model)) +  geom_point(stat="identity", size=1.5) +
   geom_hline(yintercept=1,linetype=2,size=0.2)+

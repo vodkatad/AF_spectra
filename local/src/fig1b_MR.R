@@ -21,7 +21,7 @@ our <- read.table(MR_f, sep="\t", header=FALSE, stringsAsFactors=FALSE)
 colnames(our) <- c('sample','MR_edu')
 our <- our[grepl('-1-', our$sample),] # only 1st round
 
-our$MR <- our$MR_edu / 0.000000001
+our$MR <- our$MR_edu / 0.000000001 #/1000
 our$model <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
 our$clone <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][2]; return(y[1])})
 our$clone2 <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][4]; return(y[1])})
@@ -55,7 +55,7 @@ orderdf$model <- paste0(orderdf$model, ifelse(!grepl('\\d$', orderdf$model), '',
 our$model <- factor(our$model, levels=orderdf$model)
 pdata$model <- factor(pdata$model, levels=orderdf$model)
 
-y_breaks <- guess_ticks(our$MR)
+y_breaks <- guess_ticks(our$MR,fixed_max=3130)
 
 
 #p <- ggplot() + 
@@ -75,23 +75,26 @@ pdata$xmodel <- as.numeric(pdata$model)
   #unmute_theme+theme(legend.position="right", axis.text.x = element_blank(), 
                      #axis.ticks.x = element_blank(),
                      #legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))
-ratio_to_caperrorbars <- y_breaks[2] 
-pdf('fig_1b_MR.pdf')
+#ratio_to_caperrorbars <- y_breaks[2]
+#print('ratio')
+#print(ratio_to_caperrorbars)
+#pdf('fig_1b_MR.pdf')
+
 p <- ggplot() + 
   geom_point(data=our, aes(x=model, y=MR, color=model_clone), stat="identity", size=2, shape=18, position=position_dodge(0.7))+
   geom_segment(data=pdata, aes(x=xmodel-0.2, yend=mean,y=mean,  xend=xmodel+0.2),size=.3) +
   geom_errorbar(data=pdata, aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+ylab('MR [SNV/(Gbp*division)]')+xlab('PDTs')+
   scale_color_manual(values=pal)+
   scale_y_continuous(breaks=y_breaks,limits=c(0, max(y_breaks)),expand = c(0, 0))+# + ylim(min(y_breaks),max(y_breaks))+
-  unmute_theme+theme(legend.position="nonte", axis.text.x = element_blank(), 
+  unmute_theme+theme(legend.position="none", axis.text.x = element_blank(), 
                      axis.ticks.x = element_blank(),
                      legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))                   
-print(p)
-graphics.off()
-print(our)
+#print(p)
+#graphics.off()
+#print(our)
 ggsave(outplot, plot=p, width=89, height=89, units="mm")
 write.table(pdata, file=data_f, sep="\t", quote=FALSE)
-sink(log_f)
+#sink(log_f)
 print('n clones')
 print(nrow(our))
 # fold change + wilcox CRC0282, CRC1307
@@ -115,6 +118,6 @@ print(wilcox.test(our[our$model==m1, 'MR'], our[our$model==m2, 'MR']))
 
 print('kruskal')
 kruskal.test(our$MR, our$model)
-sink()
+#sink()
 
 save.image(paste0(outplot, '.Rdata'))
