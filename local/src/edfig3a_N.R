@@ -21,7 +21,7 @@ our <- read.table(MR_f, sep="\t", header=FALSE, stringsAsFactors=FALSE)
 colnames(our) <- c('sample','MR_edu')
 our <- our[grepl('-1-', our$sample),] # only 1st round
 
-our$MR <- our$MR_edu / 0.000000001 #/1000
+our$MR <- our$MR_edu  #/1000
 our$model <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
 our$clone <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][2]; return(y[1])})
 our$clone2 <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][4]; return(y[1])})
@@ -55,7 +55,7 @@ orderdf$model <- paste0(orderdf$model, ifelse(!grepl('\\d$', orderdf$model), '',
 our$model <- factor(our$model, levels=orderdf$model)
 pdata$model <- factor(pdata$model, levels=orderdf$model)
 
-y_breaks <- guess_ticks(our$MR)
+y_breaks <- guess_ticks(our$MR,fixed_max=15250)
 
 
 #p <- ggplot() + 
