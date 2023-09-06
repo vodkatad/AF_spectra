@@ -217,7 +217,7 @@ rule supplementary_edf2_indel:
     input: MR=REF_DATASET+"/MR_edu_indel", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf2_indel.svg', avgdata="edf2_indel_avg.tsv"
     log: log="edf2_indel.log"
-    script: SRC_DIR+'/fig1b_MR.R'
+    script: SRC_DIR+'/edf2_indel.R'
 
 # XXX these two have total N and N normalized by len only, so the
 # transformation of y axis should be removed/changed
@@ -228,7 +228,7 @@ rule supplementary_edf3a_N:
     input: MR=REF_DATASET+"/vitro_gained_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf3a_N.svg', avgdata="edf3a_N_avg.tsv"
     log: log="edf3a_N.log"
-    script: SRC_DIR+'/fig1b_MR.R'
+    script: SRC_DIR+'/edfig3a_N.R'
 
 # y axis here is MR [SNVs/(Gbp*effective_division)] (do / 0.000000001)
 # per avere idea del range plot basico brutto: datasetV2/MR_conte_SNV.png
@@ -236,7 +236,7 @@ rule supplementary_edf3b_nN:
     input: MR=REF_DATASET+"/MR_conte_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf3b_nN.svg', avgdata="edf3b_nN_avg.tsv"
     log: log="edf3b_nN.log"
-    script: SRC_DIR+'/fig1b_MR.R'
+    script: SRC_DIR+'/edf3b_nN.R'
 
 rule supplementary_edf4a_localiz:
     input: data=REF_DATASET+'/annotatr_locations.tsv', theme=GGTHEME
