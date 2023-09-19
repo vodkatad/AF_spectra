@@ -158,6 +158,7 @@ pal2 <- palette_df$palette
 names(pal2) <- palette_df$model_clone
 
 
+# removal 2nd?
 subclonal <- read.table('MR_edu_univ', header=FALSE, sep="\t", stringsAsFactors=FALSE)
 colnames(subclonal) <- c('sample', 'MR')
 subclonal$MR_edu_cl <- subclonal$MR 

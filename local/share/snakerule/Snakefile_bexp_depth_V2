@@ -101,7 +101,7 @@ def kind_MR(wildcards):
     elif wildcards.kind == "subclonal":
         return expand("{model}/mutect_nobin/all_subclonal_n.tsv", model=MODELS_NO327_2)
     elif wildcards.kind == "tree":
-        return expand("{model}/tree/{{lesion}}_tips.tsv", model=MODELS_NOREP_TRUE)
+        return expand("{model}/tree/{{lesion}}_tips.tsv", model=MODELS_1_OR_2)
     elif wildcards.kind == "firstSNV":
         return expand("{model}/platypus_nobin_00/all.MR_ov", model=MODELS_NOREP_TRUE)
     elif wildcards.kind == "univ":
