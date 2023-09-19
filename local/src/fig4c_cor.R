@@ -46,6 +46,7 @@ print(p)
 graphics.off()
 ggsave(outplot, plot=p, width=89, height=89, units="mm")
 
+ci <- cor.test(m$mean_cn, m$mean_mr, method="spearman")
 sink(log_f)
 print('n models')
 print(nrow(m))

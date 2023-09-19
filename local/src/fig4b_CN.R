@@ -6,6 +6,8 @@ log_f <- snakemake@log[['log']]
 outplot <- snakemake@output[['plot']]
 data_f <- snakemake@output[['avgdata']]
 
+rule <- snakemake@rule
+
 theme <- snakemake@input[['theme']]
 save.image(paste0(outplot, '.Rdata'))
 
@@ -55,14 +57,23 @@ orderdf <- read.table(order_f, sep="\t", quote="", header=TRUE, stringsAsFactor=
 orderdf$model <- paste0(orderdf$model, ifelse(!grepl('\\d$', orderdf$model), '', ifelse(orderdf$model=="CRC0282", 'PR', 'LM')))
 our$model <- factor(our$model, levels=orderdf$model)
 pdata$model <- factor(pdata$model, levels=orderdf$model)
-y_breaks <- guess_ticks(our$MR+1,fixed_max=60)
+if (rule == "figure_4b_mr") {
+  y_breaks <- guess_ticks(our$MR+1,fixed_max=60)
+  ytitle <- 'MEDICC2 events'
+} else if (rule == "figure_4_support_MR_also2nd") {
+  y_breaks <- guess_ticks(our$MR, fixed_max=max(our$MR))
+  ytitle <- 'MR'
+} else {
+  y_breaks <- guess_ticks(our$MR)
+  ytitle <- 'tree distances (in bis n gained)'
+}
 pdata$xmodel <- as.numeric(pdata$model)
 
 pdf('fig_4b_CN.pdf')
 p <-  ggplot()+
 #ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size=2) +
   geom_point(data=our, aes(x=model, y=MR, color=model_clone), stat="identity", size=2, shape=18, position=position_dodge(0.5))+
-  geom_errorbar(data=pdata,aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+ylab('MR [SNVs/(Gbp*division)]')+xlab('PDTs')+#, xmin=model
+  geom_errorbar(data=pdata,aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+ylab(ytitle)+xlab('PDTs')+#, xmin=model
   geom_segment(data=pdata, aes(x=xmodel-0.2, yend=mean,y=mean,  xend=xmodel+0.2),size=.3) +
   scale_color_manual(values=pal)+unmute_theme+theme(legend.position="none", axis.text.x = element_blank(), 
                      axis.ticks.x = element_blank(),

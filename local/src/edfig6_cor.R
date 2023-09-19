@@ -6,6 +6,8 @@ log_f <- snakemake@log[['log']]
 outplot <- snakemake@output[['plot']]
 data_f <- snakemake@output[['avgdata']]
 
+rule <- snakemake@rule
+
 theme <- snakemake@input[['theme']]
 save.image(paste0(outplot, '.Rdata'))
 
@@ -29,13 +31,21 @@ ci <- cor.test(m$mean_tree, m$mean_mr, method="spearman")
 ci2 <- cor.test(m$mean_tree, m$mean_mr, method="pearson")
 m$mean_tree<- m$mean_tree
 m$mean_mr<-m$mean_mr*1000000000
-y_breaks <- guess_ticks(m$mean_tree,fixed_max=120000)
+if (rule == "supplementary_edf6_tree_MR") {
+  y_breaks <- guess_ticks(m$mean_tree,fixed_max=120000)
+  minv <- -15000
+  ytitle <- 'Distance on phylogenetic tree'
+} else {
+  minv <- min(m$mean_tree)-50
+  y_breaks <- guess_ticks(m$mean_tree, fixed_max=max(m$mean_tree), fixed_min=minv)
+  ytitle <- 'SNVs'
+}
 x_breaks<- guess_ticks(m$mean_mr)
 
 p <- ggplot(m, aes(x=mean_mr, y=mean_tree)) + geom_smooth(method='lm') +geom_point(aes(color=model), size=1) +
-  scale_y_continuous(breaks=y_breaks, limits=c(-15000,max(y_breaks)), expand = c(0, 0))+
+  scale_y_continuous(breaks=y_breaks, limits=c(minv,max(y_breaks)), expand = c(0, 0))+
   scale_x_continuous(breaks=x_breaks, limits=c(0,max(x_breaks)),expand=c(0,0))+
-  unmute_theme + scale_color_manual(values=pal)+xlab('MR [SNV/(Gbp*division)]')+ylab('SNV')+theme(legend.position="none",legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))#+labs(caption=paste0('pearson=', round(ci$estimate,2), ' pval=',round(ci$p.value, 4)))
+  unmute_theme + scale_color_manual(values=pal)+xlab('MR [SNV/(Gbp*division)]')+ylab(ytitle)+theme(legend.position="none",legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))#+labs(caption=paste0('pearson=', round(ci$estimate,2), ' pval=',round(ci$p.value, 4)))
 
 ggsave(outplot, plot=p, width=89, height=56, units="mm")
 
@@ -54,7 +64,7 @@ m <- m[m$model != "CRC0282PR",]
 ci <- cor.test(m$mean_tree, m$mean_mr, method="spearman")
 ci2 <- cor.test(m$mean_tree, m$mean_mr, method="pearson")
 p <- ggplot(m, aes(x=mean_mr, y=mean_tree)) +  geom_point(aes(color=model), size=1) + geom_smooth(method='lm')+
-  unmute_theme + scale_color_manual(values=pal)+xlab('MR [SNVs/(Gbp*division)]')+ylab('MEDICC2 events')#caption=paste0('pearson=', round(ci$estimate,2), ' pval=',round(ci$p.value, 4))
+  unmute_theme + scale_color_manual(values=pal)+xlab('MR [SNVs/(Gbp*division)]')+ylab('SNV')#caption=paste0('pearson=', round(ci$estimate,2), ' pval=',round(ci$p.value, 4))
 
 sink(log_f, append=TRUE)
 print('n models')
