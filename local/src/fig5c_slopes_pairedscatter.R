@@ -46,14 +46,16 @@ y_breaks<-guess_ticks(fit_r2$intercept)
 pdata$model <- factor(pdata$model, levels=c('PRX', 'LMX'))
 fit_r2$model <- factor(fit_r2$mp, levels=c('PRX', 'LMX'))
 pd <- position_dodge(width=0.2)
-y_breaks<-guess_ticks(fit_r2$intercept)
+y_breaks<-guess_ticks(fit_r2$intercept,fixed_max=68)
+print(pdata)
 p <- ggplot(data=fit_r2, aes(x=model, y=intercept, color=mp, group=smodel)) +
   geom_jitter(data=fit_r2, aes(x=mp, y=intercept, color=mp), size=2, shape=18, position=pd)+
   geom_line(data=fit_r2, aes(group=smodel), position=pd, color="lightgrey", linetype = "dashed",)+
   geom_point(data=pdata, aes(x=model, y=mean, group=NULL, color=NULL), stat="identity", shape=1, size=2) +
-  geom_segment(data=pdata, aes(y=lower, yend=upper, x=model, xend=model, group=NULL, color=NULL), size=0.6) +
+  #geom_segment(data=pdata, aes(y=lower, yend=upper, x=model, xend=model, group=NULL, color=NULL), size=0.6) +
+  geom_errorbar(data=pdata, aes(x=model, y=lower, ymin=lower, ymax=upper,group=NULL, color=NULL), width=.1, size=.2)+
   scale_color_manual(values=c('#adacac', '#595959'))+
-  scale_y_continuous(breaks = seq(0, 70, by = 10))+
+  #scale_y_continuous(breaks = seq(0, 70, by = 10))+
   ylab('μ/β')+xlab('PDXs')+unmute_theme+theme(legend.position="none")+
   scale_y_continuous(breaks=y_breaks, limits=c(0,max(y_breaks)), expand = c(0, 0))
   #scale_y_continuous(breaks=y_breaks)
