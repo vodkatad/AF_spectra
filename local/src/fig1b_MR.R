@@ -94,7 +94,7 @@ p <- ggplot() +
 #print(our)
 ggsave(outplot, plot=p, width=89, height=89, units="mm")
 write.table(pdata, file=data_f, sep="\t", quote=FALSE)
-#sink(log_f)
+sink(log_f)
 print('n clones')
 print(nrow(our))
 # fold change + wilcox CRC0282, CRC1307
@@ -118,6 +118,6 @@ print(wilcox.test(our[our$model==m1, 'MR'], our[our$model==m2, 'MR']))
 
 print('kruskal')
 kruskal.test(our$MR, our$model)
-#sink()
+sink()
 
 save.image(paste0(outplot, '.Rdata'))

@@ -29,8 +29,10 @@ m$model <- m$Row.names
 
 ci <- cor.test(m$mean_tree, m$mean_mr, method="spearman")
 ci2 <- cor.test(m$mean_tree, m$mean_mr, method="pearson")
-m$mean_tree<- m$mean_tree
-m$mean_mr<-m$mean_mr*1000000000
+if (!rule %in% c('correlation_MR_gained', 'correlation_MR_doublings')) {
+  m$mean_tree <- m$mean_tree
+  m$mean_mr<-m$mean_mr*1000000000
+}
 if (rule == "supplementary_edf6_tree_MR") {
   y_breaks <- guess_ticks(m$mean_tree,fixed_max=120000)
   minv <- -15000

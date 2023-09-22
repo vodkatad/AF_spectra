@@ -138,12 +138,16 @@ rule figure_5b_vaf_histo:
     output: plot='fig_5b_VAFhistogram.svg'
     script: SRC_DIR+'/fig5b_VAFhisto.R'
 
+#TODO produce merged scatterplot with fit line
+
 rule figure_5c_slopes:
     input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',
            theme=GGTHEME
     output: plot='fig_5c_slopes_pairedscatter.svg'
     log: log='fig_5c_slopes_pairedscatter.log'
     script: SRC_DIR+'/fig5c_slopes_pairedscatter.R'
+
+# TODO INDAGARE There were 36 warnings (use warnings() to see them)
 
 # Supplementaty tables
 rule supplementary_wilcox_mut_burden:
@@ -399,3 +403,25 @@ rule msigact_fig_2b_bis:
     output: plot="fig_2b_msigact.pdf"
     params: wanted="vivoMA", legend="no", addlm="yes", norm="no"
     script: SRC_DIR+'/fig2_msigact.R'
+
+# methods suppls
+rule figure_1b_mr_clonal:
+    input: MR=REF_DATASET+"/MR_edu_univ", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='fig_clonal_MR.svg', avgdata="fig_clonal_avg.tsv"
+    log: log="fig_clonal_MR.log"
+    script: SRC_DIR+'/fig1b_MR.R'
+
+# correlations and mixed models (?)
+# should remove 2nd to be correct, so using avg from Fig 1 and not support 4.
+rule correlation_MR_gained:
+    input: mr="fig_1b_avg.tsv", tree="edf3a_N_avg.tsv",  theme=GGTHEME, palette=MODELS_COLORS_PALETTE
+    output: plot='MR_n_cor.svg'
+    log: log="MR_n_cor.log"
+    script: SRC_DIR+'/edfig6_cor.R'
+
+# temporary m$mean_tree <- m$mean_tree*1000000000
+rule correlation_MR_doublings:
+    input: mr="fig_1b_avg.tsv", tree="edf3b_nN_avg.tsv",  theme=GGTHEME, palette=MODELS_COLORS_PALETTE
+    output: plot='MR_doub_cor.svg'
+    log: log="MR_doub_cor.log"
+    script: SRC_DIR+'/edfig6_cor.R'

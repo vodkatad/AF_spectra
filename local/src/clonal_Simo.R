@@ -131,21 +131,7 @@ ggplot(data=d, aes(x=caf))+geom_histogram()+theme_bw()
 ggplot(data=db, aes(x=caf))+geom_histogram()+theme_bw()
 ggplot(data=dnb, aes(x=caf))+geom_histogram()+theme_bw()
 
-###
-d <- read.table('/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/univT0_pileup/all.MR_ov', sep="\t", header=T)
-d$MR_edu <- d$MR_EDU / 0.000000001
-d2 <- read.table('/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/univMutect/all.MR_ov', sep= "\t", header=T)
-d2$MR_edu <- d2$MR_EDU / 0.000000001
-
-m <- merge(d, d2, by="start")
-
-ggplot() +
-  geom_point(data=m, aes(x=MR_edu.x, y=MR_edu.y), stat="identity", size=2)+
-  theme_bw()+
-  #xlab('# SNVs gained')+ylab('# clonal SNVs gained')+theme(legend.position="right")+geom_abline(slope=1, intercept=0)
-  xlab('univ pileup')+ylab('univ estimate calls')+theme(legend.position="right")+geom_abline(slope=1, intercept=0)
-
-########
+########$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$4
 
 setwd('/scratch/trcanmed/AF_spectra/datasetV2')
 
@@ -157,11 +143,8 @@ palette_df <- readRDS("/scratch/trcanmed/AF_spectra/local/share/data/model_palet
 pal2 <- palette_df$palette
 names(pal2) <- palette_df$model_clone
 
-
-# removal 2nd?
 subclonal <- read.table('MR_edu_univ', header=FALSE, sep="\t", stringsAsFactors=FALSE)
 colnames(subclonal) <- c('sample', 'MR')
-subclonal$MR_edu_cl <- subclonal$MR 
 subclonal$MR_edu_cl <- subclonal$MR / 0.000000001
 MR <- read.table('MR_edu_SNV', header=FALSE, sep="\t", stringsAsFactors=FALSE)
 colnames(MR) <- c('sample', 'MR')
@@ -169,8 +152,7 @@ MR$MR_edu <- MR$MR / 0.000000001
 
 merged <- merge(subclonal, MR, by='sample')
 merged$smodel <- substr(merged$sample, 0, 7)
-wanted <- c('CRC1599', 'CRC1307', 'CRC1078')
-merged <- merged[merged$smodel != 'CRC0282',]
+#merged <- merged[merged$smodel != 'CRC0282',]
 
 merged$model <- sapply(merged$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
 merged$PDT <- paste0(merged$model, ifelse(grepl('\\d$', merged$model), ifelse(grepl('282', merged$model), 'PR', 'LM'), ''))
@@ -225,3 +207,6 @@ ggplot() +
   scale_fill_manual(values=pal2)+scale_color_manual(values=pal, guide='none')+
   #xlab('# SNVs gained')+ylab('# clonal SNVs gained')+theme(legend.position="right")+geom_abline(slope=1, intercept=0)
   xlab('MR')+ylab('MR with univ T0')+theme(legend.position="right")+geom_abline(slope=1, intercept=0)
+
+cor.test(pdata$mean.x, pdata$mean.y, method='spearman')
+
