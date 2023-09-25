@@ -138,7 +138,13 @@ rule figure_5b_vaf_histo:
     output: plot='fig_5b_VAFhistogram.svg'
     script: SRC_DIR+'/fig5b_VAFhisto.R'
 
-#TODO produce merged scatterplot with fit line
+# x axis labels still off
+# indagare warning di geom_smooth, ci sarebbe da spostare lo 0?
+rule figure_5b_cumulative_fit:
+    input: PR=SOURCE_DATA+'/CRC1599PRX0A02002TUMD03000V2.fit.0.12_0.24.pdf.debug.RData', LM=SOURCE_DATA+'/CRC1599LMX0A02001TUMD03000V2.fit.0.12_0.24.pdf.debug.RData',
+           theme=GGTHEME
+    output: plot='fig_5b_cumfit.svg'
+    script: SRC_DIR+'/fig5b_cumfit.R'
 
 rule figure_5c_slopes:
     input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',
