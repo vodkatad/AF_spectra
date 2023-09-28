@@ -55,6 +55,17 @@ rule all_sign:
             {params.tool} {input} {output.heat} {output.cosine} '{params.colors}' {log.log} {output.heat_tsv} {output.cosine_tsv}
         """
 
+rule count_sbs1:
+    input: "signinput_vitrovivobulk_merged"
+    output: heat_tsv="vitrovivobulk_SBS1.tsv",
+            bartot="vitrovivobulk_plot_SBS1.svg", barperc="vitrovivobulk_plotperc_SBS1.svg"
+    params: tool=BIN_DIR+"/naiveSBS1", colors=COLORS_MODELS_2
+    log: log="vitrovivobulk_SBS1.tsv", Rdata="vitrovivobulk_SBS1.Rdata"
+    shell:
+        """
+            {params.tool} {input} {output.heat_tsv} {output.bartot} '{params.colors}' {log.log} {log.Rdata} {output.barperc}
+        """
+
 # manually remove 282 clones all from signinput_vitrovivobulk_merged 22/06/23
 rule msigact:
     input: "signinput_vitrovivobulk_merged"
