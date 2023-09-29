@@ -45,3 +45,5 @@ wildcard_constraints:
 SAMPLES_HIGH=["plh"] # list comprehens TODO
 
 PLOIDY=3
+
+DNDSCV_RDA=''

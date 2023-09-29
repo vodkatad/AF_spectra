@@ -33,8 +33,12 @@ load(pr_fit)
 invf_p <- invf
 excum_p <- excum
 model_p <- model
+coeffs_p <- coefficients(model_p)
+beta_p <- unname(coeffs_p[1]) # it's 1 because it's a fit without intercept
 
 load(lm_fit)
+coeffs <- coefficients(model)
+beta <- unname(coeffs[1])
 
 data <- data.frame(n=c(excum_p, excum), invf=c(invf_p, invf), type=c(rep('PRX', length(excum_p)), rep('LMX', length(excum))))
 #x_breaks<-guess_ticks(data$invf)
@@ -45,10 +49,12 @@ data$type <- factor(data$type, levels= c('PRX', 'LMX'))
 # labels on x will probably be manually added at:
 # 1/0.25 1/0.2 1/0.18 1/0.15 1/0.12
 # labels will need to be not the numbers but the text of the ratios.
-
+#save.image('cum.Rdata')
 x_breaks <- c(1/0.25, 1/0.2, 1/0.15, 1/0.12) - 1/higheraf
 x_labels <- c('1/0.25','1/0.2','1/0.15','1/0.12')
-p <- ggplot(data=data, aes(x=invf, y=n, color=type))+geom_point(shape=1, size=1)+stat_smooth(method = "lm", se=FALSE, show.legend = FALSE, size=0.5)+ 
+p <- ggplot(data=data, aes(x=invf, y=n, color=type))+geom_point(size=1)+#stat_smooth(method = "lm", formula="excum~invf+0", se=FALSE, show.legend = FALSE, size=0.5)+ 
+  geom_abline(slope=beta, intercept=0, color='#ff9900', size=0.5)+
+  geom_abline(slope=beta_p, intercept=0, color='#ffcc33', size=0.5)+
   xlab('1/f')+ ylab("Cumulative n. of muts M(f)")+scale_color_manual(values=c('#ffcc33', '#ff9900'))+
   unmute_theme+
   scale_y_continuous(breaks=y_breaks, limits=c(0,max(y_breaks)), expand = c(0, 0))+

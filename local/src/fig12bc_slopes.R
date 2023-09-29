@@ -52,7 +52,7 @@ ic_clones <- sapply(unique(fit_r2$mp), function(x) { confidence_interval(fit_r2[
 colnames(ic_clones) <- unique(fit_r2$mp)
 pdata <- as.data.frame(t(ic_clones))
 pdata$model <- rownames(pdata)
-y_breaks<-guess_ticks(fit_r2$intercept,fixed_max=215)
+y_breaks<-guess_ticks(fit_r2$intercept,fixed_max=215) ## todo spostare nell'IF
 pdata$model <- factor(pdata$model, levels=c('PRX', 'LMX'))
 fit_r2$model <- factor(fit_r2$mp, levels=c('PRX', 'LMX'))
 pd <- position_dodge(width=0.2)

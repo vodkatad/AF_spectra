@@ -92,14 +92,15 @@ topl$laf <- as.numeric(as.character(dd$Var1))
 topl$haf <- as.numeric(as.character(dd$Var2))
 
 topl$sign <- ifelse(topl$tpval < 0.05,'Yes', 'No')
+topl$asterisk <- ifelse(topl$tpval <= 0.0001, '****', ifelse(topl$tpval <= 0.001, '***', 
+                  ifelse(topl$tpval <= 0.01, '**', ifelse(topl$tpval <= 0.05, '*', ' ')) ))
 y_breaks<-c(0,4.5,9,13.5,18)
-delta_plot <- ggplot(data=topl, aes(x=as.factor(laf), y=deltasl, fill=sign)) + 
+delta_plot <- ggplot(data=topl, aes(x=as.factor(laf), y=deltasl)) + 
   geom_col() +
   facet_grid(~haf) +
-  scale_fill_manual(values=c('darkgreen', 'darkgoldenrod'))+
   ylab('Slope LMX - Slope PRX') +
   xlab('Lower VAF') +
-   geom_text(aes(label=n_models), position=position_dodge(width=0.9), vjust=-0.15, size=2) +
+   geom_text(aes(label=paste0(asterisk, '\nn=', n_models)), position=position_dodge(width=0.9), vjust=-0.15, size=2) +
   scale_y_continuous(breaks=y_breaks,limits=c(0, max(y_breaks)),expand = c(0, 0))+
   theme_bw()+
   theme(

@@ -153,6 +153,7 @@ rule figure_5c_slopes:
     log: log='fig_5c_slopes_pairedscatter.log'
     script: SRC_DIR+'/fig5c_slopes_pairedscatter.R'
 
+# alternativa Lagomarsino wipunivpile.R
 # TODO INDAGARE There were 36 warnings (use warnings() to see them)
 
 # Supplementaty tables
