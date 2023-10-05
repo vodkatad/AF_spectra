@@ -73,3 +73,6 @@ fid <- data.frame(bulk=bu, vitro=vu)
 fid$bulk.Var1 <- NULL
 rownames(fid) <- fid$vitro.Var1
 fid$vitro.Var1 <- NULL
+
+fisher.test(fid)
+

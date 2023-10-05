@@ -123,7 +123,12 @@ rule figure_4c_cor:
     log: log="fig_4c_cor.log"
     script: SRC_DIR+'/fig4c_cor.R'
     
-
+rule figure_4c_mixedmodel:
+    input: mr="support_4_avgMR.tsv", cn="fig_4b_avg.tsv",  theme=GGTHEME, palette=MODELS_COLORS_PALETTE
+    output: plot='fig_4c_mixed.svg'
+    log: log="fig_4c_mixed.log"
+    script: SRC_DIR+'/fig4c_lmer.R'
+    
 ### Figure 5
 rule figure_5a_subclonal:
     input: subclonal=REF_DATASET+'/fixedthr_subclonal', MR=REF_DATASET+'/MR_edu_SNV',

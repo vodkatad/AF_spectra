@@ -178,7 +178,13 @@ rule overall_len:
             cat {input} | bawk '$4==1 || $4 == 2 {{print $2,$6}}' > {output}
         """
 
-
+rule overall_len_univMutect:
+    input: kind_MR
+    output: "all_len_{kind}.tsv"
+    shell:
+        """
+            cat {input} | bawk '$4==1 || $4 == 2 {{print $2,$6}}' > {output}
+        """
 
 rule overall_mrca:
     input: kind_MR
