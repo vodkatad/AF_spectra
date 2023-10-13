@@ -42,7 +42,7 @@ beta <- unname(coeffs[1])
 
 data <- data.frame(n=c(excum_p, excum), invf=c(invf_p, invf), type=c(rep('PRX', length(excum_p)), rep('LMX', length(excum))))
 #x_breaks<-guess_ticks(data$invf)
-y_breaks<-guess_ticks(data$n, fixed_max=64)
+y_breaks<-guess_ticks(data$n, fixed_max=68)
 
 data$type <- factor(data$type, levels= c('PRX', 'LMX'))
 
@@ -58,8 +58,8 @@ p <- ggplot(data=data, aes(x=invf, y=n, color=type))+geom_point(size=1)+#stat_sm
   xlab('1/f')+ ylab("Cumulative n. of muts M(f)")+scale_color_manual(values=c('#ffcc33', '#ff9900'))+
   unmute_theme+
   scale_y_continuous(breaks=y_breaks, limits=c(0,max(y_breaks)), expand = c(0, 0))+
-  scale_x_continuous(breaks=x_breaks, labels=x_labels, limits=c(min(x_breaks),max(x_breaks)), expand = c(0, 0))
-  
+  scale_x_continuous(breaks=x_breaks, labels=x_labels, limits=c(min(x_breaks),max(x_breaks)), expand = c(0, 0))+
+  theme(legend.position="none",  legend.spacing.y = unit(0.15, "mm")) 
 pdf('fig_5b_cumfit.pdf')
 print(p)
 graphics.off()
