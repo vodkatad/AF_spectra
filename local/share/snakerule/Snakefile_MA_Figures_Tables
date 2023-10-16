@@ -67,33 +67,33 @@ rule fig_2b_bis:
     params: wanted="vivoMA", legend="no", addlm="yes"
     script: SRC_DIR+'/fig2_cosmic.R'
 
-# cleverers
-rule fig_2c:
+# cleverers for suppl
+rule edfig_7b:
     input: sign=REF_DATASET+"/cleverers_exposures.tsv", 
            palette=MODELS_COLORS_PALETTE_CLEV, order=SORTED_CLEV
-    output: plot="fig_2c_cosmic.pdf"
+    output: plot="edfig_7b_cosmic.pdf"
     params: wanted="shared", legend="yes", addlm="no"
     script: SRC_DIR+'/fig2_cosmic.R'
 
-rule fig_2c_bis:
+rule edfig_7b_bis:
     input: sign=REF_DATASET+"/cleverers_exposures.tsv", 
            palette=MODELS_COLORS_PALETTE_CLEV, order=SORTED_CLEV
-    output: plot="fig_2cbis_cosmic.pdf"
+    output: plot="edfig_7b_bis_cosmic.pdf"
     params: wanted="private", legend="yes", addlm="no"
     script: SRC_DIR+'/fig2_cosmic.R'
 
-# clevers suppl
-rule edfig_8:
+# clevers for 2c
+rule fig_2c:
     input: sign=REF_DATASET+"/clevers/heatmap_cosmic.tsv", 
            palette=MODELS_COLORS_PALETTE_CLE, order=SORTED_CLE
-    output: plot="edfig_8_cosmic.pdf"
+    output: plot="fig_2c_cosmic.pdf"
     params: wanted="trunk", legend="yes", addlm="no"
     script: SRC_DIR+'/fig2_cosmic.R'
 
-rule edfig_8_bis:
+rule fig_2c_bis:
     input: sign=REF_DATASET+"/clevers/heatmap_cosmic.tsv", 
            palette=MODELS_COLORS_PALETTE_CLE, order=SORTED_CLE
-    output: plot="edfig_8bis_cosmic.pdf"
+    output: plot="fic_2cbis_cosmic.pdf"
     params: wanted="leaves", legend="no", addlm="no"
     script: SRC_DIR+'/fig2_cosmic.R'
 
@@ -128,7 +128,7 @@ rule figure_4c_mixedmodel:
     output: plot='fig_4c_mixed.svg'
     log: log="fig_4c_mixed.log"
     script: SRC_DIR+'/fig4c_lmer.R'
-    
+
 ### Figure 5
 rule figure_5a_subclonal:
     input: subclonal=REF_DATASET+'/fixedthr_subclonal', MR=REF_DATASET+'/MR_edu_SNV',
@@ -148,7 +148,7 @@ rule figure_5b_vaf_histo:
 rule figure_5b_cumulative_fit:
     input: PR=SOURCE_DATA+'/CRC1599PRX0A02002TUMD03000V2.fit.0.12_0.24.pdf.debug.RData', LM=SOURCE_DATA+'/CRC1599LMX0A02001TUMD03000V2.fit.0.12_0.24.pdf.debug.RData',
            theme=GGTHEME
-    output: plot='fig_5b_cumfit.svg'
+    output: plot='fig_5b_cumfit_nolegend.svg'
     script: SRC_DIR+'/fig5b_cumfit.R'
 
 rule figure_5c_slopes:
@@ -227,6 +227,7 @@ rule supplementary_edt10_xlsx:
 rule supplementary_edf1b_edu:
     input: edu=PRJ_ROOT+'/local/share/data/edf1b_EDU.txt', theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf1b_EDU.svg'
+    log: log="edf1b_EDU.log"
     script: SRC_DIR+'/edfig1b_EDU.R'
 #controllare si /0.0000001 e unità di misura asse y MR
 rule supplementary_edf2_indel:
@@ -278,6 +279,13 @@ rule supplementary_edf6_tree_MR:
     output: plot='edf6_cor.svg'
     log: log="edf6_cor.log"
     script: SRC_DIR+'/edfig6_cor.R'
+
+rule supplementary_edf7a_signatures:
+    input: signus=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", signclevers=REF_DATASET+'/clevers/heatmap_cosmic.tsv',
+           theme=GGTHEME
+    output: plot1="edfig_7a_SBS1_8_18_us.svg", plot2="edfig_7a_SBS1_8_18_clevers.svg"
+    log: log="edfig_7a_SBS1_8_18_us.log"
+    script: SRC_DIR+'/edfig7a_sign.R'
 
 SORTED_MR_T2=PRJ_ROOT+'/local/share/data/sorted_MR_avg_T2.tsv'
 rule supplementary_edf9a:
@@ -381,7 +389,6 @@ rule supplementary_edf6bis_tree_MR:
     log: log="edf6bis_cor.log"
     script: SRC_DIR+'/edfig6_cor.R'
 
-
 rule perle:
     input: '{qualunque}.svg'
     output: 'perlati/{qualunque}.svg'
@@ -437,3 +444,21 @@ rule correlation_MR_doublings:
     output: plot='MR_doub_cor.svg'
     log: log="MR_doub_cor.log"
     script: SRC_DIR+'/edfig6_cor.R'
+
+##################################### misc
+rule n_clonal_bulk_T0:
+    input: n=REF_DATASET+"/all_clonal_0.24_n.txt", theme=GGTHEME, palette=MODELS_COLORS_PALETTE
+    output: plot='N_clonal_bulk_T0.svg', plotMSI='msi_N_clonal_bulk_T0.svg'
+    log: log="N_clonal_bulk_T0.log"
+    script: SRC_DIR+'/n_muts.R'
+
+
+rule estim_age_naive:
+    input:  n=REF_DATASET+"/all_clonal_0.24_n.txt", gb=REF_DATASET+'/all_len_SNV.tsv', ave_MR='fig_1b_avg.tsv'
+    output: estim_age="age_0.24.txt"
+    script: SRC_DIR+'/estim_age_naive.R'
+
+rule estim_divisions_xeno:
+    input:  n=REF_DATASET+"/vivo_MR_len_SNV", ave_MR='fig_1b_avg.tsv'
+    output: estim_div="xeno_estim.txt"
+    script: SRC_DIR+'/estim_xeno_naive.R'
