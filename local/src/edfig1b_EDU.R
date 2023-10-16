@@ -1,5 +1,6 @@
 edu_f  <- snakemake@input[['edu']]
 order_f  <- snakemake@input[['order']]
+log_f  <- snakemake@log[['log']]
 colors <- snakemake@input[['palette']]
 
 outplot <- snakemake@output[['plot']]
@@ -21,6 +22,10 @@ our <- read.table(edu_f, sep="\t", header=TRUE, stringsAsFactors=FALSE)
 colnames(our) <- c('Campione', 'sample', 'conc', 'ncell', 'cell_date', 'analysis_date', 'EDU', 'n_div', 'T')
 # right now keep only T1 
 our <- our[our$T == 1,]
+
+sink(log_f)
+print(nrow(our))
+sink()
 
 #our$well <- ifelse(grepl('100', our$Campione), '96_wells', '12_wells')
 our$model <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
