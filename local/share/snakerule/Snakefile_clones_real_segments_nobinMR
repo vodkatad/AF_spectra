@@ -557,6 +557,14 @@ rule fake_binomial:
             rm {output}.*tmp
         """
 
+rule all_T0_fakebin:
+    input: expand("{sample}.fbcalls.tsv.gz", sample=SAMPLES_ZERO)
+    output: "all_T0_fbcalls.tsv.gz"
+    shell: 
+        """
+            for f in {input}; do zcat $f | sed 1d | bawk -v F=$f '{{print F,$1,$11,$12}}'; done | gzip > {output}
+        """
+
 rule subclonal:
     input: "{sample}.fbcalls.tsv.gz"
     output: "{sample}.subclonal_n_{loweraf}_{higheraf}.tsv"

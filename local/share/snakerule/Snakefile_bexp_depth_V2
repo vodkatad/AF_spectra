@@ -115,7 +115,7 @@ def kind_MR(wildcards):
         return expand("{model}/tree/{{lesion}}_tips.tsv", model=MODELS_1_OR_2)
     elif wildcards.kind == "firstSNV":
         return expand("{model}/platypus_nobin_00/all.MR_ov", model=MODELS_NOREP_TRUE)
-    elif wildcards.kind == "univ":
+    elif wildcards.kind == "univMutect":
         return expand("{model}/univMutect/all.MR_ov", model=MODELS_NO327_2)
     else: 
         print("boh!")
@@ -186,6 +186,8 @@ rule overall_len_univMutect:
             cat {input} | bawk '$4==1 || $4 == 2 {{print $2,$6}}' > {output}
         """
 
+ruleorder: overall_len > overall_len_univMutect
+
 rule overall_mrca:
     input: kind_MR
     output: "shared_{kind}"
@@ -226,6 +228,14 @@ rule overall_SNV_gained_norm_vivo:
     shell:
         """
             cat {input} | bawk '$4!=1 && $4!=2 && $4!="class"{{print $2,$5/$6}}' > {output}
+        """
+
+rule overall_MR_len_vivo:
+    output: "vivo_MR_len_{kind}"
+    input: kind_MR
+    shell:
+        """
+            cat {input} | bawk '$4!=1 && $4!=2 && $4!="class"{{print $2,$5,$6}}' > {output}
         """
         
 rule overall_SNV_gained:
@@ -1189,3 +1199,25 @@ def my_expand_thr(wildcards):
 
 rule all_subclonal_thr:
     input: my_expand_thr
+
+
+### n clonal bulk vs clones T0
+# both need VAF threshold
+rule number_clonal:
+    input: bulk="{model}/tree/bulk.tsv.gz", clone="{model}/mutect_nobin/all_T0_fbcalls.tsv.gz"
+    output: "{model}_clonal_{thr}_SNVs.tsv.gz"
+    shell: 
+        """
+	        zcat {input.clone} | sed 's/\.fbcalls\.tsv\.gz//1' | bawk '$3 > {wildcards.thr} {{print $1,$2":"$3":"$4}}' > {output}.tmp
+            zcat {input.bulk} | tr ":" "\\t" | bawk '$10 > {wildcards.thr} {{print "bulk_{wildcards.model}",$3}}' >> {output}.tmp
+            gzip -c {output}.tmp > {output}
+            rm {output}.tmp
+        """
+
+rule all_number:
+    input: expand("{model}_clonal_{{thr}}_SNVs.tsv.gz", model=MODELS_NOREP_TRUE)
+    output: "all_clonal_{thr}_n.txt"
+    shell:
+        """
+            zcat {input} | cut -f 1 | sort | uniq -c | tr -s " " "\\t" |  cut -f 2,3 > {output}
+        """

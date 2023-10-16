@@ -59,3 +59,14 @@ rule all_sign:
         """
             {params.tool} {input} {output.heat} {output.cosine} '{params.colors}' {log.log} {output.heat_tsv} {output.cosine_tsv}
         """
+
+rule all_SBS1:
+    input: "listinput_vcf"
+    output: heat_tsv="SBS1.tsv",
+            bartot="SBS1.svg", barperc="plotperc_SBS1.svg"
+    params: tool=BIN_DIR+"/naiveSBS1_clev", colors="#cc3300,#f607b9,#9900ff"
+    log: log="SBS1.tsv", Rdata="SBS1.Rdata"
+    shell:
+        """
+            {params.tool} {input} {output.heat_tsv} {output.bartot} '{params.colors}' {log.log} {log.Rdata} {output.barperc}
+        """

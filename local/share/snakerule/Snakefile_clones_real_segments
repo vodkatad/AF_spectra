@@ -111,6 +111,21 @@ rule AF_spectra_cn_normalized:
             {params.tool} {input} {params.maxcn} {output}
         """
 
+rule real_binomial:
+    input: vars="{sample}.var_cnv.tsv.gz", header=SRC_DIR+"/binomheader.tsv"
+    output: "{sample}.bcalls.tsv.gz"
+    log: "{sample}.bcalls.tsv.log"
+    params: cn=WANTED_CN, tool=BIN_DIR+"/binomial_Simone"
+    shell:
+        """
+            zcat {input.vars} | tr ":" "\\t" > {output}.tmp
+            cat {input.header} > {output}.3tmp
+            echo {params.cn} | tr "," "\\n" > {output}.2tmp
+            cat {output}.tmp | filter_1col 11 {output}.2tmp | bawk '{{print $4":"$5":"$6":"$7,$0, 1, 0, 1}}' >> {output}.3tmp
+            cat {output}.tmp | filter_1col -v 11 {output}.2tmp | bawk '{{print $4":"$5":"$6":"$7,$0, 0, 0, 1}}' >> {output}.3tmp
+            {params.tool} {output}.3tmp {output}
+            rm {output}.*tmp
+        """
 
 rule binomial:
     input: "{sample}.var_cnv.tsv.gz"
