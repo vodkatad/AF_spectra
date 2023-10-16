@@ -16,6 +16,7 @@ wanted <- c('1', '8', '18')
 
 data <- read.table(signus_f, sep="\t", header=TRUE)
 wdata <- data[,colnames(data) %in% paste0('X', wanted)]
+wdata <- wdata[!grepl('CRC0282', rownames(wdata)),]
 #normalized <- wdata/rowSums(wdata)
 wdata$class <- sapply(strsplit(rownames(wdata), "_"), '[[', 2)
 wdata$id <- rownames(wdata)
@@ -25,6 +26,17 @@ mp$Signature <- gsub('X', 'SBS', mp$Signature, fixed=TRUE)
 mp$class <- ifelse(mp$class=="bulk", 'Pre-existing', ifelse(mp$class=="vitroMA", "MA in vitro", "MA in vivo"))
 mp$class <- factor(mp$class, c('Pre-existing', 'MA in vitro', 'MA in vivo'))
 mp$Signature <- factor(mp$Signature, c('SBS1', 'SBS8', 'SBS18'))
+
+sink(file=log_f)
+print('bulk vs vitro')
+wilcox.test(mp[mp$class=="Pre-existing" & mp$Signature=='SBS1', 'exp'], mp[mp$class=="MA in vitro" & mp$Signature=='SBS1', 'exp'])
+wilcox.test(mp[mp$class=="Pre-existing" & mp$Signature=='SBS8', 'exp'], mp[mp$class=="MA in vitro" & mp$Signature=='SBS8', 'exp'])
+wilcox.test(mp[mp$class=="Pre-existing" & mp$Signature=='SBS18', 'exp'], mp[mp$class=="MA in vitro" & mp$Signature=='SBS18', 'exp'])
+print('bulk vs vivo')
+wilcox.test(mp[mp$class=="Pre-existing" & mp$Signature=='SBS1', 'exp'], mp[mp$class=="MA in vivo" & mp$Signature=='SBS1', 'exp'])
+wilcox.test(mp[mp$class=="Pre-existing" & mp$Signature=='SBS8', 'exp'], mp[mp$class=="MA in vivo" & mp$Signature=='SBS8', 'exp'])
+wilcox.test(mp[mp$class=="Pre-existing" & mp$Signature=='SBS18', 'exp'], mp[mp$class=="MA in vivo" & mp$Signature=='SBS18', 'exp'])
+sink()
 
 p <- ggplot(data=mp, aes(y=exp,fill=Signature, x=class))+
     geom_boxplot(outlier.shape = NA,color='black')+
@@ -37,6 +49,7 @@ ggsave(outplot1, plot=p, width=78.5*death_conversion_dpi96, height=71.9*death_co
 
 data <- read.table(signclevers_f, sep="\t", header=TRUE)
 wdata <- data[,colnames(data) %in% paste0('X', wanted)]
+wdata <- wdata[!grepl('P1', rownames(wdata)),]
 #normalized <- wdata/rowSums(wdata)
 wdata$class <- sapply(strsplit(rownames(wdata), "_"), '[[', 2)
 wdata$id <- rownames(wdata)
@@ -56,6 +69,12 @@ p <- ggplot(data=mp, aes(y=exp,fill=Signature, x=class))+
 
 ggsave(outplot2, plot=p, width=78.5*death_conversion_dpi96, height=71.9*death_conversion_dpi96, units="mm")
 
+sink(file=log_f, append=TRUE)
+print('truncal vs leaves')
+wilcox.test(mp[mp$class=="Truncal" & mp$Signature=='SBS1', 'exp'], mp[mp$class=="Leaves" & mp$Signature=='SBS1', 'exp'])
+wilcox.test(mp[mp$class=="Truncal" & mp$Signature=='SBS8', 'exp'], mp[mp$class=="Leaves" & mp$Signature=='SBS8', 'exp'])
+wilcox.test(mp[mp$class=="Truncal" & mp$Signature=='SBS18', 'exp'], mp[mp$class=="Leaves" & mp$Signature=='SBS18', 'exp'])
+sink()
 # Further work
 # remove ticks
 # remove upper grey boxes?

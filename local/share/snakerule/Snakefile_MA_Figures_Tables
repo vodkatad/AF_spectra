@@ -328,6 +328,30 @@ rule figure_12c_subcl:
     log: log='fig_12c_subcl.log'
     script: SRC_DIR+'/fig12bc_slopes.R'
 
+
+## 3 panels for last supplementary figures on calls QC
+# corr plot 20x - standard
+rule edf_13_a:
+    input: MR=REF_DATASET+"/MR_edu_SNV", MRcov=REF_DATASET+"/check_MR_coverage_MR_edu_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE
+    output: plot="edf12a_corcov.svg", 
+    log: log="edf12a_corcov.log"
+    script: SRC_DIR+'/edf12a_corcov.R'
+    
+
+# MR univ T0:
+rule edf_13_b:
+    input: MR=REF_DATASET+"/MR_edu_univMutect", palette=MANY_COLORS_PALETTE, order=SORTED_MR,  theme=GGTHEME
+    output: plot="edf12b_allavg.svg"
+    log: log="edf12b_allavg.log"
+    script: SRC_DIR+'/edf12_b_allavg.R'
+
+# correlation univ T0 default:
+rule edf_13_c:
+    input: MR=REF_DATASET+"/MR_edu_SNV", MRclo=REF_DATASET+"/MR_edu_univMutect", theme=GGTHEME, palette=MANY_COLORS_PALETTE, palette2=MODELS_COLORS_PALETTE
+    output: plot="edf12c_cor.svg"
+    log: log="edf12c_cor.log"
+    script: SRC_DIR+'/edf12_c_cor.R'
+
 ######################## miscellanea
 # diary 25/05/23 for code run on newer R (4.3.0) on cog + add LM to 1599BULK manually
 # edf7
