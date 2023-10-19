@@ -141,10 +141,12 @@ rule bed_notmut:
         """
             echo {params.cn} | tr "," "\\n" > {output.t0}.tmp
             bedtools subtract -b <(zcat {input.t0} | sed 1d | cut -f1 --complement | bawk '$12==1') -a {input.ovbed} | filter_1col 4 {output.t0}.tmp > {output.t0}
-            bedtools intersect -wa -a {output.t0} -b {input.ovbed2} > {output.t0_strict}
+            bedtools intersect -u -wa -a {output.t0} -b {input.ovbed2} > {output.t0_strict}
             rm {output.t0}.tmp
         """
 
+# strict is intersecting with the overlap of callable regions T1-T0, which is not considered in the other bed. We use the length of the regions 
+# in T0 universe in which we can have T1 calls, so we use strict.
 rule bed_len:
     input: t0="{t0sample}_{t1sample}_not_mut_strict.bed"
     output: "{t0sample}_{t1sample}_universe_len.txt"
@@ -163,8 +165,10 @@ rule pair_ov:
         """
 
 # check on $13 is redundant, $14 is binomp
+# here overlapping with strict or not strict does not change in terms of variants because our callsov.tsv.gz are already filtered on T1-T0.callable, but
+# it's more clear using strict.
 rule pair_ov_nobcnok:
-    input: t0='{t0sample}_{t1sample}_not_mut.bed', t1="{t1sample}_{t0sample}.callsov.tsv.gz"
+    input: t0='{t0sample}_{t1sample}_not_mut_strict.bed', t1="{t1sample}_{t0sample}.callsov.tsv.gz"
     output: binom="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz"
     shell:
         """
