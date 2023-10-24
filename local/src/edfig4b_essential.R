@@ -26,6 +26,8 @@ ns <- data.frame(row.names=c('de_novo', 'truncal'), essential=ess,
 
 sink(log_f)
 print('chisq')
+print(colSums(ns))
+print(rowSums(ns))
 fisher.test(ns)
 sink()
 

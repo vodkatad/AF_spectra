@@ -26,6 +26,10 @@ merged <- merge(subclonal, MR, by='sample')
 merged$smodel <- substr(merged$sample, 0, 7)
 wanted <- c('CRC1599', 'CRC1307', 'CRC1078')
 merged <- merged[merged$smodel %in% wanted,]
+sink(log_f)
+print('N clones')
+print(nrow(merged))
+sink()
 
 merged$model <- sapply(merged$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
 merged$PDT <- paste0(merged$model, ifelse(grepl('\\d$', merged$model), 'LM', ''))
@@ -58,7 +62,7 @@ colnames(ic_clones) <- unique(merged$model)
 pdataMR <- as.data.frame(t(ic_clones))
 pdataMR$model <- rownames(pdataMR)
 
-sink(log_f)
+sink(log_f, append=TRUE)
 # fold change + wilcox CRC1307 CRC1078
 m1 <- "CRC1307"
 m2 <- "CRC1078"

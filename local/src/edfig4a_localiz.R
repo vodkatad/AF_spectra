@@ -17,6 +17,7 @@ ns <- data.frame(row.names=pd[pd$SNV == "de_novo", "annot.type"], gained=pd[pd$S
 
 sink(log_f)
 print('chisq')
+print(colSums(ns))
 chisq.test(ns)
 sink()
 

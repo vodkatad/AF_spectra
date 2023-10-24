@@ -5,6 +5,7 @@ colors <- snakemake@input[['palette']]
 log_f <- snakemake@log[['log']]
 outplot <- snakemake@output[['plot']]
 data_f <- snakemake@output[['avgdata']]
+log_f <- snakemake@log[['log']]
 
 theme <- snakemake@input[['theme']]
 save.image(paste0(outplot, '.Rdata'))
@@ -92,6 +93,10 @@ p <- ggplot()+  #geom_point(stat="identity", shape=1, size=2)
                      legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))
 #axis.text.x = element_blank(),
 ggsave(outplot, plot=p, width=50, height=89, units="mm")
+
+sink(log_f)
+print(table(our$time))
+sink()
 
 save.image(paste0(outplot, '.Rdata'))
  #ggplot(pdata, aes(x=reorder(model_time, ord_x_time), y=mean)) +  #geom_point(stat="identity", shape=1, size=2) +

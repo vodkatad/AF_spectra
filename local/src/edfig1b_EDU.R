@@ -22,11 +22,6 @@ our <- read.table(edu_f, sep="\t", header=TRUE, stringsAsFactors=FALSE)
 colnames(our) <- c('Campione', 'sample', 'conc', 'ncell', 'cell_date', 'analysis_date', 'EDU', 'n_div', 'T')
 # right now keep only T1 
 our <- our[our$T == 1,]
-
-sink(log_f)
-print(nrow(our))
-sink()
-
 #our$well <- ifelse(grepl('100', our$Campione), '96_wells', '12_wells')
 our$model <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
 
@@ -39,8 +34,10 @@ our$model <- paste0(our$model, ifelse(!grepl('\\d$', our$model), '', ifelse(our$
 #our$clone <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][2]; return(y[1])})
 #our$clone2 <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][4]; return(y[1])})
 
-
-print(our$model_clone)
+sink(log_f)
+print(nrow(our))
+print(length(unique(our$model_clone)))
+sink()
 
 #figura1
 #colnames(our) <- c('sample','MR_edu')

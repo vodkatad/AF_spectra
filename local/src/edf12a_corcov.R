@@ -50,11 +50,15 @@ for (mi in models) {
 #  unmute_theme+scale_color_manual(values=pal)
 
 death_conversion_dpi96 <- 96/72
-
-p <- ggplot(data=m, aes_string(x=name1, y=name2, color='model_clone'))+geom_point()+
+print(m)
+y_breaks <- guess_ticks(m$MR2x)
+x_breaks <- guess_ticks(m$MR1x)
+p <- ggplot(data=m, aes_string(x=name1, y=name2, color='model_clone'))+geom_point(size=1, shape=16, alpha=0.8)+
   geom_abline(slope=1, intercept=0)+
-  unmute_theme+scale_color_manual(values=pal)+xlab('MR on >1x regions')+ylab('MR on >20x regions')
-
+  unmute_theme+scale_color_manual(values=pal)+xlab('MR on >1x regions')+ylab('MR on >20x regions')+
+  scale_y_continuous(breaks=y_breaks, limits=c(0,max(y_breaks)), expand = c(0, 0))+
+  scale_x_continuous(breaks=x_breaks, limits=c(0,max(x_breaks)), expand = c(0, 0))+
+  theme(legend.position="none")
 ggsave(outplot, p, height=60*death_conversion_dpi96, width=60*death_conversion_dpi96, units="mm")
 
 prepare_plot <- function(our) {
@@ -101,4 +105,9 @@ pdata <- rbind(pdata1, pdata2)
 
 sink(log_f, append=TRUE)
 print(pdata1$mean / pdata2$mean)
+print('total clones')
+print(nrow(m))
+print(table(m$model))
 sink()
+
+save.image(paste0(outplot, '.Rdata'))

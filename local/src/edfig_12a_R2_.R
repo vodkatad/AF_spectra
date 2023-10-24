@@ -37,7 +37,7 @@ y_breaks<-c(0,0.25,0.5,0.75,1)
 r2_plot <- ggplot(data=data, aes(x=as.factor(laf), y=r)) + 
   geom_boxplot(outlier.shape=NA) +
   geom_jitter(size=0.1, alpha=0.7) +
-  geom_hline(yintercept=0.8, linetype="dashed", color = "red")+
+  geom_hline(yintercept=0.9, linetype="dashed", color = "red")+
   facet_grid(~haf) +
   xlab("Lower AF")+ylab("R²")+
   scale_y_continuous(breaks=y_breaks,limits=c(0, max(y_breaks)),expand = c(0, 0))+

@@ -40,11 +40,11 @@ load(lm_fit)
 coeffs <- coefficients(model)
 beta <- unname(coeffs[1])
 
-data <- data.frame(n=c(excum_p, excum), invf=c(invf_p, invf), type=c(rep('PRX', length(excum_p)), rep('LMX', length(excum))))
+data <- data.frame(n=c(excum_p, excum), invf=c(invf_p, invf), type=c(rep('CRC1599PR', length(excum_p)), rep('CRC1599LM', length(excum))))
 #x_breaks<-guess_ticks(data$invf)
 y_breaks<-guess_ticks(data$n, fixed_max=68)
 
-data$type <- factor(data$type, levels= c('PRX', 'LMX'))
+data$type <- factor(data$type, levels= c('CRC1599PR', 'CRC1599LM'))
 
 # labels on x will probably be manually added at:
 # 1/0.25 1/0.2 1/0.18 1/0.15 1/0.12

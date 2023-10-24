@@ -42,8 +42,8 @@ sink()
 p <- ggplot(data=mp, aes(y=exp,fill=Signature, x=class))+
     geom_boxplot(outlier.shape = NA,color='black')+
     geom_jitter(size=0.15, color="black", alpha=0.8)+
-    facet_wrap(~Signature)+ylab('Relative contribution')+
-    xlab('')+unmute_theme+scale_y_continuous(breaks=(seq(0, 0.5, by=0.1)))+theme(legend.position="bottom")
+    facet_wrap(~Signature)+ylab('Relative contribution')+#,expand = c(-0.1, -0.1)
+    xlab('')+unmute_theme+scale_y_continuous(breaks=(seq(0, 0.6, by=0.15)),limits=c(-0.05, 0.6),expand = c(0, 0))+theme(legend.position="bottom",axis.ticks.x = element_blank(),strip.background = element_blank(),strip.text = element_blank())
 
 death_conversion_dpi96 = 96/72
 ggsave(outplot1, plot=p, width=78.5*death_conversion_dpi96, height=71.9*death_conversion_dpi96, units="mm")
@@ -65,7 +65,7 @@ p <- ggplot(data=mp, aes(y=exp,fill=Signature, x=class))+
     geom_boxplot(outlier.shape = NA,color='black')+
     geom_jitter(size=0.15, color="black", alpha=0.8)+
     facet_wrap(~Signature)+ylab('Relative contribution')+
-    xlab('')+unmute_theme+scale_y_continuous(breaks=(seq(0, 0.5, by=0.1)))+theme(legend.position="bottom")
+    xlab('')+unmute_theme+scale_y_continuous(breaks=(seq(0, 0.6, by=0.15)),limits=c(-0.05, 0.6),expand = c(0, 0))+theme(legend.position="bottom",axis.ticks.x = element_blank(),strip.background = element_blank(),strip.text = element_blank())
 
 
 ggsave(outplot2, plot=p, width=78.5*death_conversion_dpi96, height=71.9*death_conversion_dpi96, units="mm")
