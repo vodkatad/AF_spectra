@@ -43,7 +43,7 @@ rule fig_3b_wilcox_mb:
     output: plot='fig_3b_wilcox_mb.svg'
     script: SRC_DIR+'/fig3b_wilcox.R'
 
-### Figure 2
+### Figure 2 and related extended ones
 # bulk + vitro 1st
 rule fig2_a:
     input: sign=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", 
@@ -143,8 +143,6 @@ rule figure_5b_vaf_histo:
     output: plot='fig_5b_VAFhistogram.svg'
     script: SRC_DIR+'/fig5b_VAFhisto.R'
 
-# x axis breaks are not 5 because I do not know where to fit the fifth
-# indagare warning di geom_smooth, ci sarebbe da spostare lo 0?
 rule figure_5b_cumulative_fit:
     input: PR=SOURCE_DATA+'/CRC1599PRX0A02002TUMD03000V2.fit.0.12_0.24.pdf.debug.RData', LM=SOURCE_DATA+'/CRC1599LMX0A02001TUMD03000V2.fit.0.12_0.24.pdf.debug.RData',
            theme=GGTHEME
@@ -158,10 +156,23 @@ rule figure_5c_slopes:
     log: log='fig_5c_slopes_pairedscatter.log'
     script: SRC_DIR+'/fig5c_slopes_pairedscatter.R'
 
-# alternativa Lagomarsino wipunivpile.R
-# TODO INDAGARE There were 36 warnings (use warnings() to see them)
+################ Supplementary tables
+#egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data$ head -n1  CRC0282_clones_all/generations.txt > SourceData/gens.tsv;
+#egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data$ for f in CRC0282_clones_all/generations.txt CRC0282/generations.txt CRC0327/generations.txt CRC0441/generations.txt CRC1078/generations.txt CRC1078_clones_all/generations.txt  CRC1307/generations.txt CRC1307_clones_all/generations.txt CRC1502/generations.txt CRC1502_clones_2/generations.txt CRC1599LM_clones_all/generations.txt CRC1599LM/generations.txt CRC1599PR/generations.txt; do n=`echo $f | tr "_" "\t" | tr "\/" "\t" | cut -f 1`;  bawk -vF=$n '{print F, $0}' $f; done | grep -v -w CAMPIONI > SourceData/gens.tsv 
+rule supplementary_edt_3_MR_tsv:
+    input: SNV=REF_DATASET+"/MR_edu_SNV", indel=REF_DATASET+"/MR_edu_indel", glen=REF_DATASET+"/all_len_SNV.tsv", 
+           gens=SOURCE_DATA+"/gens.tsv", SNVn=REF_DATASET+"/vitro_gained_SNV", indeln=REF_DATASET+"/vitro_gained_indel"
+    output: tsv="edt3_MR.tsv"
+    script: SRC_DIR+"/merge_edt3.R"
 
-# Supplementaty tables
+rule supplementary_edt_3_MR_xlsx:
+    input: "edt3_MR.tsv"
+    output: "edt3_MR.xlsx"
+    shell: 
+           """
+            tsv_to_xls -i {input} -s "Extended Data Table 3" -o {output}
+           """
+
 rule supplementary_wilcox_mut_burden:
     input: genes=REF_DATASET+"/CRC1502-09C_CRC1502-09C_CRC1502-09-1-C.00.private.tsv", wilcox=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_{ref}"
     output: tsv="supplementary_wilcox_mut_burden_{ref}.tsv"
@@ -212,7 +223,7 @@ rule supplementary_edt8_sign_xlsx:
         """
 
 
-# List of muts and details added by hand on drive (?)
+# List of muts and details added by hand on drive.
 rule supplementary_edt9_xlsx:
     input: TCGA="supplementary_wilcox_mut_burden_TCGA.tsv", WES="supplementary_wilcox_mut_burden_wes.tsv"
     output: "Extended_Data_Table_9_wilcox_mutburden.xlsx"
@@ -223,32 +234,27 @@ rule supplementary_edt10_xlsx:
     output: "Extended_Data_Table_10_nsubclonal.xlsx"
     shell: "tsv_to_xls -i {input.tsv} -s n_subclonal -o {output}"
 
-# Supplementary Figures
+################# Supplementary Figures
 rule supplementary_edf1b_edu:
     input: edu=PRJ_ROOT+'/local/share/data/edf1b_EDU.txt', theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf1b_EDU.svg'
     log: log="edf1b_EDU.log"
     script: SRC_DIR+'/edfig1b_EDU.R'
-#controllare si /0.0000001 e unità di misura asse y MR
+
 rule supplementary_edf2_indel:
     input: MR=REF_DATASET+"/MR_edu_indel", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf2_indel.svg', avgdata="edf2_indel_avg.tsv"
     log: log="edf2_indel.log"
     script: SRC_DIR+'/edf2_indel.R'
 
-# XXX these two have total N and N normalized by len only, so the
-# transformation of y axis should be removed/changed
-# y axis here is absolute n of SNVs ( SNVs )
 
-#controllare no /0.00000001, e unità di misura asse y deve essere SNVs
+# Note: in the assembled Extended Figure 3A and 3B are inverted
 rule supplementary_edf3a_N:
     input: MR=REF_DATASET+"/vitro_gained_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf3a_N.svg', avgdata="edf3a_N_avg.tsv"
     log: log="edf3a_N.log"
     script: SRC_DIR+'/edfig3a_N.R'
 
-# y axis here is MR [SNVs/(Gbp*effective_division)] (do / 0.000000001)
-# per avere idea del range plot basico brutto: datasetV2/MR_conte_SNV.png
 rule supplementary_edf3b_nN:
     input: MR=REF_DATASET+"/MR_conte_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf3b_nN.svg', avgdata="edf3b_nN_avg.tsv"
@@ -285,8 +291,9 @@ rule supplementary_edf7a_signatures:
            theme=GGTHEME
     output: plot1="edfig_7a_SBS1_8_18_us.svg", plot2="edfig_7a_SBS1_8_18_clevers.svg"
     log: log="edfig_7a_SBS1_8_18_us.log"
-    script: SRC_DIR+'/edfig7a_sign.R'
+    script: SRC_DIR+'/edfig7a_sign_.R'
 
+# Edf9 has became edf8, keeping original numbering for reference.
 SORTED_MR_T2=PRJ_ROOT+'/local/share/data/sorted_MR_avg_T2.tsv'
 rule supplementary_edf9a:
     input: dnds=REF_DATASET+"/dnds_t2_vitro_overall.tsv", theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR_T2
@@ -300,10 +307,11 @@ rule supplementary_edf9b:
     params: wanted="2nd_vitroMA", legend="no", addlm="yes"
     script: SRC_DIR+'/fig2_cosmic.R'
 
-
+# Edf10 has became edf9
 rule supplementary_edf10:
     input: N=REF_DATASET+"/vitro_gained_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf10_hyp.svg'
+    log: log="edf10_hyp.log"
     script: SRC_DIR+'/edfig10_hyp.R'
 
 rule edf_12a_R2:
@@ -312,6 +320,8 @@ rule edf_12a_R2:
     output: plot='edfig_12a_R2.svg'
     script: SRC_DIR+'/edfig_12a_R2_.R'
 
+# Edf12 has became edf11
+# 12b and 12c are inverted
 rule figure_12b_slopes_noout:
     input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',
            theme=GGTHEME
@@ -350,15 +360,17 @@ rule edf_13_c:
     input: MR=REF_DATASET+"/MR_edu_SNV", MRclo=REF_DATASET+"/MR_edu_univMutect", theme=GGTHEME, palette=MANY_COLORS_PALETTE, palette2=MODELS_COLORS_PALETTE
     output: plot="edf12c_cor.svg"
     log: log="edf12c_cor.log"
-    script: SRC_DIR+'/edf12_c_cor.R'
+    script: SRC_DIR+'/edf12_c_cor_.R'
 
 ######################## miscellanea
 # diary 25/05/23 for code run on newer R (4.3.0) on cog + add LM to 1599BULK manually
 # edf7
+
+# Extended data figure 6 panels:
 rule signal_fig2_a:
     input: sign=SOURCE_DATA+'/exposures2.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
-    output: plot="fig_2a_signal.pdf"
+    output: plot="fig_2a_signal.pdf", tsv="signal_normalized.tsv"
     params: wanted="bulk", legend="yes", addlm="yes", norm="yes"
     script: SRC_DIR+'/fig2_signal.R'
 
@@ -369,7 +381,7 @@ rule signal_fig_2a_bis:
     params: wanted="vitroMA", legend="no", addlm="yes", norm="yes"
     script: SRC_DIR+'/fig2_signal.R'
 
-# vivo 1st
+# vivo 1st TODO MISTERY ?
 rule signal_fig_2b_bis:
     input: sign=SOURCE_DATA+'/exposures2.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
@@ -400,7 +412,20 @@ rule sigfit_fig_2b_bis:
     script: SRC_DIR+'/fig2_sigfit.R'
 
 
-# check edf6 version gained muts
+# Note: LM/PR were added by hand on drive for the first run of this. Automatize if need to re-run.
+rule supplementary_edt5_xlsx:
+    input: signal="signal_normalized.tsv", sigfit=SOURCE_DATA+"/sigfit.tsv", 
+    output: xls="Extended_Data_Table_5_signatures_alternatives.xlsx"
+    shell:
+        """
+            bawk 'NR==1{{print "model","class",$0}}' {input.signal}  > {output}.tmp
+            tr "_" "\\t" < {input.signal} | sed 's/bulk/parental/' | sed 1d >> {output}.tmp
+            bawk 'NR==1{{print "model","class",$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30}}' {input.sigfit} | perl -pne 's/mean\.Signature\.(\d+)/SBS$1/g' > {output}.tmp2
+            bawk '{{print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31}}' {input.sigfit} | tr "_" "\\t" | sed 's/bulk/parental/' |sed 1d >> {output}.tmp2
+            tsv_to_xls -i {output}.tmp,{output}.tmp2 -s Signal,sigfit -o {output}
+            rm {output}.tmp*
+        """
+
 rule figure_edf6bis_mr:
     input: MR=REF_DATASET+"/vitro_T1gained_firstSNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf6bis_support.svg', avgdata="edf6bis_avg.tsv"
@@ -454,7 +479,7 @@ rule figure_1b_mr_clonal:
     log: log="fig_clonal_MR.log"
     script: SRC_DIR+'/fig1b_MR.R'
 
-# correlations and mixed models (?)
+# correlations for captions of edf 3a/b
 # should remove 2nd to be correct, so using avg from Fig 1 and not support 4.
 rule correlation_MR_gained:
     input: mr="fig_1b_avg.tsv", tree="edf3a_N_avg.tsv",  theme=GGTHEME, palette=MODELS_COLORS_PALETTE
