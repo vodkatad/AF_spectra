@@ -45,3 +45,8 @@ wildcard_constraints:
     sample="[a-zA-Z0-9]+-[0-9A-Z]+-[A-Z0-9]+"
 
 SAMPLE="wildcards"   
+
+#egrassi@godot:/scratch/trcanmed/AF_spectra/datasetV2/cleverers/CRC2566$ zcat allvsall.ovcnokdelta.tsv.gz | cut -f 2 |sort | uniq 
+#will then need C- original name correspondences, should be in order
+#quick choice to produce supplementary tables quickly.
+CS= ['c1', 'c2', 'c3', 'c4', 'common']

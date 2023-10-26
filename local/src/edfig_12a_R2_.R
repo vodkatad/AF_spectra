@@ -95,13 +95,16 @@ topl$sign <- ifelse(topl$tpval < 0.05,'Yes', 'No')
 topl$asterisk <- ifelse(topl$tpval <= 0.0001, '****', ifelse(topl$tpval <= 0.001, '***', 
                   ifelse(topl$tpval <= 0.01, '**', ifelse(topl$tpval <= 0.05, '*', ' ')) ))
 y_breaks<-c(0,4.5,9,13.5,18)
+y_breaks <- c(rev(-y_breaks), y_breaks)
+#https://stackoverflow.com/questions/55531308/ggplot-shift-position-of-y-and-x-axis
 delta_plot <- ggplot(data=topl, aes(x=as.factor(laf), y=deltasl)) + 
   geom_col() +
   facet_grid(~haf) +
   ylab('Slope LMX - Slope PRX') +
   xlab('Lower VAF') +
+  geom_hline(yintercept=0) +
    geom_text(aes(label=paste0(asterisk, '\nn=', n_models)), position=position_dodge(width=0.9), vjust=-0.15, size=2) +
-  scale_y_continuous(breaks=y_breaks,limits=c(0, max(y_breaks)),expand = c(0, 0))+
+  scale_y_continuous(breaks=y_breaks,limits=c(min(y_breaks), max(y_breaks)),expand = c(0, 0))+
   theme_bw()+
   theme(
 	text = element_text(size = textSize, family='sans'),

@@ -99,3 +99,34 @@ rule reformat_cosmic:
         exp = d[d.index!="cos_sim"]
         cos.T.to_csv(output.cosine, sep="\t")
         exp.T.to_csv(output.exposures, sep="\t")
+
+## annovar annotation for suppl tables
+#chr1    14159222        14159223        C-A
+rule class_bed:
+    input: "allvsall.ovcnokdelta.tsv.gz"
+    output: "{who}.bed"
+    shell:
+        """
+            zcat {input} | bawk '$2=="{wildcards.who}"' | tr ":" "\\t" | bawk '{{print $1,$2-1,$2,$3"-"$4}}' > {output}
+        """
+
+rule annovar:
+    input: "{who}.bed", ANNOVAR
+    output: "{who}.multianno.txt"
+    log: "{who}.multianno.log"
+    params: ver="hg38"
+    shell:
+        """
+        sed 's/chr//1;' < {input[0]} | tr "-" "\\t" | bawk '{{if($5=="") {{$5="-"}} if ($4==""){{$4="-"}} b=$2+1; e=b+length($4)-1; print $1,b,e,$4,$5,$6}}' > {output}.tmp
+        table_annovar.pl {output}.tmp {input[1]} --otherinfo -buildver {params.ver} -out merged -remove -protocol refGene,avsnp150,cosmic87_coding -operation g,f,f -nastring . -polish &> {log}
+        rm {output}.tmp
+        bawk '{{print "{wildcards.who}", $0}}' < merged.hg38_multianno.txt | sed 1d > {output}
+        rm merged.hg38_multianno.txt
+        """
+
+# caution do not use -j, temp files will get overwritten
+rule all_all_annovar:
+    input: expand("{who}.multianno.txt", who=CS)
+    output: "all.annovar.gz"
+    shell: "zcat {input} | gzip >  {output}"
+    

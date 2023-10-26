@@ -110,6 +110,10 @@ ggsave(outplot, plot=p, width=60*death_conversion_dpi96, height=60*death_convers
 
 sink(log_f)
 cor.test(pdata$mean.x, pdata$mean.y, method='spearman')
+print('all')
+p <- cor.test(merged$MR_edu, merged$MR_edu_cl, method='spearman')
+print(p)
+print(p$p.value)
 sink()
 
 save.image(paste0(outplot, '.Rdata'))

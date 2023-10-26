@@ -25,6 +25,11 @@ names(pal) <- palette_df$model
 data <- read.table(sign_f, sep="\t", header=TRUE, stringsAsFactors=FALSE, row.names=1)
 if (snakemake@params[['norm']] != "no") {
   data = data/rowSums(data)
+  normf <- snakemake@output[['tsv']]
+  print(normf)
+  if (!is.null(normf)) {
+    write.table(data, normf, sep="\t", quote=FALSE)
+  }
 }
 
 if (!grepl('2nd', wanted)) {

@@ -2,6 +2,8 @@ tcga_rds  <- snakemake@input[['TCGA']]
 wes_rds  <- snakemake@input[['WES']]
 outplot <- snakemake@output[['plot']]
 theme <- snakemake@input[['theme']]
+log_f <- snakemake@log[['log']]
+
 save.image(paste0(outplot, '.Rdata'))
 library(ggplot2)
 library(ggpubr)
@@ -41,6 +43,12 @@ p <- ggarrange( wes_p,tcga_p,  common.legend = TRUE, legend="none") #,axis.text.
 print(p)
 graphics.off()
 
+sink(log_f)
+print('PDX')
+table(muts_wes$status)
+print('TCGA')
+table(muts_tcga$status)
+sink()
 
 ggsave(outplot, plot=p,, width=89, height=89, units="mm") #
 save.image(paste0(outplot, '.Rdata'))
