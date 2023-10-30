@@ -43,3 +43,5 @@ wildcard_constraints:
     sample="[a-zA-Z0-9]+-[0-9A-Z]+-[A-Z0-9]+"
 
 SAMPLE="wildcards"   
+
+CS= ['c1', 'c2', 'common']

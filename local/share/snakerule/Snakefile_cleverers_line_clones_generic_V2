@@ -128,5 +128,5 @@ rule annovar:
 rule all_all_annovar:
     input: expand("{who}.multianno.txt", who=CS)
     output: "all.annovar.gz"
-    shell: "zcat {input} | gzip >  {output}"
+    shell: "cat {input} | gzip >  {output}"
     

@@ -406,13 +406,12 @@ rule signal_fig_2a_bis:
     params: wanted="vitroMA", legend="no", addlm="yes", norm="yes"
     script: SRC_DIR+'/fig2_signal.R'
 
-# vivo 1st TODO MISTERY ?
 rule signal_fig_2b_bis:
     input: sign=SOURCE_DATA+'/exposures2.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2b_signal.pdf"
     params: wanted="vivoMA", legend="no", addlm="yes", norm="yes"
-    script: SRC_DIR+'/fig2_sigfit.R'
+    script: SRC_DIR+'/fig2_signal.R'
 
 rule sigfit_fig2_a:
     input: sign=SOURCE_DATA+'/sigfit.tsv', 

@@ -646,3 +646,18 @@ rule all_seg_changes:
         """
             cat {input} > {output}
         """
+
+## put together annovar and mut coords for supplementary tables.
+rule all_gain_nr:
+    input: lambda w: wanted_pairs_inputfun('.ovcnokdelta.tsv.gz')
+    output: "all_gained_nr.tsv"
+    shell:
+        """
+            for f in {input}; do zcat $f | bawk -v n=$f '$16=="gain"{{print n,$1,$10"/"$9 }}' | sed 's/\.ovcnokdelta\.tsv\.gz//'; done > {output}
+        """
+
+rule suppl_mut_info:
+    input: annovar="all.annovar.gz", mutinfo="all_gained_nr.tsv"
+    params: kind=KIND
+    output: outtsv="mutinfo.tsv.gz"
+    script: SRC_DIR+"/merge_annovar_cnok.R" 

@@ -117,3 +117,19 @@ rule t1_t2_distances:
     input: dist="{kind}_distances.tsv"
     output: tips="{kind}_tips.tsv"
     script: SRC_DIR+"/tips.R"
+
+### annotations
+rule all_gained_vaf:
+    input: "bulk.var_cnv.tsv.gz"
+    output: "all_gained_vaf.tsv" 
+    params: name=BULKNAME
+    shell: 
+        """
+            zcat {input} | tr ":" "\\t" | bawk '{{print "{params.name}",$4":"$5":"$6":"$7,$10}}' > {output}
+        """
+
+rule suppl_mut_info_bulk:
+    input: annovar="bulk.multianno.txt", mutinfo="all_gained_vaf.tsv"
+    params: kind=KIND, name=BULKNAME
+    output: outtsv="bulkmutinfo.tsv.gz"
+    script: SRC_DIR+"/merge_annovar_cnok_bulk.R" 
