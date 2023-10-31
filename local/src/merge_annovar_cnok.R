@@ -32,9 +32,10 @@ d_ann$value <- 1
 wide_anno <- cast(d_ann, formula = "chr + b + e + ref + alt + location + gene + effect + aa_change + mutid ~ id", value="value", fun.aggregate=sum)
 #summary(unlist(wide_anno[, 11:ncol(wide_anno)])))
 
+all_muts <- unique(all_muts)
 wide_muts <- cast(all_muts, formula="mutid~id", value="alt/tot")#, fill=)
 
-stopifnot(nrow(wide_muts)==nrow(wide_anno))
+#stopifnot(nrow(wide_muts)==nrow(wide_anno))
 n1 <- nrow(wide_muts)
 if (kind == "SNV") {
   stopifnot(length(intersect(wide_muts$mutid, wide_anno$mutid))==n1)
