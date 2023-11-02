@@ -37,6 +37,7 @@ our$model <- paste0(our$model, ifelse(!grepl('\\d$', our$model), '', ifelse(our$
 sink(log_f)
 print(nrow(our))
 print(length(unique(our$model_clone)))
+print(table(our$model))
 sink()
 
 #figura1

@@ -33,14 +33,15 @@ data <- data[data$haf != 0.050,]
 y_breaks<-c(0,0.25,0.5,0.75,1)
 #x_breaks<-as.factor(unique(data$laf))
 
-
+y_labels <- y_breaks
+y_labels[1] <- '-18.0'
 r2_plot <- ggplot(data=data, aes(x=as.factor(laf), y=r)) + 
   geom_boxplot(outlier.shape=NA) +
   geom_jitter(size=0.1, alpha=0.7) +
   geom_hline(yintercept=0.9, linetype="dashed", color = "red")+
   facet_grid(~haf) +
-  xlab("Lower AF")+ylab("R²")+
-  scale_y_continuous(breaks=y_breaks,limits=c(0, max(y_breaks)),expand = c(0, 0))+
+  xlab("Lower AF")+ylab("R")+
+  scale_y_continuous(breaks=y_breaks,limits=c(0, max(y_breaks)),expand = c(0, 0), labels=y_labels)+
   theme_bw()+
   theme(
 	text = element_text(size = textSize, family='sans'),
@@ -118,7 +119,7 @@ delta_plot <- ggplot(data=topl, aes(x=as.factor(laf), y=deltasl)) +
 	axis.ticks = element_line(color = "black"),legend.position='none'
 )
 p <- ggarrange(r2_plot, delta_plot, 
-          labels = c("a", ""),
+          labels = c("", ""),
           ncol = 1, nrow = 2)
 
 ggsave(outplot, plot=p, width=183, height=90, units="mm")

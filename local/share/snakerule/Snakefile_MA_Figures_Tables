@@ -179,6 +179,15 @@ rule supplementary_wilcox_mut_burden:
     output: tsv="supplementary_wilcox_mut_burden_{ref}.tsv"
     script: SRC_DIR+'/filter_correct.R'
 
+rule supplementary_edt2:
+    input: expand(REF_DATASET+"/edt_dir/{model}_edt2.tsv", model=MODELS_NOREP_TRUE)
+    output:  "Extended_Data_Table2.xlsx"
+    params:  inp=lambda wildcards, input: ','.join(input), sheets=lambda x: ','.join(MODELS_NOREP_TRUE)
+    shell: 
+        """
+            tsv_to_xls -i {params.inp} -s {params.sheets} -o {output}
+        """
+
 # Note: LM/PR were added by hand on drive for the first run of this. Automatize if need to re-run.
 rule supplementary_edt_4_xlsx:
     input: exposures=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", cosine=REF_DATASET+"/vitrovivobulk_cosine_merged_cosmic.tsv"
