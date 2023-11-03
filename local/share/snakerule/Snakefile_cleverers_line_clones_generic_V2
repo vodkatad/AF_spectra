@@ -137,7 +137,7 @@ rule all_all_annovar:
 #CRC1307-02-1-A_CRC1307-02-0     chr1:15306919:G:A       17/48
 rule all_muts:
     input: expand("{sample}.tsv.gz", sample=SAMPLES)
-    output: "all_muts_nr.tsv.gz"
+    output: temp("all_muts_nr.tsv.gz")
     shell:
         """
             zcat {input} | sort | uniq | gzip -c > {output}
@@ -145,7 +145,7 @@ rule all_muts:
 
 rule all_gain_nr:
     input: ovcnok="allvsall.ovcnokdelta.tsv.gz", allnr="all_muts_nr.tsv.gz"
-    output: outtsv="all_gained_nr.tsv"
+    output: outtsv=temp("all_gained_nr.tsv")
     script:  SRC_DIR+"/merge_mutinfo_cleverers.R"
     
 rule suppl_mut_info:

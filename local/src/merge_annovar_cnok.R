@@ -3,7 +3,7 @@ mutinfo_f  <- snakemake@input[['mutinfo']]
 
 outtsv_f <- snakemake@output[['outtsv']]
 kind <- snakemake@params[['kind']]
-save.image(paste0(outtsv_f, '.Rdata'))
+#save.image(paste0(outtsv_f, '.Rdata'))
 
 library(reshape)
 

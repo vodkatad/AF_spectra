@@ -1241,7 +1241,8 @@ rule all_anno_muts_T2:
 rule tsv_anno_muts_T2:
     input: acc="{model}/platypus_nobin_00/mutinfo.tsv.gz", essential=PRJ_ROOT+"/local/share/data/common_iorio_crisp_essential"
     output: outtsv="edt_dir/{model}_edt8.tsv"
-    shell: "cp {input} {output}" # need to rename columns also here with script TODO
+    log: log="edt_dir/{model}_edt8.log"
+    script:  SRC_DIR+"/merge_mutinfo_onlyclones.R" 
 
 
 # suppl table 6 cleverers annotations
