@@ -9,7 +9,7 @@ library(reshape)
 
 #load('/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/platypus_nobin_00/mutinfo.tsv.gz.Rdata')
 #setwd('/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/platypus_nobin_00')
-d_ann <- read.table(gzfile(annovar_f), sep="\t", header=TRUE, stringsAsFactors = FALSE)
+d_ann <- read.table(gzfile(annovar_f), sep="\t", header=FALSE, stringsAsFactors = FALSE)
 d_ann <- d_ann[,c(1,2,3,4,5,6,7,8,10,11)]
 colnames(d_ann) <- c('id', 'chr', 'b', 'e', 'ref', 'alt', 'location', 'gene', 'effect', 'aa_change')
 d_ann$aa_change <- sapply(strsplit(d_ann$aa_change, ":", fixed=TRUE), function(x) {l <- length(x); return(x[[l]][1]) })
