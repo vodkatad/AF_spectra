@@ -130,3 +130,26 @@ rule all_all_annovar:
     output: "all.annovar.gz"
     shell: "cat {input} | gzip >  {output}"
     
+## put together annovar and mut coords for supplementary tables.
+#egrassi@godot:/scratch/trcanmed/AF_spectra/datasetV2/cleverers/CRC2608$ head ../../CRC1307/platypus_nobin_00/all_gained_nr.tsv 
+#CRC1307-02-1-A_CRC1307-02-0     chr1:14898042:A:G       26/74
+#CRC1307-02-1-A_CRC1307-02-0     chr1:15038478:A:G       19/57
+#CRC1307-02-1-A_CRC1307-02-0     chr1:15306919:G:A       17/48
+rule all_muts:
+    input: expand("{sample}.tsv.gz", sample=SAMPLES)
+    output: "all_muts_nr.tsv.gz"
+    shell:
+        """
+            zcat {input} | sort | uniq | gzip -c > {output}
+        """
+
+rule all_gain_nr:
+    input: ovcnok="allvsall.ovcnokdelta.tsv.gz", allnr="all_muts_nr.tsv.gz"
+    output: outtsv="all_gained_nr.tsv"
+    script:  SRC_DIR+"/merge_mutinfo_cleverers.R"
+    
+rule suppl_mut_info:
+    input: annovar="all.annovar.gz", mutinfo="all_gained_nr.tsv"
+    params: kind=KIND
+    output: outtsv="mutinfo.tsv.gz"
+    script: SRC_DIR+"/merge_annovar_cnok.R" 

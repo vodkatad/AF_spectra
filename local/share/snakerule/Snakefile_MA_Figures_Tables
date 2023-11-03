@@ -233,6 +233,16 @@ rule supplementary_edt8_sign_xlsx:
             rm {output}.tmp*
         """
 
+rule supplementary_edt8_muts:
+    input: expand(REF_DATASET+"/edt_dir/{model}_edt8.tsv", model=MODELS_T2)
+    output:  "Extended_Data_Table8_muts.xlsx"
+    params:  inp=lambda wildcards, input: ','.join(input), sheets=lambda x: ','.join(MODELS_T2)
+    shell: 
+        """
+            tsv_to_xls -i {params.inp} -s {params.sheets} -o {output}
+        """
+
+
 
 # List of muts and details added by hand on drive from datasetV2/CRC1502-09C_CRC1502-09C_CRC1502-09-1-C.00.private.tsv
 rule supplementary_edt9_xlsx:
