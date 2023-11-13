@@ -28,6 +28,7 @@ MODELS_NOREP_TRUE=['CRC0282','CRC0327','CRC0441','CRC1078','CRC1307','CRC1502','
 MODELS_NOREP_TRUE_NOMSI=['CRC0327','CRC0441','CRC1078','CRC1307','CRC1502','CRC1599LM', 'CRC1599PR']
 MODELS_1_OR_2=['CRC0282_clones_all','CRC0327', 'CRC0441','CRC1078_clones_all','CRC1307_clones_all', 'CRC1502_clones_all','CRC1599LM_clones_all', 'CRC1599PR']
 MODELS_T2=['CRC0282_clones_all','CRC1078_clones_all','CRC1307_clones_all', 'CRC1502_clones_all','CRC1599LM_clones_all'] # no CRC0327 cause it has only in vivo
+MODELS_CLEV=['CRC2566','CRC2573','CRC2608']
 #COLORS_MODELS="#cc3300,#f607b9,#9900ff,#155d00,#77a003,#0829fc,#ff9900,#ffff00"
 COLORS_MODELS="#cc3300,#f607b9,#9900ff,#155d00,#77a003,#77a003,#0829fc,#0829fc,#ff9900,#ffff00"
 COLORS_MODELS_3="#cc3300,#f607b9,#9900ff,#155d00,#155d00,#77a003,#77a003,#0829fc,#0829fc,#ff9900,#ff9900,#ffff00"
@@ -75,7 +76,7 @@ for m in MODELS:
 
 DATA=os.path.join(PRJ_ROOT,'local/share/data/')
 
-GGTHEME='theme_5.Rdata'
+GGTHEME='theme_10.Rdata'
 
 REF_DATASET='../datasetV2'
 SOURCE_DATA=PRJ_ROOT+'/local/share/data/SourceData'
