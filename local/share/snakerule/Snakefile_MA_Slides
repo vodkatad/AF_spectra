@@ -1,4 +1,5 @@
 include: 'conf.sk'
+GGTHEME='theme_10.Rdata'
 
 rule ggplot_themes:
 	output: Rimage='theme_{size}.Rdata'
@@ -34,3 +35,39 @@ rule Nnorm:
     output: plot='nnorm.svg', avgdata="nnorm_avg.tsv"
     log: log="Nnorm.log"
     script: SRC_DIR+'/Nnorm.R'
+
+### Figure 3
+rule figure_3a_mr:
+    input: MR=REF_DATASET+"/MR_edu_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='fig_3a_MR.svg', avgdata="fig_3a_avg.tsv"
+    log: log="fig_3a_MR.log"
+    script: SRC_DIR+'/fig3a_MR.R'
+
+rule fig_3b_wilcox_mb:
+    #input: #TCGA=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_TCGA.rds", WES=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_wes.rds", # alt for our servers
+    input: TCGA=SOURCE_DATA+'/all_genes_mb_wilcox_TCGA.rds', WES=SOURCE_DATA+'/all_genes_mb_wilcox_wes.rds',
+           theme=GGTHEME
+    output: plot='fig_3b_wilcox_mb.svg'
+    log: log="fig_3b_wilcox_mb.log"
+    script: SRC_DIR+'/fig3b_wilcox.R'
+
+rule figure_5a_subclonal:
+    input: subclonal=REF_DATASET+'/fixedthr_subclonal', MR=REF_DATASET+'/MR_edu_SNV',
+           theme=GGTHEME, colors=MANY_COLORS_PALETTE
+    output: plot='fig_5a_subclonal.svg', tsv="fig_5a_subclonal.tsv"
+    log: log='fig_5a_subclonal.log'
+    script: SRC_DIR+'/fig5a_subclonal.R'
+
+rule figure_5b_vaf_histo:
+    input: LM=SOURCE_DATA+'/CRC1599LMX0A02001TUMD03000V2.pass.table.snv.gz', PR=SOURCE_DATA+'/CRC1599PRX0A02002TUMD03000V2.pass.table.snv.gz',
+           theme=GGTHEME
+    output: plot='fig_5b_VAFhistogram.svg'
+    script: SRC_DIR+'/fig5b_VAFhisto.R'
+
+
+rule figure_5c_slopes:
+    input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',
+           theme=GGTHEME
+    output: plot='fig_5c_slopes_pairedscatter.svg'
+    log: log='fig_5c_slopes_pairedscatter.log'
+    script: SRC_DIR+'/fig5c_slopes_pairedscatter.R'

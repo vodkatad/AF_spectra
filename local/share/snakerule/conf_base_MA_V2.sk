@@ -76,7 +76,7 @@ for m in MODELS:
 
 DATA=os.path.join(PRJ_ROOT,'local/share/data/')
 
-GGTHEME='theme_10.Rdata'
+GGTHEME='theme_5.Rdata'
 
 REF_DATASET='../datasetV2'
 SOURCE_DATA=PRJ_ROOT+'/local/share/data/SourceData'

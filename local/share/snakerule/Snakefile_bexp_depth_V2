@@ -1244,5 +1244,12 @@ rule tsv_anno_muts_T2:
     log: log="edt_dir/{model}_edt8.log"
     script:  SRC_DIR+"/merge_mutinfo_onlyclones.R" 
 
-
 # suppl table 6 cleverers annotations
+rule all_anno_muts_cleverers:
+    input: expand("edt_dir/{model}_edt6.tsv", model=MODELS_CLEV) 
+
+rule tsv_anno_muts_cleverers:
+    input: acc="cleverers/{model}/mutinfo.tsv.gz", essential=PRJ_ROOT+"/local/share/data/common_iorio_crisp_essential"
+    output: outtsv="edt_dir/{model}_edt6.tsv"
+    log: log="edt_dir/{model}_edt6.log"
+    script:  SRC_DIR+"/merge_mutinfo_onlyclones.R" 

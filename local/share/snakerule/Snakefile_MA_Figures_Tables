@@ -150,6 +150,12 @@ rule figure_5b_cumulative_fit:
     output: plot='fig_5b_cumfit_nolegend.svg'
     script: SRC_DIR+'/fig5b_cumfit.R'
 
+rule figure_5b_cumulative_nofit:
+    input: PR=SOURCE_DATA+'/CRC1599PRX0A02002TUMD03000V2.fit.0.12_0.24.pdf.debug.RData', LM=SOURCE_DATA+'/CRC1599LMX0A02001TUMD03000V2.fit.0.12_0.24.pdf.debug.RData',
+           theme=GGTHEME
+    output: plot='fig_5b_cum_nolegend.svg'
+    script: SRC_DIR+'/fig5b_cum.R'
+
 rule figure_5c_slopes:
     input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',
            theme=GGTHEME
@@ -200,6 +206,15 @@ rule supplementary_edt_4_xlsx:
             sed 1d {input.cosine} | grep -v 2nd  | sed 's/bulk/parental/' | tr "_" "\\t" | cut -f 1,2,3 >> {output}.tmp2
             tsv_to_xls -i {output}.tmp,{output}.tmp2 -s exposures,cosine -o {output}
             rm {output}.tmp*
+        """
+
+rule supplementary_edt6_muts:
+    input: expand(REF_DATASET+"/edt_dir/{model}_edt6.tsv", model=MODELS_CLEV)
+    output:  "Extended_Data_Table6_muts.xlsx"
+    params:  inp=lambda wildcards, input: ','.join(input), sheets=lambda x: ','.join(MODELS_CLEV)
+    shell: 
+        """
+            tsv_to_xls -i {params.inp} -s {params.sheets} -o {output}
         """
 
 # By hand: trunk -> truncal and PDT ws model. Fix here if need to rerun.
