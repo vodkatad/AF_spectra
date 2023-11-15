@@ -61,7 +61,7 @@ if (what == "subcl") {
   fit_r2$intercept <- fit_r2$subcl
   ylab <- '# subclonal SNVs'
 } else {
-  ylab <- 'μ/β'
+  ylab <- 'Z'
 }
 
 p <- ggplot(data=fit_r2, aes(x=model, y=intercept, color=mp, group=smodel)) +

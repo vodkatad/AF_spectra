@@ -56,7 +56,7 @@ rule figure_5a_subclonal:
            theme=GGTHEME, colors=MANY_COLORS_PALETTE
     output: plot='fig_5a_subclonal.svg', tsv="fig_5a_subclonal.tsv"
     log: log='fig_5a_subclonal.log'
-    script: SRC_DIR+'/fig5a_subclonal.R'
+    script: SRC_DIR+'/fig5a_subclonal_large.R'
 
 rule figure_5b_vaf_histo:
     input: LM=SOURCE_DATA+'/CRC1599LMX0A02001TUMD03000V2.pass.table.snv.gz', PR=SOURCE_DATA+'/CRC1599PRX0A02002TUMD03000V2.pass.table.snv.gz',

@@ -307,6 +307,13 @@ rule supplementary_edf2_indel:
     script: SRC_DIR+'/edf2_indel.R'
 
 
+rule supplementary_edf2_indel_noMSI:
+    input: MR=REF_DATASET+"/MR_edu_indel", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='edf2_indel_noMSI.svg', avgdata="edf2_indel_avg_noMSI.tsv"
+    log: log="edf2_indel_noMSI.log"
+    script: SRC_DIR+'/edf2_indel_noMSI.R'
+
+
 # Note: in the assembled Extended Figure 3A and 3B are inverted
 rule supplementary_edf3a_N:
     input: MR=REF_DATASET+"/vitro_gained_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
@@ -378,6 +385,12 @@ rule edf_12a_R2:
            theme=GGTHEME
     output: plot='edfig_12a_R2.svg'
     script: SRC_DIR+'/edfig_12a_R2_.R'
+
+rule edf_12a_R2_bis:
+    input: data=SOURCE_DATA+'/all_bets.tsv',
+           theme=GGTHEME
+    output: plot='edfig_12a_R2_bis.svg'
+    script: SRC_DIR+'/edfig_12a_R2_bis.R'
 
 # Edf12 has became edf11
 # 12b and 12c are inverted

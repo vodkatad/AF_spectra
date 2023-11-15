@@ -1,7 +1,9 @@
 load('/scratch/trcanmed/AF_spectra/dataset_Figures_Tables/fig_5b_cumfit.svg.Rdata')
 
+# Cumulative number <= VAF, vs VAF
 load(pr_fit)
 
+excum <- sapply(1:length(exsubcl),function(i)sum(exsubcl[i]>=exsubcl[1:length(exsubcl)]))
 
 invf_p <- invf
 exsubcl_p <- exsubcl
@@ -11,6 +13,8 @@ coeffs_p <- coefficients(model_p)
 beta_p <- unname(coeffs_p[1]) # it's 1 because it's a fit without intercept
 
 load(lm_fit)
+excum <- sapply(1:length(exsubcl),function(i)sum(exsubcl[i]>=exsubcl[1:length(exsubcl)]))
+
 coeffs <- coefficients(model)
 beta <- unname(coeffs[1])
 

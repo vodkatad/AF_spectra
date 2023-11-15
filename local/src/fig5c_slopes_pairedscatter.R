@@ -56,7 +56,7 @@ p <- ggplot(data=fit_r2, aes(x=model, y=intercept, color=mp, group=smodel)) +
   geom_errorbar(data=pdata, aes(x=model, y=lower, ymin=lower, ymax=upper,group=NULL, color=NULL), width=.1, size=.2)+
   scale_color_manual(values=c('#adacac', '#595959'))+
   #scale_y_continuous(breaks = seq(0, 70, by = 10))+
-  ylab('μ/β')+xlab('PDXs')+unmute_theme+theme(legend.position="none")+
+  ylab('Z')+xlab('PDXs')+unmute_theme+theme(legend.position="none")+
   scale_y_continuous(breaks=y_breaks, limits=c(0,max(y_breaks)), expand = c(0, 0))
   #scale_y_continuous(breaks=y_breaks)
 
