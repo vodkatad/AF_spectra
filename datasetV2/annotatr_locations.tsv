@@ -1,0 +1,15 @@
+annot.type	n	SNV
+1to5kb	12459	de_novo
+3UTRs	1307	de_novo
+5UTRs	352	de_novo
+exons	4806	de_novo
+intergenic	42242	de_novo
+introns	60905	de_novo
+promoters	3771	de_novo
+1to5kb	24447	truncal
+3UTRs	2706	truncal
+5UTRs	643	truncal
+exons	9225	truncal
+intergenic	79284	truncal
+introns	112879	truncal
+promoters	7278	truncal
