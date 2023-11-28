@@ -23,4 +23,5 @@ List of panels:
 
 Also Extended Data Figures and Tables can be obtained in the directory `dataset_Figures_Tables`. Keep in mind that some alternative versions for the figures exists and rules producing them are still available.
 The numbering of Extended Material does not always reflect the one in the manuscript, but these exceptions were commented in the Snakefile.
+
 A Dockerfile with the same R version and R packages used to produce the Figures is available here: https://github.com/vodkatad/snakemake_docker/blob/master/Dockerfiles/godot/Dockerfile 
