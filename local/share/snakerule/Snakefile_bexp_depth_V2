@@ -406,6 +406,33 @@ rule all_dnds_vitroMSS:
             rm {output[0]}.tmp
         """
 
+# Rdata will be overwritten every time
+rule dnds_overall_t0_t1_R2:
+    input: expand("{model}/platypus_nobin_00/all_gained_named.tsv", model=MODELS)
+    output: "dnds_overall_vitro_R2.tsv", "dnds_overall_vitro_R2.Rdata"
+    log: "dnds_overall_vitro_R2.log"
+    params:  tool=BIN_DIR+"/dnds", rda=DNDSCV_RDA, models=MODELS_NOREP_TRUE
+    shell:
+        """
+            for n in {params.models}; do \\
+                cat ${{n}}*/platypus_nobin_00/all_gained_named.tsv | tr ":" "\\t" | bawk -v name=$n '$1 !~ /-M/ {{print name,$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp; \\
+                {params.tool} {output[0]}.tmp {output[0]}_${{n}}.tmp {output[1]} {params.rda}; \\
+                bawk -v name=$n 'NR!=1{{print name, $0}}' < {output[0]}_${{n}}.tmp; \\
+            done > {output[0]}
+        """
+
+rule dnds_plot_R2:
+    input: "dnds_overall_vitro_R2.tsv"
+    output: "dnds_overall_vitro_R2.png"
+    params: tool=BIN_DIR+"/dnds_plot_overall", colors=COLORS_MODELS_2
+    shell:
+        """ 
+            grep wall {input} | cut -f1,4,5,6 > {output}.tmp
+            {params.tool} {output}.tmp {output} '{params.colors}' {output}.Rimage
+            rm {output}.tmp
+        """
+
+
 rule dnds_vitro:
     input: expand("{model}/platypus_nobin_00/all_gained_named.tsv", model=MODELS)
     output: "dnds_vitro.tsv", "dnds_vitro.Rdata"
