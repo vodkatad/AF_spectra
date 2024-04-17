@@ -545,7 +545,7 @@ rule msigact_fig_2b_bis:
 
 # methods suppls
 rule figure_1b_mr_clonal:
-    input: MR=REF_DATASET+"/MR_edu_univ", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    input: MR=REF_DATASET+"/MR_edu_univMutect", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='fig_clonal_MR.svg', avgdata="fig_clonal_avg.tsv"
     log: log="fig_clonal_MR.log"
     script: SRC_DIR+'/fig1b_MR.R'

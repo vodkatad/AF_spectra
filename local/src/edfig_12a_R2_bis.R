@@ -130,7 +130,7 @@ topl$asterisk <- ifelse(topl$tpval <= 0.0001, '****', ifelse(topl$tpval <= 0.001
 
 
 
-topl$y <- rep(44, nrow(topl))
+topl$y <- rep(43, nrow(topl))
 
 y_breaks <- guess_ticks(delta_df$delta, fixed_min=-15, fixed_max=45)
 #y_breaks <-  guess_ticks(delta_df$delta, fixed_min=-20, fixed_max=60)
