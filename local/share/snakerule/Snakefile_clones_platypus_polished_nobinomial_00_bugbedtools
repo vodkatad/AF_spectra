@@ -661,3 +661,14 @@ rule suppl_mut_info:
     params: kind=KIND
     output: outtsv="mutinfo.tsv.gz"
     script: SRC_DIR+"/merge_annovar_cnok.R" 
+
+## Hypothetical revision addition
+rule all_length_ov:
+    input: wanted_pairs_inputfun('.ovlength.txt')
+    output: "{bsample}.length_ov"
+    shell: "touch {output}"
+
+rule all_all_length_ov:
+    input: expand("{hsample}.length_ov", hsample=SAMPLES_HIGH)
+    output: "all.length"
+    shell: "touch {output}"

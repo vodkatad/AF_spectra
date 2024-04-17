@@ -203,6 +203,7 @@ rule pair_ov_nobcnok:
 
 # casino per avere overlap misto tra i due campioni
 # 1tmp e` t1, 2tmp e` t0 -> l'R usa la prima colonna per il calcolo della lunghezza ma filtra per cn giuste in tutte e due
+# TODO ADD here log file with cumulative genome covered with 1-2-3
 rule pair_length_ov:
     input: t0="{t0sample}.callable.bed.gz", t1="{t1sample}.callable.bed.gz"
     output: barplot="{t1sample}_{t0sample}.ovcn.png", len="{t1sample}_{t0sample}.ovlength.txt", cumplot="{t1sample}-{t0sample}.ovcumcn.png", ovbed="{t1sample}_{t0sample}.callable.bed.gz"
@@ -685,3 +686,16 @@ rule suppl_mut_info:
     params: kind=KIND
     output: outtsv="mutinfo.tsv.gz"
     script: SRC_DIR+"/merge_annovar_cnok.R" 
+
+
+
+## Hypothetical revision addition
+rule all_length_ov:
+    input: wanted_pairs_inputfun('.ovlength.txt')
+    output: "{bsample}.length_ov"
+    shell: "touch {output}"
+
+rule all_all_length_ov:
+    input: expand("{hsample}.length_ov", hsample=SAMPLES_HIGH)
+    output: "all.length"
+    shell: "touch {output}"
