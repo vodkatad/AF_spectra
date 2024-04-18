@@ -14,6 +14,8 @@ def input_signatures(wildcards):
         return expand("{model}/platypus_nobin_00/vivo.mergedloss.vcf.gz", model=MODELS)
     elif wildcards.kind == "vitrovivobulk":
         return expand("{model}/platypus_nobin_00/vitro.merged.vcf.gz", model=MODELS_NO327_2) + expand("{model}/platypus_nobin_00/vivo.merged.vcf.gz", model=MODELS) + BULK_VCF
+    elif wildcards.kind == "univMutect":
+        return expand("{model}/univMutect/vitro.merged.vcf.gz", model=MODELS_NO327_2) + expand("{model}/univMutect/vivo.merged.vcf.gz", model=MODELS) + BULK_VCF
     else:
         print("wrong option, baby")
 
@@ -54,6 +56,18 @@ rule all_sign:
         """
             {params.tool} {input} {output.heat} {output.cosine} '{params.colors}' {log.log} {output.heat_tsv} {output.cosine_tsv}
         """
+
+rule all_univMutect_sign:
+    input: "signinput_univMutect_merged"
+    output: heat="univMutect_heatmap_{merged}_cosmic.png", cosine="univMutect_cosine_{merged}_cosmic.png",
+            heat_tsv="univMutect_heatmap_{merged}_cosmic.tsv", cosine_tsv="univMutect_cosine_{merged}_cosmic.tsv",
+    params: tool=BIN_DIR+"/mut_pat_signatures_fit", colors=COLORS_MODELS_2
+    log: log="univMutect_heatmap_{merged}_cosmic.png.log"
+    shell:
+        """
+            {params.tool} {input} {output.heat} {output.cosine} '{params.colors}' {log.log} {output.heat_tsv} {output.cosine_tsv}
+        """
+
 
 rule count_sbs1:
     input: "signinput_vitrovivobulk_merged"

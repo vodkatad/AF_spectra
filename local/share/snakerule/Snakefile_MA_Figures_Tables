@@ -582,3 +582,29 @@ rule estim_divisions_xeno:
     input:  n=REF_DATASET+"/vivo_MR_len_SNV", ave_MR='fig_1b_avg.tsv'
     output: estim_div="xeno_estim.txt"
     script: SRC_DIR+'/estim_xeno_naive.R'
+
+
+
+### hp r2
+# bulk + vitro 1st
+rule fig2_a_r2:
+    input: sign=REF_DATASET+"/univMutect_heatmap_merged_cosmic.tsv", 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="r2_fig_2a_cosmic.pdf"
+    params: wanted="bulk", legend="yes", addlm="yes"
+    script: SRC_DIR+'/fig2_cosmic.R'
+
+rule fig_2a_bis_r2:
+    input: sign=REF_DATASET+"/univMutect_heatmap_merged_cosmic.tsv", 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="r2_fig_2abis_cosmic.pdf"
+    params: wanted="vitroMA", legend="no", addlm="yes"
+    script: SRC_DIR+'/fig2_cosmic.R'
+
+# vivo 1st
+rule fig_2b_bis_r2:
+    input: sign=REF_DATASET+"/univMutect_heatmap_merged_cosmic.tsv", 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="r2_fig_2b_cosmic.pdf"
+    params: wanted="vivoMA", legend="no", addlm="yes"
+    script: SRC_DIR+'/fig2_cosmic.R'
