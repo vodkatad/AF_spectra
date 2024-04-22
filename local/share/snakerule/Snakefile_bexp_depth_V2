@@ -420,6 +420,30 @@ rule all_dnds_vitroMSS:
             rm {output[0]}.tmp
         """
 
+rule all_dnds_vitroMSS_T1:
+    input: expand("{model}/platypus_nobin_00/all_gained_named.tsv", model=MODELS_NOREP_TRUE[1:])
+    output: "dnds_vitroMSS_t1.tsv", "dnds_vitroMSS_t1.Rdata"
+    log: "dnds_vitroMSS_t1.log"
+    params:  tool=BIN_DIR+"/dnds", rda=DNDSCV_RDA
+    shell:
+        """
+            cat {input} | tr ":" "\\t" | bawk '$1 !~ /-M/ {{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
+            {params.tool} {output[0]}.tmp {output} {params.rda} &> {log}
+            rm {output[0]}.tmp
+        """
+
+rule all_dnds_vitroMSS_T1_T2:
+    input: expand("{model}/platypus_nobin_00/all_gained_named.tsv", model=MODELS_NOREP[1:])
+    output: "dnds_vitroMSS_t1t2.tsv", "dnds_vitroMSS_t1t2.Rdata"
+    log: "dnds_vitroMSS_t1t2.log"
+    params:  tool=BIN_DIR+"/dnds", rda=DNDSCV_RDA
+    shell:
+        """
+            cat {input} | tr ":" "\\t" | bawk '$1 !~ /-M/ {{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
+            {params.tool} {output[0]}.tmp {output} {params.rda} &> {log}
+            rm {output[0]}.tmp
+        """
+
 # Rdata will be overwritten every time
 rule dnds_overall_t0_t1_R2:
     input: expand("{model}/platypus_nobin_00/all_gained_named.tsv", model=MODELS)

@@ -608,3 +608,10 @@ rule fig_2b_bis_r2:
     output: plot="r2_fig_2b_cosmic.pdf"
     params: wanted="vivoMA", legend="no", addlm="yes"
     script: SRC_DIR+'/fig2_cosmic.R'
+
+rule supplementary_edf7a_signatures_r2:
+    input: signus=REF_DATASET+"/univMutect_heatmap_merged_cosmic.tsv", signclevers=REF_DATASET+'/clevers/heatmap_cosmic.tsv',
+           theme=GGTHEME
+    output: plot1="edfig_7a_SBS1_8_18_us_r2.svg", plot2="removeme.svg"
+    log: log="edfig_7a_SBS1_8_18_us_r2.log"
+    script: SRC_DIR+'/edfig7a_sign_.R'
