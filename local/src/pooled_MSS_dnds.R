@@ -60,5 +60,5 @@ p<-ggplot(data=pd, aes(x=n))+geom_histogram(bins=40, fill="white", color="black"
 ggsave('/scratch/trcanmed/AF_spectra/dataset_Figures_Tables/manual_2.svg', plot=p, width=89, height=89, units="mm")
 
 
-table(pivs>0.05)
-63/10000*100
+table(pivs>0)
+9990/10000*100

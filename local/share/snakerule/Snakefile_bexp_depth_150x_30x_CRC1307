@@ -184,3 +184,17 @@ rule all_notmut:
 T0=['CRC1307-09-0', 'CRC1307-02-0']
 rule all_all_notmut: 
     input: expand("{sample}_not_mut.bed", sample=T0)
+
+### NORMAL Mpileup 30x
+NPILEUPS_D='/scratch/trcanmed/AF_spectra/local/share/data/mpileup_normals'
+WGSCALLABLE='/mnt/trcanmed/snaketree//task/annotations/dataset/gnomad/wgs_calling_regions.hg38.bed.gz'
+rule pseudompileup:
+    input: callable=WGSCALLABLE, pileup=NPILEUPS_D+'/{sample}.mpileup.gz'
+    output: "{sample}.callable_ploidy-germline_pseudompileup.gz"
+    shell:
+        """
+            bedtools intersect -b <(zcat {input.callable}) -a <(zcat {input.pileup} | bawk '{{print $1, $2-1, $2, $3, $4, $5}}') | gzip > {output}
+        """
+
+rule all_normapile:
+    input: expand("{sample}.callable_ploidy-germline_pseudompileup.gz", sample=['CRC1307NLH', 'CRC1502NLH0000000000D03000', 'CRC0282NMH0000000000D07000'])
