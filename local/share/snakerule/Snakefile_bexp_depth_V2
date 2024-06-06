@@ -1318,3 +1318,34 @@ rule tsv_anno_muts_cleverers:
     output: outtsv="edt_dir/{model}_edt6.tsv"
     log: log="edt_dir/{model}_edt6.log"
     script:  SRC_DIR+"/merge_mutinfo_onlyclones.R" 
+
+### Williams 150x
+rule puttogheter:
+    input: '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1307_clones_150x/CRC1307-09-0.fit.0.12_0.24.r2',
+           '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1502_120x/CRC1502-03-1-A.fit.0.12_0.24.r2',
+           '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1502_120x/CRC1502-03-0.fit.0.12_0.24.r2', 
+           '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC0282_clones_150x/CRC0282-05-1-C.fit.0.12_0.24.r2', 
+           '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC0282_clones_150x/CRC0282-05-0.fit.0.12_0.24.r2', 
+           '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1307_120x/CRC1307-09-1-B.fit.0.12_0.24.r2', 
+           '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1307_120x/CRC1307-02-1-E.fit.0.12_0.24.r2'
+    output: 'williams_bin_0.12_0.24.r2.tsv'
+    shell:
+        """
+            cat <(echo -ne 'sample\tX\t') <(head -n1 {input[0]}) > {output}
+            for f in {input}; do cat <(echo -ne $(basename $f)"\t") <(tail -n 1 $f); done | sed 's/\.fit\.0\.12_0\.24\.r2//1' >> {output}
+        """
+
+rule puttogheter_len:
+    input: '/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/platypus_nobin_00/CRC1307-09-0.length.txt',
+           '/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/platypus_nobin_00/CRC1307-09-1-B.length.txt',
+           '/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/platypus_nobin_00/CRC1307-02-1-E.length.txt',
+           '/scratch/trcanmed/AF_spectra/datasetV2/CRC0282/platypus_nobin_00/CRC0282-05-0.length.txt',
+           '/scratch/trcanmed/AF_spectra/datasetV2/CRC0282/platypus_nobin_00/CRC0282-05-1-C.length.txt',
+           '/scratch/trcanmed/AF_spectra/datasetV2/CRC1502/platypus_nobin_00/CRC1502-03-0.length.txt',
+           '/scratch/trcanmed/AF_spectra/datasetV2/CRC1502/platypus_nobin_00/CRC1502-03-1-A.length.txt'
+    output: 'len_cn123.txt'
+    shell:
+        """
+            echo -ne 'sample\tlen\n' > {output}
+            for f in {input}; do cat <(echo -ne $(basename $f)"\t") <(cat $f); done | sed 's/\.length\.txt//1' >> {output}
+        """
