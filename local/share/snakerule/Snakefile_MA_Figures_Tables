@@ -615,3 +615,16 @@ rule supplementary_edf7a_signatures_r2:
     output: plot1="edfig_7a_SBS1_8_18_us_r2.svg", plot2="removeme.svg"
     log: log="edfig_7a_SBS1_8_18_us_r2.log"
     script: SRC_DIR+'/edfig7a_sign_.R'
+
+### all_cn
+rule all_cn_avg:
+    input: MR=REF_DATASET+"/MR_edu_allcn", palette=MANY_COLORS_PALETTE, order=SORTED_MR,  theme=GGTHEME
+    output: plot="allcn_avg.svg"
+    log: log="allcn_avg.log"
+    script: SRC_DIR+'/edf12_b_allavg.R'
+
+rule all_cn_corr:
+    input: MR=REF_DATASET+"/MR_edu_SNV", MRclo=REF_DATASET+"/MR_edu_allcn", theme=GGTHEME, palette=MANY_COLORS_PALETTE, palette2=MODELS_COLORS_PALETTE
+    output: plot="allcn_cor.svg"
+    log: log="allcn_cor.log"
+    script: SRC_DIR+'/edf12_c_cor_.R'

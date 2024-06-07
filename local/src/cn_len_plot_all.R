@@ -15,7 +15,8 @@ colnames(bedcn) <- c("chr","b","e","cnmy","cnthey")
 bedcn$len <- bedcn$e - bedcn$b
 
 #wantedcn_callable <- bedcn[bedcn$cn %in% accepted_cn,]
-wantedcn_callable <- bedcn[bedcn$cnmy %in% accepted_cn & bedcn$cnthey %in% accepted_cn,]
+#wantedcn_callable <- bedcn[bedcn$cnmy %in% accepted_cn & bedcn$cnthey %in% accepted_cn,]
+wantedcn_callable <- bedcn
 
 write.table(wantedcn_callable, gzfile(args[6]), sep="\t", quote=F, row.names=F, col.names=F)
 

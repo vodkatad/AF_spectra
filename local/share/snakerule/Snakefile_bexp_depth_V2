@@ -131,6 +131,8 @@ def kind_MR(wildcards):
         return expand("{model}/platypus_nobin_00/all.MR_ov", model=MODELS_NOREP_TRUE)
     elif wildcards.kind == "univMutect":
         return expand("{model}/univMutect/all.MR_ov", model=MODELS_NO327_2)
+    elif wildcards.kind == "allcn":
+        return expand("{model}/platypus_nobin_00_allcn/all.MR_ov", model=MODELS_NO327_2)
     else: 
         print("boh!")
 

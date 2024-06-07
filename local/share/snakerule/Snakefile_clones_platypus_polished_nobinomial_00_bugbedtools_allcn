@@ -87,7 +87,7 @@ rule intersect_cnv:
     shell:
         """
             bedtools intersect -b {input.callable} -a <(sed 1d {input.sequenza} | bawk '{{print $1, $2-1, $3, $10}}') | filter_1col 1 {input.chrs} | gzip > {output.callable};
-            bedtools intersect -wo -a <(zcat {input.var}) -b {output.callable} | bawk '{{print $1, $2, $3, $4":"$8}}' |  gzip > {output.var}
+            bedtools intersect -wo -a {input.var} -b {output.callable} | bawk '{{print $1, $2, $3, $4":"$8}}' |  gzip > {output.var}
         """
 
 rule AF_spectra_cn:
@@ -116,14 +116,11 @@ rule fake_binomial:
     input: vars="{sample}.var_cnv.tsv.gz", header=SRC_DIR+"/binomheader.tsv"
     output: "{sample}.calls.tsv.gz"
     log: "{sample}.calls.tsv.log"
-    params: cn=WANTED_CN
     shell:
         """
             zcat {input.vars} | tr ":" "\\t" | sed 's/@0\/1//g' | sed 's/@1\/0//g' | sed 's/@1\/1//g' | sed 's/@0\/0//g' > {output}.tmp
             cat {input.header} > {output}.3tmp
-            echo {params.cn} | tr "," "\\n" > {output}.2tmp
-            cat {output}.tmp | filter_1col 11 {output}.2tmp | bawk '{{print $4":"$5":"$6":"$7,$0, 1, 0, 1}}' >> {output}.3tmp
-            cat {output}.tmp | filter_1col -v 11 {output}.2tmp | bawk '{{print $4":"$5":"$6":"$7,$0, 0, 0, 1}}' >> {output}.3tmp
+            cat {output}.tmp | bawk '{{print $4":"$5":"$6":"$7,$0, 1, 0, 1}}' >> {output}.3tmp
             gzip -c {output}.3tmp > {output}
             rm {output}.*tmp
         """
@@ -203,7 +200,6 @@ rule pair_ov_nobcnok:
 
 # casino per avere overlap misto tra i due campioni
 # 1tmp e` t1, 2tmp e` t0 -> l'R usa la prima colonna per il calcolo della lunghezza ma filtra per cn giuste in tutte e due
-# here log file with cumulative genome covered with 1-2-3
 rule pair_length_ov:
     input: t0="{t0sample}.callable.bed.gz", t1="{t1sample}.callable.bed.gz"
     output: barplot="{t1sample}_{t0sample}.ovcn.png", len="{t1sample}_{t0sample}.ovlength.txt", cumplot="{t1sample}-{t0sample}.ovcumcn.png", ovbed="{t1sample}_{t0sample}.callable.bed.gz"
@@ -211,8 +207,8 @@ rule pair_length_ov:
     log: log="{t1sample}_{t0sample}.ovlength.log"
     shell:
         """ 
-            bedtools intersect -b {input.t0} -a {input.t1} | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.1tmp
-            bedtools intersect -b {input.t1} -a {input.t0} | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.2tmp
+            bedtools intersect -b <(zcat {input.t0}) -a <(zcat {input.t1}) | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.1tmp
+            bedtools intersect -b <(zcat {input.t1}) -a <(zcat {input.t0}) | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.2tmp
             join -t$'\\t' {output.ovbed}.1tmp {output.ovbed}.2tmp | tr "_" "\\t" > {output.ovbed}.tmp 
             {params.tool} {output.ovbed}.tmp {params.cns} {output.barplot} {output.cumplot} {output.len} {output.ovbed} {log.log};
             rm {output.ovbed}.*tmp 
@@ -341,7 +337,7 @@ rule class_vcf:
     shell:
         """
             zcat {input.vcf} | grep "^##" > {output}.tmp
-            zcat {input.vcf} | grep -v "^##" | grep "^#" | cut -f 11 --complement >> {output}.tmp
+            zcat {input.vcf} | grep -v "^##" | grep "^#" | cut -f 1,2,3,4,5,6,7,8,9,11 >> {output}.tmp
             zcat {input.ovcnok} | bawk '$16=="{wildcards.class}" {{print $5,$6,$5":"$6"_"$7"/"$8,$7,$8,".","PASS","CONTQ=42","GT:AF","0/1:"$11}}' >> {output}.tmp
             bgzip -c {output}.tmp > {output}
             rm {output}.tmp
@@ -391,7 +387,6 @@ rule merged_vcf:
             fi;
         """
 
-
 def find_kind_vcf_lost(wildcards):
     import re
     res = find_pairs_lost_vcf('')
@@ -427,8 +422,6 @@ rule annovar:
         rm merged.hg38_multianno.txt
         """
 
-
-# bug this finds all :(
 rule all_pairs_annovar:
     input: find_pairs_annovar
     output: "{bsample}.annovar.gz"
@@ -507,30 +500,8 @@ rule dndsvitro:
             rm {output[0]}.tmp
         """
 
-## dn/ds snv+indels
-def find_other_vitrogained(wildcards):
-    if KIND=="indel":
-        return '../platypus_nobin_00/all_vitrogained_named.tsv'
-    elif KIND=="SNV":
-        return '../platypus_nobin_indels_00/all_vitrogained_named.tsv'
-    else:
-        raise Exception("Wrong kind in conf!")
 
-
-rule dnds_two_sources:
-    input: mut="all_vitrogained_named.tsv", rda=DNDSCV_RDA, muto=find_other_vitrogained
-    output: "dnds_double_vitro.tsv", "dnds_double_vitro.Rdata"
-    log: "dnds_double_vitro.log"
-    params:  tool=BIN_DIR+"/dnds"
-    shell:
-        """
-            cat {input.mut} {input.muto} | tr ":" "\\t" | bawk '{{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
-            {params.tool} {output[0]}.tmp {output} {input.rda} &> {log}
-            rm {output[0]}.tmp
-        """
-    
 #### shared
-# right now selection of files is done inside R with list.files, this is DANGEROUS, FIXME
 def wanted_one_pair(ancestor_clone):
     res = []
     for cl in CLONES:
@@ -563,6 +534,7 @@ rule all_shared:
             cat {input} | grep -v clone_ref >> {output}
         """
 
+
 rule shared_clone_all:
     output: "all.shared.png"
     params: tool=BIN_DIR+"/private_shared_gains"
@@ -579,8 +551,8 @@ rule upsetR:
     shell:
         """
             for f in {input}; do \\
-                zcat $f | bawk -v N=$f '$13==1{{print $1,N}}' | sed 's/\.calls\.tsv\.gz//1'; \\
-            done > {output}.tmp
+                zcat $f | bawk -v N=$f '$13==1{{print $1,N}}'; done | sed 's/\.calls\.tsv\.gz//1' > {output}.tmp; 
+            done;
             {params.tool} {output}.tmp {output}
             rm {output}.tmp
         """
@@ -648,12 +620,13 @@ rule annotatr:
     output: plot_n="gained.genomicregions.svg", plot_corr="gained.genomicregionsnorm.svg"
     script: SRC_DIR+"/annotatr.R"
 
+
 rule annotatr_custom_repliseq:
     input: gained_bed="all.gain.bed", annot_beds=PRJ_ROOT+'/local/share/data/repliseq_list_bed.txt'
     params: custom_annot="yes"
     output: plot_n="repliseq_gained.genomicregions.svg", plot_corr="repliseq_gained.genomicregionsnorm.svg"
     script: SRC_DIR+"/annotatr.R"
-
+    
 ### CN events naive counts 
 # if intersecting with callable they explode in number, so we don't
 rule segmentation_changes:
@@ -672,7 +645,6 @@ rule all_seg_changes:
             cat {input} > {output}
         """
 
-
 ## put together annovar and mut coords for supplementary tables.
 rule all_gain_nr:
     input: lambda w: wanted_pairs_inputfun('.ovcnokdelta.tsv.gz')
@@ -687,8 +659,6 @@ rule suppl_mut_info:
     params: kind=KIND
     output: outtsv="mutinfo.tsv.gz"
     script: SRC_DIR+"/merge_annovar_cnok.R" 
-
-
 
 ## Hypothetical revision addition
 rule all_length_ov:

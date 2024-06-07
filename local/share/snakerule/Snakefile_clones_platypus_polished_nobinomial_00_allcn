@@ -116,14 +116,11 @@ rule fake_binomial:
     input: vars="{sample}.var_cnv.tsv.gz", header=SRC_DIR+"/binomheader.tsv"
     output: "{sample}.calls.tsv.gz"
     log: "{sample}.calls.tsv.log"
-    params: cn=WANTED_CN
     shell:
         """
             zcat {input.vars} | tr ":" "\\t" | sed 's/@0\/1//g' | sed 's/@1\/0//g' | sed 's/@1\/1//g' | sed 's/@0\/0//g' > {output}.tmp
             cat {input.header} > {output}.3tmp
-            echo {params.cn} | tr "," "\\n" > {output}.2tmp
-            cat {output}.tmp | filter_1col 11 {output}.2tmp | bawk '{{print $4":"$5":"$6":"$7,$0, 1, 0, 1}}' >> {output}.3tmp
-            cat {output}.tmp | filter_1col -v 11 {output}.2tmp | bawk '{{print $4":"$5":"$6":"$7,$0, 0, 0, 1}}' >> {output}.3tmp
+            cat {output}.tmp | bawk '{{print $4":"$5":"$6":"$7,$0, 1, 0, 1}}' >> {output}.3tmp
             gzip -c {output}.3tmp > {output}
             rm {output}.*tmp
         """
@@ -203,7 +200,7 @@ rule pair_ov_nobcnok:
 
 # casino per avere overlap misto tra i due campioni
 # 1tmp e` t1, 2tmp e` t0 -> l'R usa la prima colonna per il calcolo della lunghezza ma filtra per cn giuste in tutte e due
-# here log file with cumulative genome covered with 1-2-3
+# TODO ADD here log file with cumulative genome covered with 1-2-3
 rule pair_length_ov:
     input: t0="{t0sample}.callable.bed.gz", t1="{t1sample}.callable.bed.gz"
     output: barplot="{t1sample}_{t0sample}.ovcn.png", len="{t1sample}_{t0sample}.ovlength.txt", cumplot="{t1sample}-{t0sample}.ovcumcn.png", ovbed="{t1sample}_{t0sample}.callable.bed.gz"
