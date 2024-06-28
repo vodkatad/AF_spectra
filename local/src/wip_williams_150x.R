@@ -97,3 +97,83 @@ ggplot() +
   scale_color_manual(values=pal)+
   slidetheme+theme(legend.position="none", 
                    legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))                   
+
+### 150x MR
+mr150 <- read.table('/scratch/trcanmed/AF_spectra/dataset150x/MR_edu_SNV', sep="\t", header=FALSE, stringsAsFactors = F)
+colnames(mr150) <- c('sample', 'MR150edu')
+mredu <- read.table('/scratch/trcanmed/AF_spectra/datasetV2/MR_edu_SNV', sep="\t", header=FALSE, stringsAsFactors = F)
+colnames(mredu) <- c('sample', 'MRedu')
+# MR_conte_SNV
+mredu$MRedu <- mredu$MRedu / 0.000000001
+mr150$MR150edu <- mr150$MR150edu / 0.000000001
+mm <- merge(mredu, mr150, by="sample")
+mm$model <- sapply(mm$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
+mm$clone <- sapply(mm$sample, function(x) {y<-strsplit(x, '-')[[1]][2]; return(y[1])})
+mm$clone2 <- sapply(mm$sample, function(x) {y<-strsplit(x, '-')[[1]][4]; return(y[1])})
+mm$model_clone <- paste0(mm$model, "_", mm$clone)
+ggplot() + 
+  geom_point(data=mm, aes(x=MRedu, y=MR150edu, color=model_clone))+
+  ylab('MR 150x')+xlab('MR 30x')+
+  scale_color_manual(values=pal)+
+  slidetheme+theme(legend.position="none",
+                   legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))+ylim(0,10)+xlim(0,10)+
+  geom_abline(intercept=0, slope=1)
+
+###
+
+s150 <- read.table('/scratch/trcanmed/AF_spectra/dataset150x/vitrovivobulk_heatmap_merged_cosmic.tsv', sep="\t", stringsAsFactors = F, header=T)
+s30 <- read.table('/scratch/trcanmed/AF_spectra/datasetV2/vitrovivobulk_heatmap_merged_cosmic.tsv', sep="\t", stringsAsFactors = F, header=T)
+s30 <- s30[rownames(s150),]
+rownames(s150) <- paste0(rownames(s150), '-150x')
+rownames(s30) <- paste0(rownames(s30), '-30x')
+ss <- rbind(s150, s30)
+
+setwd('/scratch/trcanmed/AF_spectra/dataset_Figures_Tables')
+load('/scratch/trcanmed/AF_spectra/dataset_Figures_Tables/fig_2a_cosmic.pdf.Rdata')
+library(RColorBrewer)
+library(pheatmap)
+palette_df <- readRDS(colors)
+pal <- palette_df$palette
+names(pal) <- palette_df$model
+data <- ss
+data$model <- unlist(lapply(strsplit(rownames(data),'-'), function(x){ x[1] }))
+data$model <- as.character(unlist(lapply(strsplit(data$model,'_'), function(x){ x[1] })))
+data$r <- rownames(data)
+orderdf <- read.table(order_f, sep="\t", quote="", header=TRUE, stringsAsFactor=FALSE)
+orderdf$n <- seq(1, nrow(orderdf))
+m <- merge(data, orderdf, by="model")
+m$seqm <- unlist(lapply(strsplit(m$r,'_'), function(x){ x[2] }))
+m <- m[order(m$n, m$seqm),]
+
+
+data <- m[, colnames(data)]
+data$model <- NULL
+rownames(data) <- m$r
+data$r <- NULL
+
+annot_rows <- data.frame(row.names=rownames(data))
+
+#annot_rows$sample <-  as.factor(unlist(lapply(strsplit(rownames(annot_rows),'_'), function(x){ x[length(x)] })))
+annot_rows$model <- unlist(lapply(strsplit(rownames(annot_rows),'-'), function(x){ x[1] }))
+annot_rows$model <- as.factor(unlist(lapply(strsplit(annot_rows$model,'_'), function(x){ x[1] })))
+# add back LMX P
+if (addlm!= "no") {
+  annot_rows$model <- paste0(annot_rows$model, ifelse(!grepl('\\d$', annot_rows$model), '', ifelse(annot_rows$model=="CRC0282", 'PR', 'LM')))
+  names(pal) <- paste0(names(pal), ifelse(!grepl('\\d$', names(pal)), '', ifelse(names(pal)=="CRC0282", 'PR', 'LM')))
+}
+colnames(data) <- gsub('X', 'SBS', colnames(data))
+data <- t(data)  
+
+annot_colors <- list(model=pal)
+ph <- pheatmap(data, show_colnames = TRUE, show_rownames = TRUE,  
+               cluster_cols=FALSE, annotation_col=annot_rows, annotation_colors = annot_colors,  
+               color=brewer.pal(9, 'Blues'), breaks=seq(0, 0.4, by=0.05),
+               cluster_rows=FALSE, annotation_legend=FALSE)
+ph$gtable[[1]][[1]]$children[[1]]$gp$lwd <- 0.001
+ph
+
+pheatmap(data, show_colnames = TRUE, show_rownames = TRUE,  
+         cluster_cols=FALSE, annotation_col=annot_rows, annotation_colors = annot_colors,  
+         color=brewer.pal(5, 'Blues'),
+         cluster_rows=FALSE, annotation_legend=FALSE)
+

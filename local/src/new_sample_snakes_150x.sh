@@ -5,11 +5,10 @@
 cd $1/platypus_nobin_00
 
 #rm *_ov *ov.tsv
-#snakemake -j 12 all.MR_ov
-#snakemake -j 12 all_gain_vcf all_gained_named.tsv 
-#snakemake -j 12 dnds.tsv dndsvitro.tsv
-#snakemake -j 12 all_mrca.tsv
-#snakemake vitro.merged.vcf.gz vivo.merged.vcf.gz
+snakemake -j 4 all.MR_ov
+snakemake -j 4 all_gain_vcf all_gained_named.tsv 
+snakemake -j 4 dnds.tsv dndsvitro.tsv
+snakemake vitro.merged.vcf.gz vivo.merged.vcf.gz
 #snakemake repliseq_gained.genomicregions.svg
 #snakemake vivo.merged.vcf.gz
 #snakemake mutinfo.tsv.gz
