@@ -17,9 +17,10 @@ cd $1/platypus_nobin_00/
 #ln -s ../../../local/share/snakemake/conf_$1_mutect_platypus_polished_allcn.sk conf.sk
 #cd $1/platypus_nobin_indels_00/
 # since we are redoing the conf is already available
-cp ../../../local/share/snakemake/conf_$1_mutect_platypus_polished.sk ../../../local/share/snakemake/conf_$1_mutect_platypus_polished_150x.sk
+cp ../../../local/share/snakemake/conf_$1_mutect_platypus_polished_150x.sk ../../../local/share/snakemake/conf_$1_mutect_platypus_polished_150x_60x.sk
+sed -i 's/CALLABLE=DATA+"\/callable_covered.bed.gz"/CALLABLE=DATA+"/callable_60x.covered.bed.gz"/' ../../../local/share/snakemake/conf_$1_mutect_platypus_polished_150x_60x.sk
 #ln -s ../../../local/share/snakerule/Snakefile_clones_platypus_polished_nobinomial_00 Snakefile
-ln -s ../../../local/share/snakemake/conf_$1_mutect_platypus_polished_150x.sk conf.sk
+ln -s ../../../local/share/snakemake/conf_$1_mutect_platypus_polished_150x_60x.sk conf.sk
 #cd ../mutect_nobin/
 #ln -s ../../../local/share/snakerule/Snakefile_clones_real_segments Snakefile
 #ln -s ../../../local/share/snakemake/conf_$1_mutect_platypus_polished.sk conf.sk

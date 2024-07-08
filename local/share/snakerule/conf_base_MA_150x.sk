@@ -85,3 +85,17 @@ SORTED_CLEV=PRJ_ROOT+'/local/share/data/sorted_clevers.tsv'
 
 MODELS_COLORS_PALETTE_CLE=PRJ_ROOT+'/local/share/data/clevers_palette.rds'
 SORTED_CLE=PRJ_ROOT+'/local/share/data/sorted_cleversreal.tsv'
+
+## signatures fake
+#'../datasetV2/CRC0282/platypus_nobin_00/CRC0282-05-1-C_CRC0282-05-0.gain.vcf.gz'
+rule manual_subsetclones_sign:
+    input: "manual_signinput_282"
+    output: heat="manual_cosmic.png", cosine="manual_cosine.png",
+            heat_tsv="manual_cosmic.tsv", cosine_tsv="manual_cosine.tsv",
+    params: tool=BIN_DIR+"/mut_pat_signatures_fit", colors=COLORS_MODELS_2
+    log: log="manual_cosmic.png.log"
+    shell:
+        """
+            {params.tool} {input} {output.heat} {output.cosine} '{params.colors}' {log.log} {output.heat_tsv} {output.cosine_tsv}
+        """
+
