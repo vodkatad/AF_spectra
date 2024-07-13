@@ -507,6 +507,19 @@ rule dndsvitro:
             rm {output[0]}.tmp
         """
 
+
+rule dnds_binomial:
+    input: mut="all_{sub_clo}_binomial.tsv", rda=DNDSCV_RDA
+    output: "dndsbinomial_{sub_clo}.tsv", "dndsbinomial_{sub_clo}.Rdata"
+    log: "dndsbinomial_{sub_clo}.log"
+    params:  tool=BIN_DIR+"/dnds"
+    shell:
+        """
+            tr ":" "\\t" < {input.mut} | bawk '{{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
+            {params.tool} {output[0]}.tmp {output} {input.rda} &> {log}
+            rm {output[0]}.tmp
+        """
+
 ## dn/ds snv+indels
 def find_other_vitrogained(wildcards):
     if KIND=="indel":
@@ -625,6 +638,23 @@ rule all_gain_together:
         """
             cut -f 2 {input} | sort | uniq > {output}
         """ 
+
+rule all_subclonal_binomial:
+    input: expand('{sample}.calls.tsv.gz', sample=SAMPLES_ZERO)
+    output: "all_subclonal_binomial.tsv"
+    shell: 
+        """
+            zcat {input} | bawk '$13==1 && $14==0' | bawk '{{print "subcl", $1}}' | sort | uniq > {output}
+        """
+
+rule all_clonal_binomial:
+    input: expand('{sample}.calls.tsv.gz', sample=SAMPLES_ZERO)#CLONES)
+    output: "all_clonal_binomial.tsv"
+    shell: 
+        """
+            zcat {input} | bawk '$13==1 && $14==1' | bawk '{{print "cl", $1}}' | sort | uniq > {output}
+        """
+
 
 # annotatr
 def wanted_pairs_novitro():

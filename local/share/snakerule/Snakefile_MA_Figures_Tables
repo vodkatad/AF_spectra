@@ -628,3 +628,15 @@ rule all_cn_corr:
     output: plot="allcn_cor.svg"
     log: log="allcn_cor.log"
     script: SRC_DIR+'/edf12_c_cor_.R'
+
+## dnds subclonal T0
+rule figure_temp_dnds:
+    input: dnds=REF_DATASET+"/dndsbinomial_{sub_clo}.tsv", theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot='{sub_clo}_dnds.svg'
+    script: SRC_DIR+'/fig1c_dnds.R'
+
+
+rule figure_temp_dnds_fixed:
+    input: dnds=REF_DATASET+"/dndsfixed_{sub_clo}.tsv", theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot='{sub_clo}_fixeddnds.svg'
+    script: SRC_DIR+'/fig1c_dnds.R'

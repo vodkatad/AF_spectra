@@ -763,3 +763,26 @@ rule upsetR:
             {params.tool} {output}.tmp {output}
             rm {output}.tmp
         """
+
+
+## dnds subclonal fixed thr
+rule all_clonal_fixed:
+    input: expand('{sample}.fbcalls.tsv.gz', sample=SAMPLES_ZERO)#CLONES)
+    output: "all_subclonal_binomial.tsv"
+    shell: 
+        """
+            zcat {input} | grep -v altreads | bawk '$11 > 0.12 && $11 < 0.24 {{print 'all', $1}}' | sort | uniq > {output}
+        """
+
+
+rule dnds_binomial:
+    input: mut="all_{sub_clo}_binomial.tsv", rda=DNDSCV_RDA
+    output: "dndsbinomial_{sub_clo}.tsv", "dndsbinomial_{sub_clo}.Rdata"
+    log: "dndsbinomial_{sub_clo}.log"
+    params:  tool=BIN_DIR+"/dnds"
+    shell:
+        """
+            tr ":" "\\t" < {input.mut} | bawk '{{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
+            {params.tool} {output[0]}.tmp {output} {input.rda} &> {log}
+            rm {output[0]}.tmp
+        """
