@@ -23,9 +23,7 @@ find_max <- function(x, data) {
 	return(nrow(myd))
 }
 
-maxnvar <- sapply(all_cn, find_max, muts)
-#y_breaks <- guess_ticks(max(maxnvar))
-x_breaks <- guess_ticks(muts$af, fixed_max=1)
+#maxnvar <- sapply(all_cn, find_max, muts)
 
 ## TODO: get reasonable max studying after_stat output for density
 # remove histogram
@@ -34,13 +32,25 @@ x_breaks <- guess_ticks(muts$af, fixed_max=1)
 # kde='true' seaborn plothisto
 # https://stackoverflow.com/questions/11404531/r-ggplot2-adding-count-labels-to-histogram-with-density-overlay
 
-ggplot(data=muts, aes(x=af, color=cn)) +
-  geom_histogram(aes(y=after_stat(count), fill=cn), alpha=0.3, binwidth=0.1, position = 'identity')+
-  geom_density(position="identity", aes(y=after_stat(count*0.1)), bw = 0.1)+
+p <- ggplot(data=muts, aes(x=af, color=cn)) +
+  #geom_histogram(aes(y=after_stat(count), fill=cn), alpha=0.3, binwidth=0.05, position = 'identity')+
+  geom_density(position="identity", aes(y=after_stat(count*0.05)), bw = 0.05)
   #scale_y_continuous(breaks=y_breaks,limits=c(0, max(y_breaks)),expand = c(0, 0))+# + ylim(min(y_breaks),max(y_breaks))+
-  scale_x_continuous(breaks=x_breaks,limits=c(0, max(x_breaks)),expand = c(0, 0))+# + ylim(min(y_breaks),max(y_breaks))+
-  unmute_theme#+theme(legend.position="none", axis.text.x = element_blank(), 
+  #scale_x_continuous(breaks=x_breaks,limits=c(0, max(x_breaks)),expand = c(0, 0))+# + ylim(min(y_breaks),max(y_breaks))+
+  #unmute_theme#+theme(legend.position="none", axis.text.x = element_blank(), 
         	 #      axis.ticks.x = element_blank(),
                  #     legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))      
-ggsave(outputplot)
+
+ggp <- ggplot_build(p)
+maxy <- max(ggp$data[[1]]$count * 0.05) # [[2]] if histogram is removed
+y_breaks <- guess_ticks(maxy)
+x_breaks <- guess_ticks(muts$af, fixed_max=1)
+#p <- p + scale_y_continuous(breaks=y_breaks,limits=c(0, max(y_breaks)),expand = c(0, 0))+# + ylim(min(y_breaks),max(y_breaks))+
+#  scale_x_continuous(breaks=x_breaks,limits=c(0, max(x_breaks)),expand = c(0, 0))+# + ylim(min(y_breaks),max(y_breaks))+
+#  unmute_theme#+theme(legend.position="none", axis.text.x = element_blank(), 
+        	 #      axis.ticks.x = element_blank(),
+                 #     legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))      
+
+save.image('p.Rdata')
+ggsave(file=outputplot, plot=p)
 
