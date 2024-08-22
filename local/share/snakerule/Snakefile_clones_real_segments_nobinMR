@@ -91,7 +91,7 @@ rule intersect_cnv:
         """
 
 rule all_AF_spectra:
-    input: expand("{sample}.AF.png", sample=SAMPLES), expand("{sample}.AFnormalized.png", sample=SAMPLES)
+    input: expand("{sample}.AF.pdf", sample=SAMPLES) #, expand("{sample}.AFnormalized.png", sample=SAMPLES)
 
 rule AF_spectra_cn:
     input: var="{sample}.var_cnv.tsv.gz", theme=PRJ_ROOT+'/dataset_Figures_Tables/theme_5.Rdata'

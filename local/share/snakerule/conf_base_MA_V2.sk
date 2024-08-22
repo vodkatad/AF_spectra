@@ -14,8 +14,8 @@ SNAKE_ROOT="/mnt/trcanmed/snaketree"
 SROOT="/scratch/trcanmed"
 
 
-B=PRJ_ROOT+'/local/share/data/birth_rates_up3.txt'
-B_D=PRJ_ROOT+'/local/share/data/birthmdeath_rates_up3.txt'
+#B=PRJ_ROOT+'/local/share/data/birth_rates_up3.txt'
+#B_D=PRJ_ROOT+'/local/share/data/birthmdeath_rates_up3.txt'
 
 ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
 

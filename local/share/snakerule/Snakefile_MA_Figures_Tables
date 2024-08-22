@@ -630,6 +630,7 @@ rule all_cn_corr:
     script: SRC_DIR+'/edf12_c_cor_.R'
 
 ## dnds subclonal T0
+# NOTE: this is with my original universe and not the MCL one shown in supplementary right now. 
 rule figure_temp_dnds:
     input: dnds=REF_DATASET+"/dndsbinomial_{sub_clo}.tsv", theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot='{sub_clo}_dnds.svg'
