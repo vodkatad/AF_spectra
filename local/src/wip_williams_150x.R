@@ -28,7 +28,8 @@ bd$model_clone <- paste0(bd$model, "_", bd$clone)
 
 m2 <- merge(m, bd, by="model_clone")
 
-m2$MRw <- (m2$intercept / m2$len)*(1-m2$d.b)
+#m2$MRw <- (m2$intercept / m2$len)*(1-m2$d.b)
+m2$MRw <- (m2$intercept / m2$len)*(m2$X.b.d..b)
 m2$MRw <-  m2$MRw / 0.000000001
   
 y_breaks <- guess_ticks(m2$MRw)
@@ -138,7 +139,7 @@ ggplot() +
                    legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))+ylim(0,10)+xlim(0,10)+
   geom_abline(intercept=0, slope=1)
 
-###
+### signatures
 
 s150 <- read.table('/scratch/trcanmed/AF_spectra/dataset150x/vitrovivobulk_heatmap_merged_cosmic.tsv', sep="\t", stringsAsFactors = F, header=T)
 s30 <- read.table('/scratch/trcanmed/AF_spectra/datasetV2/vitrovivobulk_heatmap_merged_cosmic.tsv', sep="\t", stringsAsFactors = F, header=T)
@@ -210,14 +211,44 @@ for (i in seq(1:nrow(s150))) {
   print(c(sp$estimate, sp$p.value))
 }
 
-### same clones
+### same clones  HERE HERE WIP SBS 150x ######################
 
 s150 <- read.table('/scratch/trcanmed/AF_spectra/dataset150x/vitrovivobulk_heatmap_merged_cosmic.tsv', sep="\t", stringsAsFactors = F, header=T)
 s30 <- read.table('/scratch/trcanmed/AF_spectra/dataset150x/manual_cosmic.tsv', sep="\t", stringsAsFactors = F, header=T)
-s30 <- s30[rownames(s150),]
-rownames(s150) <- paste0(rownames(s150), '-150x')
+
+rownames(s150)[1:3] <- paste0(rownames(s150)[1:3], '-150x')
 rownames(s30) <- paste0(rownames(s30), '-30x')
 ss <- rbind(s150, s30)
+
+# remove 282
+ss <- ss[!grepl('282', rownames(ss)),]
+colnames(ss) <- gsub('X', 'SBS', colnames(ss))
+pd <- data.frame(SBS1=ss$SBS1, SBS8=ss$SBS8, SBS18=ss$SBS18)
+pd$model <- substr(rownames(ss), 0, 7)
+pd$class <- ifelse(grepl('bulk', rownames(ss)), 'Pre-existing', ifelse(grepl('30x', rownames(ss)), 'MA 30x', 'MA 150x'))
+
+library(reshape)
+pdlong <- melt(data=pd, id=c("class", 'model'))
+colnames(pdlong) <- c('class', 'model', 'Signature', 'exp')
+pdlong$class <- factor(pdlong$class, c('Pre-existing', 'MA 30x', 'MA 150x'))
+
+ggplot(data=pdlong, aes(y=exp,fill=Signature, x=class))+
+  geom_col(color='black')+
+  facet_wrap(~model+Signature)+ylab('Relative contribution')+#,expand = c(-0.1, -0.1)
+  xlab('')+unmute_theme+scale_y_continuous(breaks=(seq(0, 0.6, by=0.15)),limits=c(-0.05, 0.6),expand = c(0, 0))#+theme(legend.position="bottom",axis.ticks.x = element_blank(),strip.background = element_blank(),strip.text = element_blank())
+
+
+
+ggplot(data=pdlong, aes(y=exp,fill=Signature, x=class))+
+  geom_col(color='black')+
+  facet_wrap(~model+Signature)+ylab('Relative contribution')+#,expand = c(-0.1, -0.1)
+  xlab('')+scale_y_continuous(breaks=(seq(0, 0.6, by=0.15)),limits=c(-0.05, 0.6),expand = c(0, 0))+theme_bw(base_size=10)
+
+
+cor.test(unlist(ss['CRC1307_vitroMA-30x',]), unlist(ss['CRC1307_vitroMA-150x',]), method="spearman")
+cor.test(unlist(ss['CRC1502_vitroMA-30x',]), unlist(ss['CRC1502_vitroMA-150x',]), method="spearman")
+###############################
+
 
 setwd('/scratch/trcanmed/AF_spectra/dataset_Figures_Tables')
 load('/scratch/trcanmed/AF_spectra/dataset_Figures_Tables/fig_2a_cosmic.pdf.Rdata')

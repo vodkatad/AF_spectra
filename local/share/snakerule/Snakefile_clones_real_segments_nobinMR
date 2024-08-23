@@ -95,7 +95,7 @@ rule all_AF_spectra:
 
 rule AF_spectra_cn:
     input: var="{sample}.var_cnv.tsv.gz", theme=PRJ_ROOT+'/dataset_Figures_Tables/theme_5.Rdata'
-    output: "{sample}.AF.pdf"
+    output: plot="{sample}.AF.pdf", obj="{sample}.AF.rda"
     params: maxcn=5, tool=BIN_DIR+"/af_cn"
     shell:
         """

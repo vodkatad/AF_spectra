@@ -641,3 +641,12 @@ rule figure_temp_dnds_fixed:
     input: dnds=REF_DATASET+"/dndsfixed_{sub_clo}.tsv", theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot='{sub_clo}_fixeddnds.svg'
     script: SRC_DIR+'/fig1c_dnds.R'
+
+
+### uk biobank
+rule sbs_pri_met:
+    input: ratios=DATA+"/ratios_8_1.tsv", theme=GGTHEME
+    params: random=50, nsim=10000
+    log: log="pri_met_ukbiob.log"
+    output: plot1='pri_met_ukbiob.svg'
+    script: SRC_DIR+'/ukbiobank_sbs_monte.R'
