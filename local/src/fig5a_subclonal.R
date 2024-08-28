@@ -98,7 +98,7 @@ print(x_breaks)
 
 ratio_to_caperrorbars <- y_breaks[2] / x_breaks[2]
 p <- ggplot() +
-   geom_point(data=merged, aes(x=MR_edu, y=n, color=model_clone, shape=PDT, fill=model_clone), stat="identity", size=1, position=position_dodge(0.7))+
+   geom_point(data=merged, aes(x=MR_edu, y=n, color=model_clone, shape=PDT, fill=model_clone), stat="identity", size=1)+
    unmute_theme+scale_color_manual(values=pal, guide="none")+scale_shape_manual(values=c(24,25,22,23))+#scale_shape_manual(values=c(18,23,20,19))+
    geom_point(data=pdata, aes(x=mean.x, y=mean.y), shape=1, size=2)+
    geom_errorbar(data=pdata, aes(x=mean.x, y=mean.y, ymin=lower.y, ymax=upper.y), width=.1, size=.2)+
