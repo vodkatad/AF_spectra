@@ -658,3 +658,21 @@ rule subclonal_vs_MR:
     output: plot="subclonal_vs_MR.svg"
     log: log="subclonal_vs_MR.log"
     script: SRC_DIR+'/subcl_MR_all.R'
+
+##
+rule figure_XXXc_slopes_MR:
+    input: williams=SOURCE_DATA+'/bestbet_0.12_0.24.tsv', MR=SORTED_MR,
+           theme=GGTHEME
+    output: plot='fig_XXXc_slopes_MR.svg'
+    params: WESbp=WES
+    log: log='fig_XXXc_slopes_MR.log'
+    script: SRC_DIR+'/figXXXc_slopes_MR.R'
+
+## 
+rule table_150X_williams:
+    input: williams=REF_DATASET+'/williams_bin_0.12_0.24.r2.tsv', gen_len=REF_DATASET+'/len_cn123.txt', b_d=B_D, MR=REF_DATASET+"/MR_edu_SNV"
+    output: out='edt_XXX_150x_williams_MR.tsv'
+    log: log='edt_XXX_150x_williams_MR.log'
+    script: SRC_DIR+'/suppl_table_150x_williams.R' 
+
+## TODO suppl table QC 150xc

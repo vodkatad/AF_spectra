@@ -16,6 +16,7 @@ SROOT="/scratch/trcanmed"
 
 #B=PRJ_ROOT+'/local/share/data/birth_rates_up3.txt'
 #B_D=PRJ_ROOT+'/local/share/data/birthmdeath_rates_up3.txt'
+B_D=PRJ_ROOT+'/local/share/data/b_bd.txt'
 
 ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
 
@@ -87,3 +88,5 @@ SORTED_CLEV=PRJ_ROOT+'/local/share/data/sorted_clevers.tsv'
 
 MODELS_COLORS_PALETTE_CLE=PRJ_ROOT+'/local/share/data/clevers_palette.rds'
 SORTED_CLE=PRJ_ROOT+'/local/share/data/sorted_cleversreal.tsv'
+
+WES=34156490
