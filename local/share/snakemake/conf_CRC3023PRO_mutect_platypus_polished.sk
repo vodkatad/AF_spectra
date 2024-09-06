@@ -1,0 +1,57 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
+HROOT='/home/egrassi'
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+
+###################################################################
+KIND="SNV" # | indel
+MULTI="nomulti"
+### sample variable portion #############################################
+DATA=PRJ_ROOT+"/local/share/data/CRC3023PRO_clones"
+SDATA=DATA
+SAMPLES=["CRC3023PRO-02-0","CRC3023PRO-02-1-J","CRC3023PRO-02-1-M","CRC3023PRO-02-1-P"]
+import re
+CLONE2=[x for x in SAMPLES if re.search('02', x)]
+CLONES=[CLONE2]
+
+SAMPLES_HIGH=["CRC3023PRO-02"]
+SAMPLES_ZERO=[x+'-0' for x in SAMPLES_HIGH]
+VCF_DIR=PRJ_ROOT+"/dataset_IANG/CRC3023PRO/platypus_nobin"
+BULKNAME="CRC3023PRO-0-B"
+SHIPMENT="IANG_bulk"
+NORMAL="CRC3023NMH"
+##############################################################
+
+VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
+VCFTOBED1=BIN_DIR+"/vcf_to_bed"
+CNLEN=BIN_DIR+"/cn_len_plot"
+CNLEN2=BIN_DIR+"/cn_len_plot2"
+
+DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
+CALLABLE=DATA+"/callable_covered.bed.gz"
+
+DNDSCV_RDA=DATA+"/../RefCDS_human_GRCh38.p12.rda"
+
+ALL_SAMPLES=SAMPLES
+SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
+WANTED_CN = "1,2,3"
+
+wildcard_constraints:
+    sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"   
+wildcard_constraints:
+    t1sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+wildcard_constraints:
+    t0sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"

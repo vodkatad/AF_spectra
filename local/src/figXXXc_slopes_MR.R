@@ -80,6 +80,7 @@ q(0)
 setwd('/scratch/trcanmed/AF_spectra/dataset_Figures_Tables/')
 load('fig_XXXc_slopes_MR.svg.Rdata')
 
+### tentativo 1
 MR_all <- read.table('../datasetV2/MR_edu_SNV', sep="\t", stringsAsFactors = FALSE)
 colnames(MR_all) <- c('sample', 'MR')
 MR_all <- MR_all[grepl("CRC1599", MR_all$sample),]
@@ -107,3 +108,12 @@ p <- ggplot(data=mm, aes(x=MR, y=MR_b, color=type)) +
   unmute_theme+ theme(legend.position= "none")
 
 ggsave('mah.svg', plot=p, width=60, height=60, units="mm")
+
+### tentativo 2
+ttable <- m[, c('type', 'MR_MA', 'MR_emp')]
+colnames(ttable) <- c('model', "MA_expr", 'MA_is')
+ttable$foldchange <- ttable$MA_is /  ttable$MA_expr
+ttable$model <- NULL
+ttable$foldchange <- round(ttable$foldchange, digits = 2)
+ttable <- rbind(ttable, c(ttable[1,1]/ttable[1,2]))
+write.table(ttable, file="mah.tsv", sep="\t", quote=FALSE, row.names = FALSE)

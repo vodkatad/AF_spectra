@@ -1,0 +1,88 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+
+PRJ_ROOT=find_prj_root()
+DNDSCV_RDA=PRJ_ROOT+"/local/share/data/RefCDS_human_GRCh38.p12.rda"
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+SNAKE_ROOT="/mnt/trcanmed/snaketree"
+SROOT="/scratch/trcanmed"
+
+
+#B=PRJ_ROOT+'/local/share/data/birth_rates_up3.txt'
+#B_D=PRJ_ROOT+'/local/share/data/birthmdeath_rates_up3.txt'
+B_D=PRJ_ROOT+'/local/share/data/b_bd.txt'
+
+ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
+
+#MODELS=['CRC0282', 'CRC0282_clones_all', 'CRC0327','CRC0441','CRC1078', 'CRC1078_clones_all', 'CRC1307','CRC1307_clones_all','CRC1502', 'CRC1502_clones_all','CRC1599LM', 'CRC1599LM_clones_all', 'CRC1599PR']
+# we put CRC0282 clones of the secound round out for a moment, funny things (high MR + George's doubts)
+MODELS=['CRCUECHPRO', 'CRC2826PRO', 'CRC3023PRO']
+MODELS_NO327_2= MODELS
+MODELS_NOREP=MODELS
+MODELS_NOREP_TRUE=MODELS
+MODELS_NOREP_TRUE_NOMSI=MODELS[1:]
+MODELS_1_OR_2=[]
+MODELS_T2=[]
+MODELS_CLEV=[]
+#COLORS_MODELS="#cc3300,#f607b9,#9900ff,#155d00,#77a003,#0829fc,#ff9900,#ffff00"
+COLORS_MODELS="#cc3300,#f607b9,#9900ff,#155d00,#77a003,#77a003,#0829fc,#0829fc,#ff9900,#ffff00"
+COLORS_MODELS_3="#cc3300,#f607b9,#9900ff,#155d00,#155d00,#77a003,#77a003,#0829fc,#0829fc,#ff9900,#ff9900,#ffff00"
+COLORS_MODELS_NOMSI="#f607b9,#9900ff,#155d00,#77a003,#0829fc,#ff9900,#ffff00" # without 2nd round, aggregated
+COLORS_MODELS_2="#cc3300,#f607b9,#9900ff,#155d00,#77a003,#0829fc,#ff9900,#ffff00" # without 2nd round, aggregated
+#MANY_COLORS_MODELS="#ff5733,#ff7433,#ff8d33,#f607b9,#fb49ce,#f998e0,#155d00,#239203,#2fc603,#77a003,#95c805,#bcfc08,#0829fc,#4a62fb,#95a3fd"
+#now 1502 has a new T0 clone:
+#                         282     282       282     327    327      327     441     441     441     1078    1078   1078     1307    1307    1307   1307_2B(now8D) 1307_8D(now9E) 1502    1502    1502    1502   1502_3A 1502_9C 1502_10B 1502_8d 1599LM  1599LM   1599PR 1599PR
+# TODO check order of 1307 clones
+# > levels(as.factor(our$model_clone))
+ #[1] "CRC0282_01"   "CRC0282_05"   "CRC0282_07"   "CRC0327_02"   "CRC0327_04"  
+ #[6] "CRC0327_08"   "CRC0441_01"   "CRC0441_03"   "CRC0441_10"   "CRC1078_02"  
+ #[11] "CRC1078_07"   "CRC1078_09"   "CRC1307_02"   "CRC1307_08"   "CRC1307_08D" 
+ #[16] "CRC1307_09"   "CRC1307_09E"  "CRC1502_03"   "CRC1502_03A"  "CRC1502_08"  
+ #[21] "CRC1502_08D"  "CRC1502_09"   "CRC1502_09C"  "CRC1502_10"   "CRC1502_10B" 
+ #[26] "CRC1599LM_01" "CRC1599LM_03" "CRC1599PR_01" "CRC1599PR_10"
+#                         282_01  282_05  282_07  327_02   327_04  327_08   441_01 441_03 441_10  1078_2  1078_7 1078_9  1078_7A, 1307_02  1307_08 1307_08D 1307_09 130709e, 1502_3,1502_3A,1502_8,1502_8d,1502_9, 1502_9c, 1502_10, 1502_10b,1599LM1,1599lm3,1599lm_01C,1599pr1,1599pr10
+#MANY_COLORS_MODELS_VITRO="#cc3300,#ff4000,#ff6633,#cc3300,#cc3300,#f607b9,#fb49ce,#f998e0,#9900ff,#ad33ff,#c266ff,#155d00,#239203,#2fc603,#239203,#77a003,#95c805,#95c805,#bcfc08,#bcfc08,#0829fc,#0829fc,#4a62fb,#4a62fb,#95a3fd,#95a3fd,#003399,#003399,#ff9900,#ffad33,#ff9900,#ffff00,#ffff66"
+MANY_COLORS_MODELS_VITRO="#cc3300,#ff4000,#ff6633,#f607b9,#fb49ce,#f998e0,#9900ff,#ad33ff,#c266ff,#155d00,#239203,#2fc603,#239203,#77a003,#95c805,#95c805,#bcfc08,#bcfc08,#0829fc,#0829fc,#4a62fb,#4a62fb,#95a3fd,#95a3fd,#003399,#003399,#ff9900,#ffad33,#ff9900,#ffff00,#ffff66"
+MANY_COLORS_MODELS_VITRO_NEW="#cc3300,#ff4000,#ff6633,#f607b9,#fb49ce,#f998e0,#9900ff,#ad33ff,#c266ff,#155d00,#239203,#2fc603,#239203,#77a003,#95c805,#95c805,#bcfc08,#bcfc08,#5efeef,#01e4ce,#b3fff7,#0829fc,#0829fc,#4a62fb,#4a62fb,#95a3fd,#95a3fd,#003399,#003399,#ff9900,#ffad33,#ff9900,#ffff00,#ffff66,#7c7c7c,#666666,#cccccc"
+MANY_COLORS_MODELS_VIVO=COLORS_MODELS
+MANY_COLORS_PALETTE=PRJ_ROOT+"/local/share/data/IANG_allclones_palette.rds"
+MODELS_COLORS_PALETTE=PRJ_ROOT+"/local/share/data/IANG_palette.rds"
+
+BED=PRJ_ROOT+"/local/share/data/mutational_patterns/data"
+
+MSS_MANY_COLORS_MODELS_VITRO="#f607b9,#fb49ce,#f998e0,#9900ff,#ad33ff,#c266ff,#155d00,#239203,#2fc603,#239203,#77a003,#95c805,#95c805,#bcfc08,#bcfc08,#0829fc,#0829fc,#4a62fb,#4a62fb,#95a3fd,#95a3fd,#003399,#003399,#ff9900,#ffad33,#ff9900,#ffff00,#ffff66"
+# without colors for vivo different clones
+#MSS_MANY_COLORS_MODELS_VIVO="#f607b9,#155d00,#77a003,#0829fc"  TODO
+MSS_MANY_COLORS_MODELS_VIVO="#f607b9,#fb49ce,#f998e0,#9900ff,#155d00,#77a003,#95c805,#bcfc08,#0829fc,#4a62fb,#95a3fd,#ff9900"
+
+# for signature analyses
+BASE_DIR_BULK='/scratch/trcanmed/AF_spectra/local/share/data/IANG_bulk/'
+BULK=['CRCUECHPRO-0-B.pass.vcf.gz','CRC2826PRO-0-B.pass.vcf.gz','CRC3023PRO-0-B.pass.vcf.gz']
+BULK_VCF=[os.path.join(BASE_DIR_BULK,x) for x in BULK] 
+# and for vcf big merge
+PLATY_VCF=[]
+import glob
+for m in MODELS:
+    PLATY_VCF.append(glob.glob(os.path.join(PRJ_ROOT,'local/share/data', m, 'platypus_filtered.vcf.gz')))
+
+DATA=os.path.join(PRJ_ROOT,'local/share/data/')
+
+GGTHEME='theme_5.Rdata'
+
+REF_DATASET='../dataset_IANG'
+SOURCE_DATA=PRJ_ROOT+'/local/share/data/SourceData'
+
+
+MODELS_COLORS_PALETTE_CLEV=PRJ_ROOT+'/local/share/data/cleverers_palette.rds'
+SORTED_CLEV=PRJ_ROOT+'/local/share/data/sorted_clevers.tsv'
+
+MODELS_COLORS_PALETTE_CLE=PRJ_ROOT+'/local/share/data/clevers_palette.rds'
+SORTED_CLE=PRJ_ROOT+'/local/share/data/sorted_cleversreal.tsv'
+
+WES=34156490

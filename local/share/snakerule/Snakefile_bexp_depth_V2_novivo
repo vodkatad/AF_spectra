@@ -6,6 +6,8 @@ def input_signatures(wildcards):
     import glob
     if wildcards.kind == "vitro":
         return expand("{model}/platypus_nobin_00/vitro.merged.vcf.gz", model=MODELS_NO327_2)
+    if wildcards.kind == "vitrobulk":
+        return expand("{model}/platypus_nobin_00/vitro.merged.vcf.gz", model=MODELS_NO327_2) + BULK_VCF
     elif wildcards.kind == "vivo":
         return expand("{model}/platypus_nobin_00/vivo.merged.vcf.gz", model=MODELS)
     elif wildcards.kind == "vitroloss":
@@ -26,7 +28,8 @@ rule all_sign_input:
         import re
         with open(output[0],'w') as out:
             for vcf in input:
-                crc = re.search('CRC\d{4}(LM|PR)*', vcf) # 1599 have LM/PR and we need to keep it
+                crc = re.search('CRC[\d\w]{4}PRO*', vcf) # 1599 have LM/PR and we need to keep it
+                print(crc)
                 sample_kind = "NA"
                 sample = crc.group()
                 if re.search('vitro', vcf) is not None:
@@ -35,8 +38,8 @@ rule all_sign_input:
                     sample_kind = 'vivoMA'
                 elif re.search('bulk', vcf) is not None: # but for other bulk we have always LMO...
                     sample_kind = 'bulk'
-                    if re.search('1599', vcf) is None: # re remove LM from the un-needed samples. Very bad but at this point this seems the only way around this issue.
-                        sample = sample[0:7]
+                    #if re.search('1599', vcf) is None: # re remove LM from the un-needed samples. Very bad but at this point this seems the only way around this issue.
+                    #    sample = sample[0:7]
                 if re.search('clones_all', vcf) :
                     sample = sample + "-2nd" 
                 if re.search('clones_2', vcf) :
@@ -47,11 +50,11 @@ rule all_sign_input:
                   
 
 rule all_sign:
-    input: "signinput_vitrovivobulk_merged"
-    output: heat="vitrovivobulk_heatmap_{merged}_cosmic.png", cosine="vitrovivobulk_cosine_{merged}_cosmic.png",
-            heat_tsv="vitrovivobulk_heatmap_{merged}_cosmic.tsv", cosine_tsv="vitrovivobulk_cosine_{merged}_cosmic.tsv",
+    input: "signinput_vitrobulk_merged"
+    output: heat="vitrobulk_heatmap_{merged}_cosmic.png", cosine="vitrobulk_cosine_{merged}_cosmic.png",
+            heat_tsv="vitrobulk_heatmap_{merged}_cosmic.tsv", cosine_tsv="vitrobulk_cosine_{merged}_cosmic.tsv",
     params: tool=BIN_DIR+"/mut_pat_signatures_fit", colors=COLORS_MODELS_2
-    log: log="vitrovivobulk_heatmap_{merged}_cosmic.png.log"
+    log: log="vitrobulk_heatmap_{merged}_cosmic.png.log"
     shell:
         """
             {params.tool} {input} {output.heat} {output.cosine} '{params.colors}' {log.log} {output.heat_tsv} {output.cosine_tsv}
@@ -610,7 +613,7 @@ rule dnds_onebyone: # TODO
 rule MRedu_plot:
     input: data="MR_edu_{kind}", ggtheme=GGTHEME
     output: "MR_edu_{kind}.png"
-    params: tool=BIN_DIR+"/MR_plot", colors=MANY_COLORS_PALETTE
+    params: tool=BIN_DIR+"/MR_plot_IANG", colors=MANY_COLORS_PALETTE
     shell:
         """
             {params.tool} {input.data} {output} {params.colors} {input.ggtheme}
@@ -620,7 +623,7 @@ rule MRedu_plot:
 rule MRconte_plot:
     input: data="MR_conte_{kind}", ggtheme=GGTHEME
     output: "MR_conte_{kind}.png"
-    params: tool=BIN_DIR+"/MR_plot", colors=MANY_COLORS_PALETTE
+    params: tool=BIN_DIR+"/MR_plot_IANG", colors=MANY_COLORS_PALETTE
     shell:
         """
             {params.tool} {input.data} {output} {params.colors} {input.ggtheme}
@@ -632,7 +635,7 @@ wildcard_constraints:
 rule gained_plot:
     input: "{vivi}_gained_norm_{kind}"
     output: "{vivi}_gained_norm_{kind}.png"
-    params: tool=BIN_DIR+"/gained_plot", colors=MANY_COLORS_PALETTE
+    params: tool=BIN_DIR+"/gained_plot_IANG", colors=MANY_COLORS_PALETTE
     shell:
         """
             {params.tool} {input} {output} {params.colors} {wildcards.vivi} norm
@@ -641,7 +644,7 @@ rule gained_plot:
 rule gained_nn_plot:
     input: "{vivi}_gained_{kind}"
     output: "{vivi}_gained_{kind}.png"
-    params: tool=BIN_DIR+"/gained_plot", colors=MANY_COLORS_PALETTE
+    params: tool=BIN_DIR+"/gained_plot_IANG", colors=MANY_COLORS_PALETTE
     shell:
         """
             {params.tool} {input} {output} {params.colors} {wildcards.vivi} nonorm
@@ -656,28 +659,6 @@ rule MSS_MR_edu_plot:
         """
             grep -v CRC0282 {input.data} > {output}.tmp
             {params.tool} {output}.tmp {output} {params.colors} {input.ggtheme}
-            rm {output}.tmp
-        """
-
-rule MSS_gained_plot:
-    input: "{vivi}_gained_norm_{kind}"
-    output: "{vivi}_gainedMSS_norm_{kind}.png"
-    params: tool=BIN_DIR+"/gained_plot", colors=MANY_COLORS_PALETTE #lambda w: MSS_MANY_COLORS_MODELS_VITRO if w.vivi == "vitro" else MSS_MANY_COLORS_MODELS_VIVO
-    shell:
-        """
-            grep -v CRC0282 {input} > {output}.tmp
-            {params.tool} {output}.tmp {output} {params.colors} {wildcards.vivi} norm
-            rm {output}.tmp
-        """
-
-rule MSS_gainednn_plot:
-    input: "{vivi}_gained_{kind}"
-    output: "{vivi}_gainedMSS_{kind}.png"
-    params: tool=BIN_DIR+"/gained_plot", colors=MANY_COLORS_PALETTE#lambda w: MSS_MANY_COLORS_MODELS_VITRO if w.vivi == "vitro" else MSS_MANY_COLORS_MODELS_VIVO
-    shell:
-        """
-            grep -v CRC0282 {input} > {output}.tmp
-            {params.tool} {output}.tmp {output} '{params.colors}' {wildcards.vivi} nonorm
             rm {output}.tmp
         """
 

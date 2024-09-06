@@ -2,12 +2,12 @@
 #shopt -s expand_aliases
 #alias lsnakemake='/home/egrassi/.local/bin/snakemake --log-handler-script /home/egrassi/sysadm/snakemake_slack.py'
 
-#cd $1/platypus_nobin_00
-
+cd $1/platypus_nobin_00
 #rm *_ov *ov.tsv
-#snakemake -j 12 all.MR_ov
-#snakemake -j 12 all_gain_vcf all_gained_named.tsv 
+#snakemake -j 1 all.MR_ov
+snakemake -j 12 all_gain_vcf all_gained_named.tsv vitro.merged.vcf.gz
 #snakemake -j 12 dnds.tsv dndsvitro.tsv
+
 #snakemake -j 12 all_mrca.tsv
 #snakemake vitro.merged.vcf.gz vivo.merged.vcf.gz
 #snakemake repliseq_gained.genomicregions.svg
@@ -23,11 +23,11 @@
 #snakemake dnds_double_vitro.tsv
 #snakemake mutinfo.tsv.gz
 #cd ../mutect_nobin/
-cd $1/mutect_nobin/
+#cd $1/mutect_nobin/
 #snakemake all_mrca.tsv
 #snakemake all.MR_ov
 #snakemake all_R
-snakemake all_AF_spectra
+#snakemake all_AF_spectra
 #cd $1/mutect_VAF/
 #snakemake -j 6 all.MR_ov
 #cd $1/univMutect/

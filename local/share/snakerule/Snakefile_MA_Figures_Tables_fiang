@@ -6,15 +6,12 @@ rule ggplot_themes:
 
 ### Supporting rules
 SORTED_MR='sorted_MR_avg.tsv'
-# rule whose end job is done by hand because 1599PR and LM needs manual positioning
 rule avg:
     input: REF_DATASET+"/MR_edu_SNV_averaged.tsv"
-    output: "sorted_MR_avg.tmp.tsv"
+    output: "sorted_MR_avg.tsv"
     shell: 
         """
-            head -n1 {input} > {output}
-            sed 1d {input} | grep -w CRC0282 {input} >> {output}
-            sed 1d {input} | grep -v -w CRC0282 | sort -gk3,3 >> {output}
+           cat {input} > {output}
         """
 
 ### Figure 1
@@ -22,12 +19,12 @@ rule figure_1b_mr:
     input: MR=REF_DATASET+"/MR_edu_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='fig_1b_MR.svg', avgdata="fig_1b_avg.tsv"
     log: log="fig_1b_MR.log"
-    script: SRC_DIR+'/fig1b_MR.R'
+    script: SRC_DIR+'/fig1b_MR_IANG.R'
 
 rule figure_1c_dnds:
-    input: dnds=REF_DATASET+"/dnds1vitro_overall.tsv", theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    input: dnds=REF_DATASET+"/dndsvitro_overall.tsv", theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot='fig_1c_dnds.svg'
-    script: SRC_DIR+'/fig1c_dnds.R'
+    script: SRC_DIR+'/fig1c_dnds_IANG.R'
 
 ### Figure 3
 rule figure_3a_mr:
@@ -47,18 +44,18 @@ rule fig_3b_wilcox_mb:
 ### Figure 2 and related extended ones
 # bulk + vitro 1st
 rule fig2_a:
-    input: sign=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", 
+    input: sign=REF_DATASET+"/vitrobulk_heatmap_merged_cosmic.tsv", 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2a_cosmic.pdf"
-    params: wanted="bulk", legend="yes", addlm="yes"
-    script: SRC_DIR+'/fig2_cosmic.R'
+    params: wanted="bulk", legend="yes", addlm="no"
+    script: SRC_DIR+'/fig2_cosmic_IANG.R'
 
 rule fig_2a_bis:
-    input: sign=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", 
+    input: sign=REF_DATASET+"/vitrobulk_heatmap_merged_cosmic.tsv", 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2abis_cosmic.pdf"
-    params: wanted="vitroMA", legend="no", addlm="yes"
-    script: SRC_DIR+'/fig2_cosmic.R'
+    params: wanted="vitroMA", legend="no", addlm="no"
+    script: SRC_DIR+'/fig2_cosmic_IANG.R'
 
 # vivo 1st
 rule fig_2b_bis:
