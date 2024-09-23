@@ -1,0 +1,172 @@
+STARTTIME="-0" # this is overwritten in conf.sk for 2nd round clones
+def find_pairs_raw_ov_stupid(wildcards): 
+    # We use info from conf.sk instead of patching info together from SAMPLES and STARTTIME
+    # still not clear which is best, this is more flexible but the other solution is safer (if correct :))
+    branch = SAMPLES_TREE[wildcards.bsample]
+    start = branch.pop(0)
+    r1 = re.compile(r'-M')
+    els_topi = filter(r1.search, branch) 
+    els_notopi = filter(lambda x: not r1.search(x), branch)
+    return [ c+'_'+start+'.MR_ov.tsv' for c in els_notopi] + [ c+'_'+start+'.MR_ovtopi.tsv' for x in els_topi]
+
+
+# "-0" becomes STARTTIME
+def find_pairs_raw_ov(wildcards):
+    print(wildcards.bsample)
+    # if per distinguere topi da non topi _ov or _ovTOPI
+    get_indexes = lambda x, xs: [i for (y, i) in zip(xs, range(len(xs))) if re.match(x, y)]
+    regex = r"^" + re.escape(wildcards.bsample) #+ r"-"
+    idxs = get_indexes(regex, SAMPLES)
+    els = [SAMPLES[i] for i in idxs]
+    print("els:")
+    print(els)
+    t0 = None
+    if STARTTIME != "-0":
+        # here we need a new logic to find the right startime clone
+        #regex = r"^" + re.escape(wildcards.bsample) + STARTTIME
+        start = SAMPLES_ORIG_T1[wildcards.bsample] # exception gets swallowed for all since there is another rule to make it but for completeness we add a wildcard contstraint on bsample
+        print(start)
+        idxs = get_indexes(start, els)
+        print(idxs)
+        if len(idxs) != 1:
+            print("Something bad!")
+            return "plh"
+        else:
+            print("time start " + els[idxs[0]])
+            t0  = els.pop(idxs[0]) # we remove our starting clone
+            # then need to keep only the T2 ones
+            t2_r = re.compile(TIME) # do we need to get it more precise for 
+            els = list(filter(t2_r.search, els))
+    else:
+        els.remove(wildcards.bsample+STARTTIME)
+    print("then:")
+    print([x for x in els])
+    r1 = re.compile(r'-M')
+    els_topi = filter(r1.search, els) 
+    els_notopi = filter(lambda x: not r1.search(x), els) 
+    if STARTTIME == "-0":
+        return [ x+'_'+wildcards.bsample+STARTTIME+'.MR_ov.tsv' for x in els_notopi] + [ x+'_'+wildcards.bsample+STARTTIME+'.MR_ovtopi.tsv' for x in els_topi]
+    else:
+        y = [ x+'_'+t0+'.MR_ov.tsv' for x in els_notopi] + [ x+'_'+t0+'.MR_ovtopi.tsv' for x in els_topi]
+        print(y)
+        #return [ x+'_'+t0+'.MR_ov.tsv' for x in els_notopi] + [ x+'_'+t0+'.MR_ovtopi.tsv' for x in els_topi]
+        return 
+
+FUN_OV=find_pairs_raw_ov
+include: "./conf.sk"
+
+rule seqtobin:
+    input: sequenza=DATA+"/{sample}_segments.txt", chrs=DATA+"/chrs"
+    output: "{sample}.{bin}.tsv.gz"
+    params: tool=BIN_DIR+"/project_bin"
+    shell: 
+        """    
+            {params.tool} -c <(sed 1d {input.sequenza} |  bawk '{{print $1,$2-1,$3,$10}}' | grep -v chrX | grep -v chrY| sed 's/chr//1' |  sort -k1,1n -k2,2n | bawk '$4 != "NA" {{print "chr"$1,$2,$3,$4}}') -b {wildcards.bin} | gzip > {output}
+        """
+
+rule alltobin:
+    input: expand("{sample}.10000.tsv.gz", sample=SAMPLES)
+
+
+#SAMPLES=["CRC0327-02-0","CRC0327-02-1-A","CRC0327-02-1-E","CRC0327-02-1-I","CRC0327-04-0","CRC0327-04-1-A","CRC0327-04-1-B","CRC0327-04-1-C","CRC0327-08-0","CRC0327-08-1-A","CRC0327-08-1-C","CRC0327-08-1-F"]
+
+rule alltobin_merged:
+    input: expand("{sample}.50000.tsv.gz", sample=SAMPLES)
+    output: m="merged.tsv.gz"
+    run:
+        import pandas as pd
+        res = pd.read_csv(input[0], sep="\t", header=None) 
+        samples = SAMPLES
+        res.columns = ['chr','b','e', samples[0]]
+        for i in range(1, len(input)):
+            print('adding ' + samples[i])
+            current = pd.read_csv(input[i], sep="\t", header=None) 
+            current.columns = ['chr','b','e',samples[i]]
+            current = current.drop(columns=['chr','b','e'])
+            res = pd.concat([res, current], axis=1, sort=False)            
+        res.to_csv(output.m, sep="\t", compression='gzip', index=False)
+
+        
+rule heatmap:
+    input: "merged.tsv.gz"
+    output: "merged_heatmap.png"
+    run:
+        import numpy as np
+        import pandas as pd
+        import seaborn as sns
+        import matplotlib.colors as colors
+        import matplotlib 
+        import matplotlib.cm as cm
+        import matplotlib.ticker as ticker
+        import matplotlib.pyplot as plt
+        import matplotlib.colors as colors
+        import matplotlib.transforms as transforms
+
+        cnvs = pd.read_csv(input[0], sep="\t") 
+        boundaries = cnvs[['chr','b','e']].copy()
+        cnvs = cnvs.drop(columns=['chr','b','e']).transpose()
+        clusters = False
+        verbose = True
+        metric = 'euclidean'
+        method = 'ward'
+
+        chr_limits = boundaries.index[boundaries['e'].isin(boundaries.groupby('chr', sort=False)['e'].max().values)].tolist()
+        chr_boundaries = np.append(0, chr_limits)
+        chr_list = boundaries['chr'].unique().tolist()
+        chrN_list = []
+
+        for x in chr_list:
+            x = x[3:] #remove 'chr' for readability
+            chrN_list.append(x)
+
+        #compute the position where chromosome labels will be placed on the plots
+        start = 0
+        pos_list = []
+        for end in chr_limits:
+            pos_list.append((start+end)/2)
+            start = end+1
+
+        if clusters:
+            yticklabels = True
+        else:
+            yticklabels = False
+
+        cbar_kws={"ticks":np.arange(0,13,1)}
+        #import sys
+        #sys.setrecursionlimit(10000)
+        #h = sns.clustermap(cnvs, method=method, metric=metric, col_cluster=False, yticklabels = yticklabels,  cmap='RdBu_r', vmin=0, vmax=12,norm=divnorm, cbar_kws=cbar_kws)
+        h = sns.clustermap(cnvs, col_cluster=False, method=method, metric=metric, row_cluster=clusters, yticklabels = True, cmap='RdBu_r', vmin=0, vmax=12,center=2, cbar_kws=cbar_kws)
+        #Z = h.dendrogram_row.linkage
+        ax = h.ax_heatmap
+        #place vertical lines to identify chromosomes
+        for pos in chr_limits:
+            ax.axvline(x=pos, color='black')
+
+        #place chromosome ticks at the right position
+        ax.xaxis.set_major_locator(ticker.FixedLocator((pos_list)))
+        ax.xaxis.set_major_formatter(ticker.FixedFormatter((chrN_list)))
+        ax.tick_params(axis='x', rotation=0, labelsize=20)
+        ax.tick_params(axis='y', rotation=0, labelsize=20)
+    
+        ax.xaxis.set_minor_locator(ticker.FixedLocator(chr_boundaries))
+        ax.tick_params(axis='x', length=20, which='minor')
+
+        ax.set_xlabel("Chromosomes", fontweight='bold', fontsize=25)
+        if clusters:
+            ax.set_ylabel("Clusters", fontweight='bold', fontsize=25)
+        else:
+            ax.set_ylabel("Clones", fontsize=25, fontweight='bold')
+
+        plt.gcf().set_size_inches(37, 21)
+    
+        if clusters:
+            plt.gcf().suptitle("Clusters mean CNV heatmap", fontsize=30, fontweight='bold')
+            plt.savefig(output[0])
+        else:
+            plt.gcf().suptitle("CNV heatmap", fontsize=30, fontweight='bold')
+            plt.savefig(output[0])
+        plt.clf()
+    
+# placeholder
+rule n_subclonal:
+    

@@ -1,0 +1,62 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
+HROOT='/home/egrassi'
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+
+###################################################################
+KIND="SNV" # | indel
+MULTI="nomulti"
+### sample variable portion #############################################
+DATA=PRJ_ROOT+"/local/share/data/CRCUECHPRO_clones"
+SDATA=DATA
+SAMPLES=["CRCUECHPRO-01-0","CRCUECHPRO-05-0","CRCUECHPRO-06-0","CRCUECHPRO-07-0","CRCUECHPRO-13-0","CRCUECHPRO-01-1-A","CRCUECHPRO-01-1-C","CRCUECHPRO-01-1-D","CRCUECHPRO-05-1-D","CRCUECHPRO-06-1-D","CRCUECHPRO-06-1-E","CRCUECHPRO-06-1-H","CRCUECHPRO-13-1-B","CRCUECHPRO-13-1-C","CRCUECHPRO-13-1-D","CRCUECHPRO-05-1-A","CRCUECHPRO-05-1-C","CRCUECHPRO-07-1-A"]
+import re
+CLONE1=[x for x in SAMPLES if re.search('01', x)]
+CLONE5=[x for x in SAMPLES if re.search('05', x)]
+CLONE6=[x for x in SAMPLES if re.search('06', x)]
+CLONE7=[x for x in SAMPLES if re.search('07', x)]
+CLONE13=[x for x in SAMPLES if re.search('13', x)]
+CLONES=[CLONE1,CLONE5,CLONE6, CLONE7, CLONE13]
+
+SAMPLES_HIGH=["CRCUECHPRO-01","CRCUECHPRO-05","CRCUECHPRO-06","CRCUECHPRO-07","CRCUECHPRO-13"] 
+SAMPLES_ZERO=[x+'-0' for x in SAMPLES_HIGH]
+VCF_DIR=PRJ_ROOT+"/dataset_IANG/CRCUECHPRO/placeholder"
+BULKNAME="CRCUECHPRO-0-B"
+SHIPMENT="IANG_bulk"
+NORMAL="CRCUECHNMH"
+##############################################################
+
+VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
+VCFTOBED1=BIN_DIR+"/vcf_to_bed"
+CNLEN=BIN_DIR+"/cn_len_plot"
+CNLEN2=BIN_DIR+"/cn_len_plotall"
+
+DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
+CALLABLE=DATA+"/callable_covered.bed.gz"
+
+DNDSCV_RDA=DATA+"/../RefCDS_human_GRCh38.p12.rda"
+
+ALL_SAMPLES=SAMPLES
+SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
+WANTED_CN = "tutti"
+
+wildcard_constraints:
+    sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"   
+wildcard_constraints:
+    t1sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+wildcard_constraints:
+    t0sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+

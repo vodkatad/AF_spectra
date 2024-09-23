@@ -12,7 +12,7 @@ library(ggpubr)
 load(theme)
 
 d <- read.table(dnds_f, sep="\t", quote="", header=FALSE, stringsAsFactors = TRUE)
-colnames(d) <- c('model','estimate', 'upper', 'lower')
+colnames(d) <- c('model','estimate', 'lower', 'upper') ## ?? should be lower upper
 d$model <- gsub('_2nd', '', d$model, fixed=TRUE)
 
 
@@ -36,7 +36,7 @@ d$model <- paste0(d$model, ifelse(!grepl('\\d$', d$model), '', ifelse(d$model=="
 names(pal) <- paste0(names(pal), ifelse(!grepl('\\d$', names(pal)), '', ifelse(names(pal)=="CRC0282", 'PR', 'LM')))
 d$order <- seq(1, nrow(d))
 
-y_breaks <- guess_ticks(d$lower,nticks=7)
+y_breaks <- guess_ticks(c(d$estimate, d$upper, d$lower), nticks=7)
 y_breaks<- round(y_breaks, digits = 2)
 print(y_breaks)
 pdf('fig_1c_dnds.pdf')

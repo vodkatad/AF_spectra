@@ -10,8 +10,8 @@ save.image(paste0(outplot1, '.Rdata'))
 
 d <- read.table(gzfile(ratios_f), sep="\t", header=T)
 
-d$lr_cl <- log((d$Signature.8_cl/d$Signature.1_cl)+1)
-d$lr_sl <- log((d$Signature.8_subcl/d$Signature.1_subcl)+1) 
+d$lr_cl <- log((d$Signature.18_cl/d$Signature.1_cl)+1)
+d$lr_sl <- log((d$Signature.18_subcl/d$Signature.1_subcl)+1) 
 
 pd <- data.frame(ratio=c(d$lr_cl, d$lr_sl), class=c(rep('Clonal', nrow(d)), rep('Subclonal', nrow(d))))
 

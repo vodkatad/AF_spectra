@@ -651,13 +651,19 @@ rule sbs_pri_met:
     output: plot1='pri_met_ukbiob.svg'
     script: SRC_DIR+'/ukbiobank_sbs_monte.R'
 
-
 rule ukbiob_subcl_cl:
     input: sign=DATA+"/signatures_subcl_cl.tsv.gz", theme=GGTHEME
     log: log="ukbiobank_subcl_cl.log"
     output: plot1='ukbiobank_subcl_cl.svg'
     script: SRC_DIR+'/ukbiobank_subcl_cl.R'
 
+rule ukbiob_subcl_cl_18:
+    input: sign=DATA+"/signatures_subcl_cl.tsv.gz", theme=GGTHEME
+    log: log="ukbiobank_subcl_cl_18.log"
+    output: plot1='ukbiobank_subcl_cl_18.svg'
+    script: SRC_DIR+'/ukbiobank_subcl_cl_18.R'
+
+## TODO suppl table QC 150xc
 ## subclonal 0.12-0.24 vs all MR
 rule subclonal_vs_MR:
     input:  subclonal=REF_DATASET+'/fixedthr_subclonal', MR=REF_DATASET+'/MR_edu_SNV', 
