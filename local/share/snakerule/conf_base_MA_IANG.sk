@@ -13,6 +13,8 @@ SRC_DIR=PRJ_ROOT+"/local/src"
 SNAKE_ROOT="/mnt/trcanmed/snaketree"
 SROOT="/scratch/trcanmed"
 
+ORIG_MA=PRJ_ROOT+'/dataset_Figures_Tables'
+ORIG_MA_REF=PRJ_ROOT+'/datasetV2'
 
 #B=PRJ_ROOT+'/local/share/data/birth_rates_up3.txt'
 #B_D=PRJ_ROOT+'/local/share/data/birthmdeath_rates_up3.txt'
@@ -51,8 +53,9 @@ COLORS_MODELS_2="#cc3300,#f607b9,#9900ff,#155d00,#77a003,#0829fc,#ff9900,#ffff00
 MANY_COLORS_MODELS_VITRO="#cc3300,#ff4000,#ff6633,#f607b9,#fb49ce,#f998e0,#9900ff,#ad33ff,#c266ff,#155d00,#239203,#2fc603,#239203,#77a003,#95c805,#95c805,#bcfc08,#bcfc08,#0829fc,#0829fc,#4a62fb,#4a62fb,#95a3fd,#95a3fd,#003399,#003399,#ff9900,#ffad33,#ff9900,#ffff00,#ffff66"
 MANY_COLORS_MODELS_VITRO_NEW="#cc3300,#ff4000,#ff6633,#f607b9,#fb49ce,#f998e0,#9900ff,#ad33ff,#c266ff,#155d00,#239203,#2fc603,#239203,#77a003,#95c805,#95c805,#bcfc08,#bcfc08,#5efeef,#01e4ce,#b3fff7,#0829fc,#0829fc,#4a62fb,#4a62fb,#95a3fd,#95a3fd,#003399,#003399,#ff9900,#ffad33,#ff9900,#ffff00,#ffff66,#7c7c7c,#666666,#cccccc"
 MANY_COLORS_MODELS_VIVO=COLORS_MODELS
-MANY_COLORS_PALETTE=PRJ_ROOT+"/local/share/data/IANG_allclones_palette.rds"
-MODELS_COLORS_PALETTE=PRJ_ROOT+"/local/share/data/IANG_palette.rds"
+MANY_COLORS_PALETTE=PRJ_ROOT+"/local/share/data/orig_IANG_palette_all.rds"
+#MODELS_COLORS_PALETTE=PRJ_ROOT+"/local/share/data/IANG_palette.rds"
+MODELS_COLORS_PALETTE=PRJ_ROOT+"/local/share/data/orig_IANG_palette.rds"
 
 BED=PRJ_ROOT+"/local/share/data/mutational_patterns/data"
 
@@ -73,7 +76,7 @@ for m in MODELS:
 
 DATA=os.path.join(PRJ_ROOT,'local/share/data/')
 
-GGTHEME='theme_5.Rdata'
+GGTHEME='theme_10.Rdata'
 
 REF_DATASET='../dataset_IANG'
 SOURCE_DATA=PRJ_ROOT+'/local/share/data/SourceData'

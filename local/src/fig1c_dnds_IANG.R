@@ -36,7 +36,7 @@ if (!all(orderdf$model == d$model)) {
 #names(pal) <- paste0(names(pal), ifelse(!grepl('\\d$', names(pal)), '', ifelse(names(pal)=="CRC0282", 'PR', 'LM')))
 d$order <- seq(1, nrow(d))
 
-y_breaks <- guess_ticks(d$lower,nticks=7)
+y_breaks <- guess_ticks(d$lower,nticks=6)
 y_breaks<- round(y_breaks, digits = 2)
 print(y_breaks)
 pdf('fig_1c_dnds.pdf')
@@ -44,7 +44,7 @@ p <- ggplot(d, aes(x=order(order, model), y=estimate, color=model)) +  geom_poin
   geom_hline(yintercept=1,linetype=2,size=0.2)+
   geom_errorbar(aes(ymin=lower, ymax=upper, x=order(order,model)), width=0.3, size=0.3, color='black')+ylab('dN/dS estimate')+xlab('PDTs')+
   scale_color_manual(values=pal)+
-  unmute_theme+theme(axis.text.x = element_blank(), 
+  unmute_theme+theme(legend.position='none', axis.text.x = element_blank(), 
                      axis.ticks.x = element_blank(),
                      legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))+
   scale_y_continuous(breaks=y_breaks, limits=c(0,max(y_breaks)), expand = c(0, 0))# + ylim(NA,max(y_breaks))

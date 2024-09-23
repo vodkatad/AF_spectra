@@ -27,7 +27,6 @@ our$clone <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][2]; return
 our$clone2 <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][4]; return(y[1])})
 our$model_clone <- paste0(our$model, "-", our$clone)
 
-our$model <- paste0(our$model, ifelse(!grepl('\\d$', our$model), '', ifelse(our$model=="CRC0282", 'PR', 'LM')))
 
 confidence_interval <- function(vector, interval) {
   # Standard deviation of sample
@@ -53,6 +52,7 @@ pdata$model <- rownames(pdata)
 orderdf <- read.table(order_f, sep="\t", quote="", header=TRUE, stringsAsFactor=TRUE)
 our$model <- factor(our$model, levels=orderdf$model)
 pdata$model <- factor(pdata$model, levels=orderdf$model)
+
 
 y_breaks <- guess_ticks(our$MR)
 

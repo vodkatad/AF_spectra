@@ -5,24 +5,36 @@ rule ggplot_themes:
 	script: SRC_DIR+'/ggthemes.R'
 
 ### Supporting rules
-SORTED_MR='sorted_MR_avg.tsv'
+SORTED_MR='sorted_MR_avg.tsv' # manual decisions
 rule avg:
-    input: REF_DATASET+"/MR_edu_SNV_averaged.tsv"
-    output: "sorted_MR_avg.tsv"
+    input: ORIG_MA+"/sorted_MR_avg.tsv", REF_DATASET+"/MR_edu_SNV_averaged.tsv"
+    output: "sorted_MR_avg.tsv.tmp"
     shell: 
         """
-           cat {input} > {output}
+           cat {input[0]} | grep -v CRC0282 > {output}
+           cat {input[1]} | sed 1d >> {output}
         """
 
 ### Figure 1
+rule mr_input:
+    input: MR=REF_DATASET+"/MR_edu_SNV", MRold=ORIG_MA_REF+"/MR_edu_SNV"
+    output: "MR_edu_SNV"
+    shell: "cat {input} | grep -v CRC0282 > {output}"
+
 rule figure_1b_mr:
-    input: MR=REF_DATASET+"/MR_edu_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    input: MR="MR_edu_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='fig_1b_MR.svg', avgdata="fig_1b_avg.tsv"
     log: log="fig_1b_MR.log"
     script: SRC_DIR+'/fig1b_MR_IANG.R'
 
+rule dnds_input:
+    input: MR=REF_DATASET+"/dndsvitro_overall.tsv", MRold=ORIG_MA_REF+"/dnds1vitro_overall.tsv"
+    output: "dndsvitro_overall.tsv"
+    shell: "cat {input} | grep -v CRC0282 > {output}"
+
+
 rule figure_1c_dnds:
-    input: dnds=REF_DATASET+"/dndsvitro_overall.tsv", theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    input: dnds="dndsvitro_overall.tsv", theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot='fig_1c_dnds.svg'
     script: SRC_DIR+'/fig1c_dnds_IANG.R'
 
