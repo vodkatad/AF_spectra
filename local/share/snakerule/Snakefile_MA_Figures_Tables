@@ -663,7 +663,6 @@ rule ukbiob_subcl_cl_18:
     output: plot1='ukbiobank_subcl_cl_18.svg'
     script: SRC_DIR+'/ukbiobank_subcl_cl_18.R'
 
-## TODO suppl table QC 150xc
 ## subclonal 0.12-0.24 vs all MR
 rule subclonal_vs_MR:
     input:  subclonal=REF_DATASET+'/fixedthr_subclonal', MR=REF_DATASET+'/MR_edu_SNV', 

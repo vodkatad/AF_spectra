@@ -184,13 +184,14 @@ rule pair_ov_nobcnok:
 rule pair_length_ov:
     input: t0="{t0sample}.callable.bed.gz", t1="{t1sample}.callable.bed.gz"
     output: barplot="{t1sample}_{t0sample}.ovcn.png", len="{t1sample}_{t0sample}.ovlength.txt", cumplot="{t1sample}-{t0sample}.ovcumcn.png", ovbed="{t1sample}_{t0sample}.callable.bed.gz"
+    log: log="{t1sample}_{t0sample}.ovlength.log"
     params: cns=WANTED_CN, tool=CNLEN2
     shell:
         """ 
             bedtools intersect -b {input.t0} -a {input.t1} | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.1tmp
             bedtools intersect -b {input.t1} -a {input.t0} | bawk '{{print $1"_"$2"_"$3,$4}}' | sort -k1,1 > {output.ovbed}.2tmp
             join -t$'\\t' {output.ovbed}.1tmp {output.ovbed}.2tmp | tr "_" "\\t" > {output.ovbed}.tmp 
-            {params.tool} {output.ovbed}.tmp {params.cns} {output.barplot} {output.cumplot} {output.len} {output.ovbed};
+            {params.tool} {output.ovbed}.tmp {params.cns} {output.barplot} {output.cumplot} {output.len} {output.ovbed} {log.log};
             rm {output.ovbed}.*tmp 
         """
 

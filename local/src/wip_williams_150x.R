@@ -139,6 +139,27 @@ ggplot() +
                    legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))+ylim(0,10)+xlim(0,10)+
   geom_abline(intercept=0, slope=1)
 
+### 150 univmutect
+mr150 <- read.table('/scratch/trcanmed/AF_spectra/dataset150x/MR_edu_univMutect', sep="\t", header=FALSE, stringsAsFactors = F)
+colnames(mr150) <- c('sample', 'MR150edu')
+mredu <- read.table('/scratch/trcanmed/AF_spectra/datasetV2/MR_edu_univMutect', sep="\t", header=FALSE, stringsAsFactors = F)
+colnames(mredu) <- c('sample', 'MRedu')
+# MR_conte_SNV
+mredu$MRedu <- mredu$MRedu / 0.000000001
+mr150$MR150edu <- mr150$MR150edu / 0.000000001
+mm <- merge(mredu, mr150, by="sample")
+mm$model <- sapply(mm$sample, function(x) {y<-strsplit(x, '-')[[1]][1]; return(y[1])})
+mm$clone <- sapply(mm$sample, function(x) {y<-strsplit(x, '-')[[1]][2]; return(y[1])})
+mm$clone2 <- sapply(mm$sample, function(x) {y<-strsplit(x, '-')[[1]][4]; return(y[1])})
+mm$model_clone <- paste0(mm$model, "_", mm$clone)
+ggplot() + 
+  geom_point(data=mm, aes(x=MRedu, y=MR150edu, color=model_clone))+
+  ylab('MR clonal 150x')+xlab('MR clonal 30x')+
+  scale_color_manual(values=pal)+
+  slidetheme+theme(legend.position="none",
+                   legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))+ylim(0,10)+xlim(0,10)+
+  geom_abline(intercept=0, slope=1)
+
 ### signatures
 
 s150 <- read.table('/scratch/trcanmed/AF_spectra/dataset150x/vitrovivobulk_heatmap_merged_cosmic.tsv', sep="\t", stringsAsFactors = F, header=T)
