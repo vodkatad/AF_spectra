@@ -1313,3 +1313,18 @@ rule puttogheter_len:
             echo -ne 'sample\tlen\n' > {output}
             for f in {input}; do cat <(echo -ne $(basename $f)"\t") <(cat $f); done | sed 's/\.length\.txt//1' >> {output}
         """
+
+rule puttogheter_len_allcn:
+    input: '/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/platypus_nobin_00_allcn/CRC1307-09-0.length.txt',
+           '/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/platypus_nobin_00_allcn/CRC1307-09-1-B.length.txt',
+           '/scratch/trcanmed/AF_spectra/datasetV2/CRC1307/platypus_nobin_00_allcn/CRC1307-02-1-E.length.txt',
+           '/scratch/trcanmed/AF_spectra/datasetV2/CRC0282/platypus_nobin_00_allcn/CRC0282-05-0.length.txt',
+           '/scratch/trcanmed/AF_spectra/datasetV2/CRC0282/platypus_nobin_00_allcn/CRC0282-05-1-C.length.txt',
+           '/scratch/trcanmed/AF_spectra/datasetV2/CRC1502/platypus_nobin_00_allcn/CRC1502-03-0.length.txt',
+           '/scratch/trcanmed/AF_spectra/datasetV2/CRC1502/platypus_nobin_00_allcn/CRC1502-03-1-A.length.txt'
+    output: 'len_cnall.txt'
+    shell:
+        """
+            echo -ne 'sample\\tlen\\n' > {output}
+            for f in {input}; do cat <(echo -ne $(basename $f)"\t") <(cat $f); done | sed 's/\.length\.txt//1' >> {output}
+        """

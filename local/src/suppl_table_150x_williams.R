@@ -29,12 +29,15 @@ bd$clone <- sapply(bd$sample, function(x) {y<-strsplit(x, '-')[[1]][2]; return(y
 bd$model_clone <- paste0(bd$model, "_", bd$clone)
 
 m2 <- merge(m, bd, by="model_clone")
-m2$MRw <- (m2$intercept / m2$len)*(m2$X.b.d..b)
+m2$MRw <- (m2$intercept / m2$len)
+m2$MRcorrected <- (m2$intercept / m2$len)*(m2$X.b.d..b)
 
 # MR_edu
 #mredu$MRedu <- mredu$MRedu / 0.000000001
 mm <- merge(mredu, m2, by="sample", by.y="sample.x")
 
-res <- mm[, c('sample', 'r', 'intercept', 'len', 'b', 'b.d', 'MRw', 'MRedu')]
+mm$r1 <- mm$MRw/mm$MRedu
+mm$r2 <- mm$MRcorrected/mm$MRedu
+res <- mm[, c('sample', 'r', 'intercept', 'len', 'b', 'b.d', 'MRw', 'MRcorrected', 'MRedu', 'r1', 'r2')]
 
 write.table(res, outtsv, quote=FALSE, sep="\t", row.names=FALSE)

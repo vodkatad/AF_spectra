@@ -664,7 +664,7 @@ rule ukbiob_subcl_cl_18:
     script: SRC_DIR+'/ukbiobank_subcl_cl_18.R'
 
 ## subclonal 0.12-0.24 vs all MR
-rule subclonal_vs_MR:
+rule subclonal_vs_MR: # new 2a
     input:  subclonal=REF_DATASET+'/fixedthr_subclonal', MR=REF_DATASET+'/MR_edu_SNV', 
             theme=GGTHEME, palette=MANY_COLORS_PALETTE
     output: plot="subclonal_vs_MR.svg"
@@ -682,7 +682,7 @@ rule figure_XXXc_slopes_MR:
 
 ## 
 rule table_150X_williams:
-    input: williams=REF_DATASET+'/williams_bin_0.12_0.24.r2.tsv', gen_len=REF_DATASET+'/len_cn123.txt', b_d=B_D, MR=REF_DATASET+"/MR_edu_SNV"
+    input: williams=REF_DATASET+'/williams_bin_0.12_0.24.r2.tsv', gen_len=REF_DATASET+'/len_cnall.txt', b_d=B_D, MR=REF_DATASET+"/MR_edu_SNV"
     output: out='edt_XXX_150x_williams_MR.tsv'
     log: log='edt_XXX_150x_williams_MR.log'
     script: SRC_DIR+'/suppl_table_150x_williams.R' 
@@ -697,4 +697,14 @@ rule DNAH5_GECIP_crc:
     log: log="SX5A.log"
     script: SRC_DIR+'/figX5_wilcox_gecip.R'
 
-## TODO suppl table QC 150xc
+## suppl table qc 150x
+#egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data/150x_qc$ echo -e "Sample_id\\tSequencing_id\\tmean_coverage\\tsd_coverage\\tmedian_coverage" >  all150.tsv
+#egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data/150x_qc$ for f in *wgsmetrics; do grep -A 1 MEAN_COVERAGE $f | tail -n 1| bawk -v s=$(echo $f) '{print s,s"_150x",$2,$3,$4}'; done | sed 's/
+#\.wgsmetrics//g' >> all150.tsv 
+rule suppltable_qc_150x:
+    input: PRJ_ROOT+'/local/share/data/SourceData/all150.tsv'
+    output: "Suppl_Table_120x_qc.xlsx"
+    shell: 
+        """
+            tsv_to_xls -i {input} -s "120x wgsmetrics" -o {output}
+        """

@@ -153,12 +153,12 @@ rule subclonal_len:
         """
 
 rule all_len23:
-    input: expand("{sample}.length23.txt", sample=SAMPLES)
-    output: "all_len23.txt"
+    input: expand("{sample}.length.txt", sample=SAMPLES)
+    output: "all_len_all.txt"
     shell:
         """
             for f in {input}; do
-                cat <(echo -en "$f\\t") <(cat $f) | sed 's/\.length23\.txt//1';
+                cat <(echo -en "$f\\t") <(cat $f) | sed 's/\.length\.txt//1';
             done > {output}
         """
 

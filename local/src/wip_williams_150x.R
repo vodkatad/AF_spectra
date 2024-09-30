@@ -12,11 +12,11 @@ our$clone <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][2]; return
 our$clone2 <- sapply(our$sample, function(x) {y<-strsplit(x, '-')[[1]][4]; return(y[1])})
 our$model_clone <- paste0(our$model, "_", our$clone)
 
-# TODO divide by length - study williams only on CN 1-2-3?
+# divide by length - length is now defined on all cn
 # 1-b/d
 
 bd <- read.table('/scratch/trcanmed/AF_spectra/local/share/data/b_bd.txt', sep="\t", stringsAsFactors = FALSE, header=TRUE)
-len <- read.table('/scratch/trcanmed/AF_spectra/datasetV2/len_cn123.txt', sep="\t", stringsAsFactors = FALSE, header=TRUE)
+len <- read.table('/scratch/trcanmed/AF_spectra/datasetV2/len_cnall.txt', sep="\t", stringsAsFactors = FALSE, header=TRUE)
 colnames(bd)[1] <- 'sample'
 
 m <- merge(our, len, by="sample")
