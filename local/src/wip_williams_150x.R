@@ -157,7 +157,7 @@ ggplot() +
   ylab('MR clonal 150x')+xlab('MR clonal 30x')+
   scale_color_manual(values=pal)+
   slidetheme+theme(legend.position="none",
-                   legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))+ylim(0,10)+xlim(0,10)+
+                   legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))+ylim(0,5)+xlim(0,5)+
   geom_abline(intercept=0, slope=1)
 
 ### signatures

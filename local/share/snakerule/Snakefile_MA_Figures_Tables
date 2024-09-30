@@ -687,4 +687,14 @@ rule table_150X_williams:
     log: log='edt_XXX_150x_williams_MR.log'
     script: SRC_DIR+'/suppl_table_150x_williams.R' 
 
+
+# uk biob DNAH5
+rule DNAH5_GECIP_crc:
+    input: mb_crc=PRJ_ROOT+'/local/share/data/gecip_DNAH5/dnah5_crc_removemul_nopid.tsv', 
+           mb_panc=PRJ_ROOT+'/local/share/data/gecip_DNAH5/dnah5_panc_removemul_nopid.tsv', 
+           theme=GGTHEME
+    output: plot="SX5A.svg"
+    log: log="SX5A.log"
+    script: SRC_DIR+'/figX5_wilcox_gecip.R'
+
 ## TODO suppl table QC 150xc
