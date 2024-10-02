@@ -18,6 +18,7 @@ ggplot(data=d, aes(x=x, color=type))+geom_density(aes(y=after_stat(count*1/30)))
 
 ggplot(data=d, aes(x=x, color=type))+geom_density(aes(y=after_stat(count*0.1)))
 ggplot(data=d, aes(x=x, fill=type))+geom_histogram(position='identity', alpha=0.4, binwidth=0.1)
+ggplot(data=d, aes(x=x, color=type))+geom_density(aes(y=after_stat(count*0.1)))+geom_histogram(position='identity', alpha=0.4, binwidth=0.1)
 
 
 ggplot(data=d, aes(x=x, color=type))+geom_density(aes(y=after_stat(count*0.01)))

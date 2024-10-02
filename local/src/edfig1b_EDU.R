@@ -96,16 +96,19 @@ pdata$xmodel <- as.numeric(pdata$model)
 
 y_breaks <- guess_ticks(our$EDU,fixed_max=50)
 
+##IANG
+#names(pal) <- gsub('-','_', names(pal))
 #our$model_well <- as.factor(our$model_well)
 p <- ggplot(pdata, aes(x=model, y=mean))+  #geom_point(stat="identity", shape=1, size=2) +
   geom_point(data=our, aes(x= model, y=EDU, color=model_clone), stat="identity", size=2, shape=18,position=position_dodge(0.3))+#, 
   geom_segment(data=pdata, aes(x= xmodel-0.2, yend=mean,y=mean,  xend= xmodel+0.2),size=.3)+
   geom_errorbar(aes(ymin=lower, ymax=upper, x= xmodel), size=0.3, width=0.3)+ylab('% cells EDU+')+xlab('PDTs')+#xmin=reorder(model_time, ord_x_time), xmax=reorder(model_time, ord_x_time)
   scale_color_manual(values=pal)+unmute_theme+
-  scale_y_continuous(breaks=y_breaks-0.5,limits=c(0, max(y_breaks)),expand = c(0, 0)) +#, expand = c(0, 0))+
+  scale_y_continuous(breaks=y_breaks,limits=c(0, max(y_breaks)),expand = c(0, 0)) +#, expand = c(0, 0))+
   theme(legend.position="none", 
                     axis.ticks.x = element_blank(),axis.text.x = element_blank(),
                      legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))
+## why -0.05 ?? TODO FIXME
 #axis.text.x = element_blank(),
 ggsave(outplot, plot=p, width=89, height=89, units="mm")
 

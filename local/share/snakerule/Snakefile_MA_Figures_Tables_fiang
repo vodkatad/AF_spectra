@@ -55,19 +55,30 @@ rule fig_3b_wilcox_mb:
 
 ### Figure 2 and related extended ones
 # bulk + vitro 1st
+rule fig2_input:
+    input: sign=REF_DATASET+"/vitrobulk_heatmap_merged_cosmic.tsv", MRold=ORIG_MA_REF+"/vitrovivobulk_heatmap_merged_cosmic.tsv"
+    output: "vitrobulk_heatmap_merged_cosmic.tsv"
+    shell: 
+        """
+            cat {input[0]} > {output}
+            sed 1d {input[1]} | grep -v CRC0282 >> {output}
+        """
+
 rule fig2_a:
-    input: sign=REF_DATASET+"/vitrobulk_heatmap_merged_cosmic.tsv", 
+    input: sign="vitrobulk_heatmap_merged_cosmic.tsv", 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2a_cosmic.pdf"
     params: wanted="bulk", legend="yes", addlm="no"
     script: SRC_DIR+'/fig2_cosmic_IANG.R'
 
 rule fig_2a_bis:
-    input: sign=REF_DATASET+"/vitrobulk_heatmap_merged_cosmic.tsv", 
+    input: sign="vitrobulk_heatmap_merged_cosmic.tsv", 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2abis_cosmic.pdf"
     params: wanted="vitroMA", legend="no", addlm="no"
     script: SRC_DIR+'/fig2_cosmic_IANG.R'
+
+
 
 # vivo 1st
 rule fig_2b_bis:
@@ -112,7 +123,7 @@ rule vitro_heatmap:
     input: cn=REF_DATASET+'/cn_heatmap/vitro_merged.tsv.gz', order=SORTED_MR
     output: plot="fig_4a_cn_heatmap.pdf"
     log: log="fig_4a_cn_heatmap.log"
-    script: SRC_DIR+'/heatmap_cn.py'
+    script: SRC_DIR+'/heatmap_cn_iang.py'
 
 rule figure_4b_mr:
     input: MR=REF_DATASET+"/fixedcn_tree", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
@@ -303,8 +314,17 @@ rule supplementary_edt15_PriMets_qc:
         """
 
 ################# Supplementary Figures
+rule edf1b_input:
+    input: iang=PRJ_ROOT+'/local/share/data/IANG/edu_conte_together.tsv', MRold=PRJ_ROOT+'/local/share/data/edf1b_EDU.txt'
+    output: "edu_conte_together.tsv"
+    shell: 
+        """
+            cat {input[0]} > {output}
+            sed 1d {input[1]} | grep -v CRC0282  >> {output}
+        """
+
 rule supplementary_edf1b_edu:
-    input: edu=PRJ_ROOT+'/local/share/data/edf1b_EDU.txt', theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    input: edu='edu_conte_together.tsv', theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf1b_EDU.svg'
     log: log="edf1b_EDU.log"
     script: SRC_DIR+'/edfig1b_EDU.R'

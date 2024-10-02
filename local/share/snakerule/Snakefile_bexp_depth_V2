@@ -1328,3 +1328,38 @@ rule puttogheter_len_allcn:
             echo -ne 'sample\\tlen\\n' > {output}
             for f in {input}; do cat <(echo -ne $(basename $f)"\t") <(cat $f); done | sed 's/\.length\.txt//1' >> {output}
         """
+
+##
+rule birth_plot:
+    input: b=B_D, colors=MANY_COLORS_PALETTE
+    output: "birth_clones.png"
+    params: tool=BIN_DIR+"/generic_clones_plot"
+    shell:
+        """
+            cut -f 1,2 {input.b} | sed 1d > {output}.tmp
+            {params.tool} {output}.tmp {output} {input.colors} birth
+            rm {output}.tmp
+        """
+
+rule birthd_plot:
+    input: b=B_D, colors=MANY_COLORS_PALETTE
+    output: "birthdeath_clones.png"
+    params: tool=BIN_DIR+"/generic_clones_plot", colors=MANY_COLORS_PALETTE
+    shell:
+        """
+            cut -f 1,3 {input.b} | sed 1d > {output}.tmp
+            {params.tool} {output}.tmp {output} {input.colors} birthdeath
+            rm {output}.tmp
+        """
+
+
+rule d_plot:
+    input: b=B_D, colors=MANY_COLORS_PALETTE
+    output: "death_clones.png"
+    params: tool=BIN_DIR+"/generic_clones_plot", colors=MANY_COLORS_PALETTE
+    shell:
+        """
+            cut -f 1,4 {input.b} | sed 1d > {output}.tmp
+            {params.tool} {output}.tmp {output} {input.colors} death
+            rm {output}.tmp
+        """

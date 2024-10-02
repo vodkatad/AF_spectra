@@ -18,7 +18,7 @@ ORIG_MA_REF=PRJ_ROOT+'/datasetV2'
 
 #B=PRJ_ROOT+'/local/share/data/birth_rates_up3.txt'
 #B_D=PRJ_ROOT+'/local/share/data/birthmdeath_rates_up3.txt'
-B_D=PRJ_ROOT+'/local/share/data/b_bd.txt'
+B_D=PRJ_ROOT+'/local/share/data/IANG/b_d_IANG.tsv'
 
 ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
 

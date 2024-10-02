@@ -22,19 +22,43 @@ ggplot(data=m ,aes(x=X1, y=age, color=sample))+geom_point()+theme_bw(base_size=1
 
 iang <- read.table('/scratch/trcanmed/AF_spectra/dataset_IANG/vitrobulk_heatmap_merged_cosmic.tsv', sep="\t", header=T)
 
+
+colors <- "#10d8eb,#5b3d80,#e69c6e"
+models <- "CRCUECHPR,CRC2826PR,CRC3023PR"
+model_palette_df <- data.frame(palette=unlist(strsplit(colors, ',')), model=unlist(strsplit(models, ',')), stringsAsFactors=F)
+pal <- model_palette_df$palette
+names(pal) <- model_palette_df$model
+
 sub <- iang[grepl('bulk', rownames(iang)),]
-sub$name <- paste0(gsub('_bulk', '', rownames(sub)), 'PRO')
-ggplot(data=m ,aes(x=X1, y=age, color=sample))+geom_point()+theme_bw(base_size=15)+xlab('SBS1')+scale_color_manual(values=pal)+theme(legend.position = 'none')
+sub$name <- gsub('_bulk', '', rownames(sub))
+sub$name <- gsub('PRO', 'PR', sub$name)
 
 m$age <- as.numeric(m$age)
 
 fit <- lm(data=m, formula=as.formula(age~X1))
 sfit <- summary(fit)
-ggplot()+geom_point(data=m ,aes(x=X1, y=age))+
-  geom_vline(data=sub, aes(xintercept=X1, color=name))+
-  theme_bw(base_size=15)+xlab('SBS1')+scale_color_manual(values=pal)+geom_smooth(data=m ,aes(x=X1, y=age),method=lm)+
-  geom_abline(slope=sfit$coefficients[2,1], intercept=sfit$coefficients[1,1], color='red')
+p1 <- ggplot()+geom_point(data=m ,aes(x=X1, y=age))+
+  geom_vline(data=sub, aes(xintercept=X1, color=name), lwd=1)+
+  theme_bw(base_size=15)+xlab('SBS1')+theme(legend.position='none')+scale_color_manual(values=pal)+geom_smooth(data=m ,aes(x=X1, y=age),method=lm, fullrange=T, lwd=0.5)+
+  geom_abline(slope=sfit$coefficients[2,1], intercept=sfit$coefficients[1,1], color='blue', lwd=0.5)
 
+
+sub$age <- c(23, 50, 50)
+p2 <- ggplot()+geom_point(data=m ,aes(x=X1, y=age))+
+  geom_point(data=sub, aes(x=X1, y=age, color=name, size=1))+
+  theme_bw(base_size=15)+xlab('SBS1')+scale_color_manual(values=pal)+geom_smooth(data=m ,aes(x=X1, y=age),method=lm, fullrange=T, lwd=0.5)+
+  geom_abline(slope=sfit$coefficients[2,1], intercept=sfit$coefficients[1,1], color='blue', lwd=0.5)
+
+ggsave(plot=p1, file='/scratch/trcanmed/AF_spectra/dataset_fIANG/lie1.svg',width=89, height=89, units="mm")
+ggsave(plot=p2, file='/scratch/trcanmed/AF_spectra/dataset_fIANG/lie2_legend.svg',width=89, height=89, units="mm")
+
+
+p3 <- ggplot()+geom_point(data=m ,aes(x=X1, y=age))+
+  geom_point(data=sub, aes(x=X1, y=age, color=name, size=1))+
+  theme_bw(base_size=15)+theme(legend.position='none')+xlab('SBS1')+scale_color_manual(values=pal)+geom_smooth(data=m ,aes(x=X1, y=age),method=lm, fullrange=T, lwd=0.5)+
+  geom_abline(slope=sfit$coefficients[2,1], intercept=sfit$coefficients[1,1], color='blue', lwd=0.5)
+
+ggsave(plot=p3, file='/scratch/trcanmed/AF_spectra/dataset_fIANG/lie2.svg',width=89, height=89, units="mm")
 
 
 colors <- "#10d8eb,#5b3d80,#e69c6e"
@@ -91,3 +115,4 @@ ggplot(pdata, aes(x=model, y=mean)) +  geom_point(stat="identity", shape=1, size
   geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()+ggtitle('Gained muts')+ylab(ylab)+xlab('')+
   geom_point(data=our, aes(x=model, y=gained, color=model_clone), stat="identity", size=4, position=position_dodge(0.2))+
   ctheme+scale_color_manual(values=pal)
+

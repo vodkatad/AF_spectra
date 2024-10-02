@@ -45,7 +45,7 @@ colnames(ic_clones) <- unique(our$model)
 pdata <- as.data.frame(t(ic_clones))
 pdata$model <- rownames(pdata)
 
-our$model_clone <- paste0(our$model, "_", our$clone)
+our$model_clone <- paste0(our$model, "-", our$clone)
 
 n <- length(levels(as.factor(our$model_clone)))
 # shape clones
@@ -60,5 +60,4 @@ geom_segment(aes(y=lower, yend=upper, x=model, xend=model), size=0.6)+theme_bw()
   theme(axis.text.x = element_text(size=15, angle=90, vjust=0.5, hjust=1), legend.position="none", axis.title.y=element_text(size=15))+scale_color_manual(values=pal)+scale_shape_manual(values=c(18,20))
 
 ggsave(outfile)
-
 save.image('p.Rdata')
