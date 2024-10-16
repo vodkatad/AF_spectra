@@ -20,4 +20,18 @@ p <- ggplot() +
 #print(p)
 #graphics.off()
 #print(our)
-ggsave('focus_PRI.svg', plot=p, width=89, height=89, units="mm")
+ggsave('focus_PRI.svg', plot=p,width=89, height=89, units="mm")
+
+## vomitini fig4 mandelaar
+d <- read.table('/scratch/trcanmed/AF_spectra/local/share/data/fig4_paper_mandelaar.txt', sep="\t", header=T)
+d$type <- ifelse(grepl('1$', d$ori), 'M', 'P')
+pd <- d[grepl('SBS1', d$ori),]
+ggplot(data=pd, aes(x=totals, color=type))+geom_density()
+pd8 <- d[grepl('SBS8', d$ori),]
+
+pd8$ratio <- pd8$totals / pd$totals
+ggplot(data=pd8, aes(x=ratio, color=type))+geom_density(aes(y = after_stat(density * n/nrow(d))))
+pd8$type <- factor(pd8$type, levels=c('P', 'M'))
+ggplot(data=pd8, aes(y=ratio, x=type))+geom_boxplot(outlier.shape=NA)+geom_jitter(height=0)+theme_bw(base_size=20)
+wilcox.test(pd8[pd8$type=='M', 'ratio'], pd8[pd8$type=='P', 'ratio'], alt="greater")
+

@@ -15,7 +15,8 @@ ggplot(data=d, aes(x=x, color=type))+geom_density(aes(y=after_stat(scaled)))
 
 ggplot(data=d, aes(x=x, color=type))+geom_density(aes(y=after_stat(scaled*n)))
 ggplot(data=d, aes(x=x, color=type))+geom_density(aes(y=after_stat(count*1/30)))
-
+ggplot(data=d, aes(x=x, color=type))+geom_density(aes(y = after_stat(density * n/nrow(d))))
+                                                  
 ggplot(data=d, aes(x=x, color=type))+geom_density(aes(y=after_stat(count*0.1)))
 ggplot(data=d, aes(x=x, fill=type))+geom_histogram(position='identity', alpha=0.4, binwidth=0.1)
 ggplot(data=d, aes(x=x, color=type))+geom_density(aes(y=after_stat(count*0.1)))+geom_histogram(position='identity', alpha=0.4, binwidth=0.1)
@@ -24,6 +25,15 @@ ggplot(data=d, aes(x=x, color=type))+geom_density(aes(y=after_stat(count*0.1)))+
 ggplot(data=d, aes(x=x, color=type))+geom_density(aes(y=after_stat(count*0.01)))
 ggplot(data=d, aes(x=x, fill=type))+geom_histogram(position='identity', alpha=0.4, binwidth=0.01)
 
+
+p <- ggplot(data=d, aes(x=x, color=type))+geom_density(aes(y = after_stat(density * n/nrow(d))))
+
+ggp <- ggplot_build(p)
+data <- ggp$data[[1]]
+data$y1 <- data$density * data$n /nrow(d)
+range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+data$yy <- range01(data$y1)
+ggplot(data=data, aes(x=x, y=yy, color=colour))+geom_line()
 #     after_stat(density)
 #density estimate.
 

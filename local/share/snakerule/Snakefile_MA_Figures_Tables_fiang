@@ -6,20 +6,22 @@ rule ggplot_themes:
 
 ### Supporting rules
 SORTED_MR='sorted_MR_avg.tsv' # manual decisions
+# average has -2- clones but they do not create issues
 rule avg:
     input: ORIG_MA+"/sorted_MR_avg.tsv", REF_DATASET+"/MR_edu_SNV_averaged.tsv"
-    output: "sorted_MR_avg.tsv.tmp"
+    output: "sorted_MR_avg.tsv"
     shell: 
         """
-           cat {input[0]} | grep -v CRC0282 > {output}
-           cat {input[1]} | sed 1d >> {output}
+           cat {input[0]} | grep -v CRC0282 > {output}.tmp
+           cat {input[1]} | sed 1d | grep -v UECH >> {output}.tmp
+           sort -gk3,3 {output}.tmp > {output} 
         """
 
 ### Figure 1
 rule mr_input:
     input: MR=REF_DATASET+"/MR_edu_SNV", MRold=ORIG_MA_REF+"/MR_edu_SNV"
     output: "MR_edu_SNV"
-    shell: "cat {input} | grep -v CRC0282 > {output}"
+    shell: "cat {input} | grep -v CRC0282 | grep -v '\-2\-' | grep -v UECH > {output}"
 
 rule figure_1b_mr:
     input: MR="MR_edu_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR

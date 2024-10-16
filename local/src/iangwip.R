@@ -15,9 +15,18 @@ sign$model <- gsub("_bulk", "", rownames(sign))
 sign$sample <- sign$model
 sign$model <- paste0(sign$model, ifelse(!grepl('\\d$', sign$model), '', ifelse(sign$model=="CRC0282", 'PR', 'LM')))
 
+
+#treat <- read.table('/scratch/trcanmed/AF_spectra/local/share/data/ma_treats_cleverers_bulk/all_sign_treat.tsv', header=F, sep="\t")
+#colnames(treat) <- c('model', paste0('X', seq(1, 30)))
+
+sign <- sign[, c('model',  'X1')]
+treat <- treat[, c('model', 'X1')]
+
+#sign <- rbind(sign, treat)
+
 m <- merge(age, sign, by="model")
 
-ggplot(data=m ,aes(x=X1, y=age, color=sample))+geom_point()+theme_bw(base_size=15)+xlab('SBS1')+scale_color_manual(values=pal)+theme(legend.position = 'none')
+#ggplot(data=m ,aes(x=X1, y=age, color=sample))+geom_point()+theme_bw(base_size=15)+xlab('SBS1')+scale_color_manual(values=pal)+theme(legend.position = 'none')
 
 
 iang <- read.table('/scratch/trcanmed/AF_spectra/dataset_IANG/vitrobulk_heatmap_merged_cosmic.tsv', sep="\t", header=T)

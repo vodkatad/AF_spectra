@@ -80,7 +80,7 @@ pdata$xmodel <- as.numeric(pdata$model)
 #pdf('fig_1b_MR.pdf')
 
 p <- ggplot() + 
-  geom_point(data=our, aes(x=model, y=MR, color=model_clone), stat="identity", size=2, shape=18, position=position_dodge(0.7))+
+  geom_point(data=our, aes(x=model, y=MR, color=model_clone, group=sample), position=position_dodge(0.8), size=2, shape=18)+
   geom_segment(data=pdata, aes(x=xmodel-0.2, yend=mean,y=mean,  xend=xmodel+0.2),size=.3) +
   geom_errorbar(data=pdata, aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+ylab('MR [SNV/(Gbp*division)]')+xlab('PDTs')+
   scale_color_manual(values=pal)+
@@ -99,3 +99,30 @@ print(nrow(our))
 sink()
 
 save.image(paste0(outplot, '.Rdata'))
+
+q()
+
+our$type <- ifelse(grepl('PR', our$sample), 'PRs', 'LMs')
+our$type <- factor(our$type, levels=c('PRs', 'LMs'))
+pp <- ggplot() + 
+  geom_point(data=our, aes(x=model, y=MR, color=type, group=sample), position=position_dodge(0.8), size=2, shape=18)+
+  geom_segment(data=pdata, aes(x=xmodel-0.2, yend=mean,y=mean,  xend=xmodel+0.2),size=.3) +
+  geom_errorbar(data=pdata, aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+ylab('MR [SNV/(Gbp*division)]')+xlab('PDTs')+
+  scale_color_manual(values=c('#adacac', '#595959'))+
+  scale_y_continuous(breaks=y_breaks,limits=c(0, max(y_breaks)),expand = c(0, 0))+# + ylim(min(y_breaks),max(y_breaks))+
+  unmute_theme+theme(legend.position="none", axis.text.x = element_blank(), 
+                     axis.ticks.x = element_blank(),
+                     legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))                   
+
+
+ggplot(data=our, aes(x=type, y=MR))+geom_boxplot(outlier.shape=NA)+geom_jitter(aes(color=model_clone),height=0)+ scale_color_manual(values=pal)+
+  scale_y_continuous(breaks=y_breaks,limits=c(0, max(y_breaks)),expand = c(0, 0))+# + ylim(min(y_breaks),max(y_breaks))+
+  unmute_theme+theme(legend.position="none", axis.text.x = element_blank(), 
+                     axis.ticks.x = element_blank(),
+                     legend.spacing.y = unit(0.15, "mm")) + guides(col=guide_legend(nrow=length(pal), keyheight=unit(0.01, "mm")))                   
+#print(p)
+  
+
+ggsave('~meh.svg', plot=pp, width=89, height=89, units="mm")
+wilcox.test(our[our$type=="LMs", 'MR_edu'], our[our$type=="PRs", 'MR_edu'])
+wilcox.test(our[our$type=="LMs", 'MR_edu'], our[our$type=="PRs", 'MR_edu'], alt='greater')
