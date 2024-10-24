@@ -13,7 +13,19 @@ d <- read.table(gzfile(ratios_f), sep="\t", header=T)
 d$lr_cl <- log((d$Signature.8_cl/d$Signature.1_cl)+1)
 d$lr_sl <- log((d$Signature.8_subcl/d$Signature.1_subcl)+1) 
 
-pd <- data.frame(ratio=c(d$lr_cl, d$lr_sl), class=c(rep('Clonal', nrow(d)), rep('Subclonal', nrow(d))))
+d_nona <- d[!is.infinite(d$lr_cl) & !is.infinite(d$lr_sl) & !is.na(d$lr_cl) & !is.na(d$lr_sl),]
+
+pd <- data.frame(ratio=c(d_nona$lr_cl, d_nona$lr_sl), class=c(rep('Clonal', nrow(d_nona)), rep('Subclonal', nrow(d_nona))))
+
+
+sink(log_f)
+print('Starting pr:')
+nrow(d)
+print('Removed NA:')
+nrow(d_nona)
+sink()
+
+save.image(paste0(outplot1, '.Rdata'))
 
 y_breaks <- guess_ticks(pd$ratio)
 
@@ -25,7 +37,7 @@ p <- ggplot(data=pd, aes(y=ratio, x=class))+geom_boxplot(outlier.size=1)+
 w <- wilcox.test(d$ratio_subcl, d$ratio_cl, alternative="greater", paired=TRUE)
 tt <- wilcox.test(d$lr_sl, d$lr_cl, alternative="greater", paired=TRUE)
 
-sink(log_f)
+sink(log_f, append=T)
 w
 w$p.value
 nrow(d)

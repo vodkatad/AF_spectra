@@ -4,6 +4,12 @@ rule ggplot_themes:
 	output: Rimage='theme_{size}.Rdata'
 	script: SRC_DIR+'/ggthemes.R'
 
+
+rule ggplot_theme_sizeok:
+	output: Rimage='themeok_{size}.Rdata'
+	script: SRC_DIR+'/ggthemes_sizeok.R'
+
+
 ### Supporting rules
 SORTED_MR='sorted_MR_avg.tsv'
 # rule whose end job is done by hand because 1599PR and LM needs manual positioning
@@ -162,6 +168,35 @@ rule figure_5c_slopes:
     output: plot='fig_5c_slopes_pairedscatter.svg'
     log: log='fig_5c_slopes_pairedscatter.log'
     script: SRC_DIR+'/fig5c_slopes_pairedscatter.R'
+
+### Figure 6a revision
+# average has -2- clones but they do not create issues
+rule avg_new:
+    input: "sorted_MR_avg.tsv", NEW_DATASET+"/MR_edu_SNV_averaged.tsv"
+    output: "sorted_MR_avg_new.tsv"
+    shell: 
+        """
+           cat {input[0]} | grep -v CRC0282 > {output}.tmp
+           cat {input[1]} | sed 1d | grep -v UECH >> {output}.tmp
+           sort -gk3,3 {output}.tmp > {output} 
+        """
+rule mr_input_new:
+    input: MR=NEW_DATASET+"/MR_edu_SNV", MRold=REF_DATASET+"/MR_edu_SNV"
+    output: "MR_edu_SNV_MSS_new"
+    shell: "cat {input} | grep -v CRC0282 | grep -v '\-2\-' | grep -v UECH > {output}"
+
+rule figure_6a_revision:
+    input: MR="MR_edu_SNV_MSS_new", theme=GGTHEME, order='sorted_MR_avg_new.tsv', palette=MANY_COLORS_PALETTE_NEW
+    output: plot='fig_6a_MR.svg', avgdata="fig_6a_avg.tsv", rdata="fig_6a.Rdata"
+    log: log="fig_6a_MR.log"
+    script: SRC_DIR+'/fig_6a_MR_new.R'
+
+rule figure_6a_revision_suppl:
+    input: rdata="fig_6a.Rdata"
+    output: plot='fig_6a_MR_suppl.svg'
+    log: log="fig_6a_MR_suppl.log"
+    script: SRC_DIR+'/fig_6a_MR_new_palette.R'
+
 
 ################ Supplementary tables
 #egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data$ head -n1  CRC0282_clones_all/generations.txt > SourceData/gens.tsv;
@@ -617,12 +652,14 @@ rule supplementary_edf7a_signatures_r2:
     script: SRC_DIR+'/edfig7a_sign_.R'
 
 ### all_cn
+# SX3 
 rule all_cn_avg:
     input: MR=REF_DATASET+"/MR_edu_allcn", palette=MANY_COLORS_PALETTE, order=SORTED_MR,  theme=GGTHEME
     output: plot="allcn_avg.svg"
     log: log="allcn_avg.log"
     script: SRC_DIR+'/edf12_b_allavg.R'
 
+# y axis label needs to be changed.
 rule all_cn_corr:
     input: MR=REF_DATASET+"/MR_edu_SNV", MRclo=REF_DATASET+"/MR_edu_allcn", theme=GGTHEME, palette=MANY_COLORS_PALETTE, palette2=MODELS_COLORS_PALETTE
     output: plot="allcn_cor.svg"
@@ -630,17 +667,20 @@ rule all_cn_corr:
     script: SRC_DIR+'/edf12_c_cor_.R'
 
 ## dnds subclonal T0
-# NOTE: this is with my original universe and not the MCL one shown in supplementary right now. 
-rule figure_temp_dnds:
-    input: dnds=REF_DATASET+"/dndsbinomial_{sub_clo}.tsv", theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR
-    output: plot='{sub_clo}_dnds.svg'
-    script: SRC_DIR+'/fig1c_dnds.R'
-
-
-rule figure_temp_dnds_fixed:
-    input: dnds=REF_DATASET+"/dndsfixed_{sub_clo}.tsv", theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+## TODO HERE PICK for NEW 1C
+# SX2
+rule figure_dnds_fixed_pool:
+    input: dnds_subcl=REF_DATASET+"/dndsfixed_{sub_clo}.tsv", dnds_pool=REF_DATASET+"/dnds_subclonal_poolMSS_t0.tsv",
+            theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot='{sub_clo}_fixeddnds.svg'
-    script: SRC_DIR+'/fig1c_dnds.R'
+    script: SRC_DIR+'/dndspool_rule.R'
+
+# SX4
+rule figure_signatures_150x:
+    input: theme=GGTHEMEOK, s150=REF_DATASET_150+'/vitrovivobulk_heatmap_merged_cosmic.tsv',
+           s30=REF_DATASET_150+'//manual_cosmic.tsv'
+    output: plot='SX4_signatures_150.svg'
+    script: SRC_DIR+'/SX4_signatures150.R'
 
 
 ### uk biobank
@@ -651,14 +691,21 @@ rule sbs_pri_met:
     output: plot1='pri_met_ukbiob.svg'
     script: SRC_DIR+'/ukbiobank_sbs_monte.R'
 
+rule sbs_pri_met_18:
+    input: ratios=DATA+"gecip/18/ratios_18_1.tsv", theme=GGTHEME
+    params: random=20, nsim=10000
+    log: log="pri_met_ukbiob_18.log"
+    output: plot1='pri_met_ukbiob_18.svg'
+    script: SRC_DIR+'/ukbiobank_sbs_monte.R'
+
 rule ukbiob_subcl_cl:
-    input: sign=DATA+"/signatures_subcl_cl.tsv.gz", theme=GGTHEME
+    input: sign=DATA+"gecip/18/signatures_subcl_cl.tsv.gz", theme=GGTHEME
     log: log="ukbiobank_subcl_cl.log"
     output: plot1='ukbiobank_subcl_cl.svg'
     script: SRC_DIR+'/ukbiobank_subcl_cl.R'
 
 rule ukbiob_subcl_cl_18:
-    input: sign=DATA+"/signatures_subcl_cl.tsv.gz", theme=GGTHEME
+    input: sign=DATA+"gecip/18/signatures_subcl_cl.tsv.gz", theme=GGTHEME
     log: log="ukbiobank_subcl_cl_18.log"
     output: plot1='ukbiobank_subcl_cl_18.svg'
     script: SRC_DIR+'/ukbiobank_subcl_cl_18.R'
@@ -671,7 +718,7 @@ rule subclonal_vs_MR: # new 2a
     log: log="subclonal_vs_MR.log"
     script: SRC_DIR+'/subcl_MR_all.R'
 
-##
+## this will be a table
 rule figure_XXXc_slopes_MR:
     input: williams=SOURCE_DATA+'/bestbet_0.12_0.24.tsv', MR=SORTED_MR,
            theme=GGTHEME

@@ -59,7 +59,8 @@ rule dir_and_call:
 
 
 ### overlap between pileups and regions with ploidy = 3 ################################
-SAMPLES=['CRC1307-02-1-E','CRC1307-09-1-B', 'CRC1307-09-0', 'CRC1307-02-0']
+#SAMPLES=['CRC1307-02-1-E','CRC1307-09-1-B', 'CRC1307-09-0', 'CRC1307-02-0']
+SAMPLES=['CRC1307-09-1-B', 'CRC1307-09-0']
 #PILEUPS_D='/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1307_120x/varscan_paired' # CRC1307-02-1-E.mpileup.gz
 PILEUPS_D='/scratch/trcanmed/AF_spectra/local/share/data/mpile1307' # CRC1307-02-1-E.mpileup.gz
 #CN_D='./mutect_nobin_10x/' # mutect_nobin_100x/CRC1307-02-1-E.callable.bed.gz # this has depth included and we want to be as generic as possible now

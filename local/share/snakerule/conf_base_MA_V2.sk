@@ -53,6 +53,7 @@ MANY_COLORS_MODELS_VITRO_NEW="#cc3300,#ff4000,#ff6633,#f607b9,#fb49ce,#f998e0,#9
 MANY_COLORS_MODELS_VIVO=COLORS_MODELS
 MANY_COLORS_PALETTE=PRJ_ROOT+"/local/share/data/palette.rds"
 MODELS_COLORS_PALETTE=PRJ_ROOT+"/local/share/data/model_palette.rds"
+MANY_COLORS_PALETTE_NEW=PRJ_ROOT+"/local/share/data/orig_IANG_palette_all.rds"
 
 BED=PRJ_ROOT+"/local/share/data/mutational_patterns/data"
 
@@ -78,8 +79,11 @@ for m in MODELS:
 DATA=os.path.join(PRJ_ROOT,'local/share/data/')
 
 GGTHEME='theme_5.Rdata'
+GGTHEMEOK='themeok_5.Rdata'
 
 REF_DATASET='../datasetV2'
+REF_DATASET_150='../dataset150x'
+NEW_DATASET='../dataset_IANG'
 SOURCE_DATA=PRJ_ROOT+'/local/share/data/SourceData'
 
 

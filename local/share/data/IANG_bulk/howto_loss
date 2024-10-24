@@ -1,0 +1,4 @@
+bedtools intersect -filenames -wo -a ../bed/loss_genes.bed -b *_sequenza.bed
+
+egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data/IANG_bulk$ sed 1d CRC3023PRO-0-B_segments.txt | bawk '{print $1,$2-1,$3,$10}' >  CRC3023PRO-0-B_sequenza.bed
+egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data/IANG_bulk$ sed 1d CRC2826PRO-0-B_segments.txt | bawk '{print $1,$2-1,$3,$10}' >  CRC2826PRO-0-B_sequenza.bed

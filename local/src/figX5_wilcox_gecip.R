@@ -24,7 +24,7 @@ mb_crc$burden <- log(mb_crc$burden + 0.01) # manually checked 0.03 was the min !
 mb_panc$burden <- log(mb_panc$burden + 0.01) # manually checked 0.03 was the min != 0
 y_breaks <- guess_ticks(c(mb_crc$burden, mb_panc$burden), fixed_min=-5) # again manual check
 crc_p <- ggplot(mb_crc, aes(x=factor(status,level=c('WT','MUT')), y=burden))+#, fill='status'
-  geom_boxplot(outlier.shape = NA,color='black')+geom_jitter(size=0.15, color="black", alpha=0.8, height=0)+
+  geom_boxplot(outlier.shape = NA,color='black')+#geom_jitter(size=0.15, color="black", alpha=0.8, height=0)+
   stat_boxplot(geom ='errorbar', width = 0.3) +
   xlab('CRC')+ylab('Mutational burden')+
   unmute_theme+theme(axis.ticks.x = element_blank()) +#,axis.text.x=element_blank()
