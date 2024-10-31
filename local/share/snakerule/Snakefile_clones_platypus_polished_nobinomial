@@ -658,3 +658,40 @@ rule all_seg_changes:
         """
             cat {input} > {output}
         """
+####
+rule dnds_n:
+    input: "dnds.Rdata"
+    output:  "dnds_n.tsv"
+    params: model=CLONES[0][0]
+    shell: 
+        """
+            Rscript  -e 'load("{input}"); dd <- as.data.frame(table(res$annotmuts$impact)); dd$model <- getwd(G); write.table(dd, file="{output}", sep= "\\t", quote=F, row.names=F)'
+        """
+
+###
+def wanted_pairs_novitro():
+    res = []
+    for cl in CLONES:
+        cl = [x for x in cl if not re.search('-M', x)]
+        res = res + expand("{t1sample}_"+cl[0], t1sample=cl[1:]) 
+    return res
+
+def find_pairs_gain_bed(wildcards):
+    return [x+'.gain.bed' for x in wanted_pairs_novitro()]
+
+rule vitro_gained_bed:
+    input: find_pairs_gain_bed
+    output: "all.gain.bed"
+    shell: "cat {input} | cut -f1,2,3 | sort | uniq > {output}"
+
+rule annotatr:
+    input: gained_bed="all.gain.bed"
+    params: custom_annot="no"
+    output: plot_n="gained.genomicregions.svg", plot_corr="gained.genomicregionsnorm.svg"
+    script: SRC_DIR+"/annotatr.R"
+
+rule annotatr_custom_repliseq:
+    input: gained_bed="all.gain.bed", annot_beds=PRJ_ROOT+'/local/share/data/repliseq_list_bed.txt'
+    params: custom_annot="yes"
+    output: plot_n="repliseq_gained.genomicregions.svg", plot_corr="repliseq_gained.genomicregionsnorm.svg"
+    script: SRC_DIR+"/annotatr.R"

@@ -28,10 +28,34 @@ d$type <- ifelse(grepl('1$', d$ori), 'M', 'P')
 pd <- d[grepl('SBS1', d$ori),]
 ggplot(data=pd, aes(x=totals, color=type))+geom_density()
 pd8 <- d[grepl('SBS8', d$ori),]
+ggplot(data=pd8, aes(x=totals, color=type))+geom_density()
 
 pd8$ratio <- pd8$totals / pd$totals
 ggplot(data=pd8, aes(x=ratio, color=type))+geom_density(aes(y = after_stat(density * n/nrow(d))))
 pd8$type <- factor(pd8$type, levels=c('P', 'M'))
 ggplot(data=pd8, aes(y=ratio, x=type))+geom_boxplot(outlier.shape=NA)+geom_jitter(height=0)+theme_bw(base_size=20)
-wilcox.test(pd8[pd8$type=='M', 'ratio'], pd8[pd8$type=='P', 'ratio'], alt="greater")
+worig <- wilcox.test(pd8[pd8$type=='M', 'ratio'], pd8[pd8$type=='P', 'ratio'], alt="greater")
 
+# 3 primary with SBS1==0
+#pd[pd$totals ==0,]
+
+# check that the inferred order is fine
+d2 <- read.table('/scratch/trcanmed/AF_spectra/local/share/data/fig5_paper_mandelaar.txt', sep="\t", header=T)
+# oops, not, they are median centered :/
+
+set.seed(42)
+pd8b <- pd8
+pdb <- pd
+###
+w <-c()
+for (i in seq(1, 1000)) {
+#pd8m <- pd8[pd8$type=='M',]
+#pd8p <- pd8[pd8$type=='P',]
+#pd8 <- rbind(pd8m[sample.int(nrow(pd8m)),], pd8p[sample.int(nrow(pd8p)),])
+pd8 <- pd8b[sample.int(nrow(pd8b)),]
+pd <- pdb[sample.int(nrow(pdb)),]
+
+pd8$ratio <- pd8$totals / pd$totals
+pd8$type <- factor(pd8$type, levels=c('P', 'M'))
+w <- c(w, wilcox.test(pd8[pd8$type=='M', 'ratio'], pd8[pd8$type=='P', 'ratio'], alt="greater")$p.value)
+}

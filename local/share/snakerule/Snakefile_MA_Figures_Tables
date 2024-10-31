@@ -191,6 +191,12 @@ rule figure_6a_revision:
     log: log="fig_6a_MR.log"
     script: SRC_DIR+'/fig_6a_MR_new.R'
 
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset_Figures_Tables$ grep PR MR_edu_SNV_MSS_new  | cut -f 1 |sort | uniq | wc -l
+#20
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset_Figures_Tables$ grep -v PR MR_edu_SNV_MSS_new  | cut -f 1 |sort | uniq | wc -l
+#52
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset_Figures_Tables$ wc -l MR_edu_SNV_MSS_new 
+#72 MR_edu_SNV_MSS_new
 rule figure_6a_revision_suppl:
     input: rdata="fig_6a.Rdata"
     output: plot='fig_6a_MR_suppl.svg'
@@ -682,6 +688,13 @@ rule figure_signatures_150x:
     output: plot='SX4_signatures_150.svg'
     script: SRC_DIR+'/SX4_signatures150.R'
 
+# SX7
+rule mandelaar:
+    input: sourcedata=DATA+"/fig4_paper_mandelaar.txt", theme=GGTHEME
+    log: log="SX7_mandelaar.log"
+    output: plot='SX7_mandelaar.svg'
+    script: SRC_DIR+'/mandelaar.R'
+    
 
 ### uk biobank
 rule sbs_pri_met:
