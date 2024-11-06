@@ -35,6 +35,12 @@ rule figure_1c_dnds:
     output: plot='fig_1c_dnds.svg'
     script: SRC_DIR+'/fig1c_dnds.R'
 
+rule figure_1c_dnds_pool_revision:
+    input: dnds_subcl=REF_DATASET+"/dnds1vitro_overall.tsv", dnds_pool=REF_DATASET+"/dnds_vitroMSS_t1.tsv",
+            theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot='fig_1c_dnds_pool.svg'
+    script: SRC_DIR+'/dndspool_rule.R'
+
 ### Figure 3
 rule figure_3a_mr:
     input: MR=REF_DATASET+"/MR_edu_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
@@ -673,7 +679,6 @@ rule all_cn_corr:
     script: SRC_DIR+'/edf12_c_cor_.R'
 
 ## dnds subclonal T0
-## TODO HERE PICK for NEW 1C
 # SX2
 rule figure_dnds_fixed_pool:
     input: dnds_subcl=REF_DATASET+"/dndsfixed_{sub_clo}.tsv", dnds_pool=REF_DATASET+"/dnds_subclonal_poolMSS_t0.tsv",
@@ -703,6 +708,13 @@ rule sbs_pri_met:
     log: log="pri_met_ukbiob.log"
     output: plot1='pri_met_ukbiob.svg'
     script: SRC_DIR+'/ukbiobank_sbs_monte.R'
+
+rule sbs_pri_met_pbp_only:
+    input: ratios=DATA+"/ratios_8_1.tsv", theme=GGTHEME
+    log: log="pri_met_ukbiob_pbp.log"
+    output: plot1='pri_met_ukbiob_pbp.svg'
+    script: SRC_DIR+'/ukbiobank_sbs_pbp.R'
+
 
 rule sbs_pri_met_18:
     input: ratios=DATA+"gecip/18/ratios_18_1.tsv", theme=GGTHEME
