@@ -700,3 +700,21 @@ rule all_all_length_ov:
     input: expand("{hsample}.length_ov", hsample=SAMPLES_HIGH)
     output: "all.length"
     shell: "touch {output}"
+
+# I've decided to use mutinfo.tsv.gz which is in line with the suppl tables, will need to check ~ vs dnds. just need to filter it for vitro with all_vitrogained_named.tsv
+# consistency checks in my diary 14/11/2024
+rule n_exonic_gained:
+    input: annot="mutinfo.tsv.gz", vitro="all_vitrogained_named.tsv"
+    output: "n_exonic_gained.txt"
+    shell: 
+        """
+         zcat {input.annot} | sed 1d | filter_1col 9 <(cut -f 2 {input.vitro}) | filter_1col 5 <(echo -e 'splicing\\nexonic') | cut -f 9 | sort | uniq | wc -l > {output}
+        """
+
+rule n_tot_gained:
+    input: annot="mutinfo.tsv.gz", vitro="all_vitrogained_named.tsv"
+    output: "n_tot_gained.txt"
+    shell: 
+        """
+         zcat {input.annot} | sed 1d | filter_1col 9 <(cut -f 2 {input.vitro}) | cut -f 9 | sort | uniq | wc -l > {output}
+        """

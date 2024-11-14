@@ -1363,3 +1363,12 @@ rule d_plot:
             {params.tool} {output}.tmp {output} {input.colors} death
             rm {output}.tmp
         """
+
+
+# n_exonic
+rule all_exonic_or_all_T1:
+    input: expand("{model}/platypus_nobin_00/n_{{exotot}}_gained.txt", model=MODELS_NOREP_TRUE)
+    output: "all_{exotot}_gained.txt"
+    shell: """
+            cat {input} > {output}
+           """
