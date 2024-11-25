@@ -42,7 +42,9 @@ for (mi in models) {
   sink(log_f, append=TRUE)
   onem <- m[m$model == mi,]
   print(mi)
-  print(cor.test(onem[, name1], onem[, name2], method="spearman"))
+  spearm <- cor.test(onem[, name1], onem[, name2], method="spearman")
+  print(spearm)
+  print(spearm$p.value)
   sink()
 }
 

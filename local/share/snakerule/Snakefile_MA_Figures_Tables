@@ -4,11 +4,12 @@ rule ggplot_themes:
 	output: Rimage='theme_{size}.Rdata'
 	script: SRC_DIR+'/ggthemes.R'
 
-
 rule ggplot_theme_sizeok:
 	output: Rimage='themeok_{size}.Rdata'
 	script: SRC_DIR+'/ggthemes_sizeok.R'
 
+### Figure numbers are correct int comments/rule names and not (necessarily) output/script 
+### file names due to the re-numbering that took place during revision.
 
 ### Supporting rules
 SORTED_MR='sorted_MR_avg.tsv'
@@ -41,31 +42,45 @@ rule figure_1c_dnds_pool_revision:
     output: plot='fig_1c_dnds_pool.svg'
     script: SRC_DIR+'/dndspool_rule.R'
 
-### Figure 3
-rule figure_3a_mr:
-    input: MR=REF_DATASET+"/MR_edu_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
-    output: plot='fig_3a_MR.svg', avgdata="fig_3a_avg.tsv"
-    log: log="fig_3a_MR.log"
-    script: SRC_DIR+'/fig3a_MR.R'
+### Figure 2
+rule figure_2a_subclonal_vs_MR:
+    input:  subclonal=REF_DATASET+'/fixedthr_subclonal', MR=REF_DATASET+'/MR_edu_SNV', 
+            theme=GGTHEME, palette=MANY_COLORS_PALETTE
+    output: plot="subclonal_vs_MR.svg"
+    log: log="subclonal_vs_MR.log"
+    script: SRC_DIR+'/subcl_MR_all.R'
 
-rule fig_3b_wilcox_mb:
-    #input: #TCGA=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_TCGA.rds", WES=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_wes.rds", # alt for our servers
-    input: TCGA=SOURCE_DATA+'/all_genes_mb_wilcox_TCGA.rds', WES=SOURCE_DATA+'/all_genes_mb_wilcox_wes.rds',
+rule figure_2b_cumulative_fit:
+    input: PR=SOURCE_DATA+'/CRC1599PRX0A02002TUMD03000V2.fit.0.12_0.24.pdf.debug.RData', LM=SOURCE_DATA+'/CRC1599LMX0A02001TUMD03000V2.fit.0.12_0.24.pdf.debug.RData',
            theme=GGTHEME
-    output: plot='fig_3b_wilcox_mb.svg'
-    log: log="fig_3b_wilcox_mb.log"
-    script: SRC_DIR+'/fig3b_wilcox.R'
+    output: plot='fig_5b_cumfit_nolegend.svg'
+    script: SRC_DIR+'/fig5b_cumfit.R'
 
-### Figure 2 and related extended ones
+rule figure_2b_cumulative_nofit:
+    input: PR=SOURCE_DATA+'/CRC1599PRX0A02002TUMD03000V2.fit.0.12_0.24.pdf.debug.RData', LM=SOURCE_DATA+'/CRC1599LMX0A02001TUMD03000V2.fit.0.12_0.24.pdf.debug.RData',
+           theme=GGTHEME
+    output: plot='fig_5b_cum_nolegend.svg'
+    script: SRC_DIR+'/fig5b_cum.R'
+
+## this is reported as a table 
+rule figure_2c_slopes_MR:
+    input: williams=SOURCE_DATA+'/bestbet_0.12_0.24.tsv', MR=SORTED_MR,
+           theme=GGTHEME
+    output: plot='fig_XXXc_slopes_MR.svg'
+    params: WESbp=WES
+    log: log='fig_XXXc_slopes_MR.log'
+    script: SRC_DIR+'/figXXXc_slopes_MR.R'
+
+### Figure 3 and related supplementary ones
 # bulk + vitro 1st
-rule fig2_a:
+rule figure_3a:
     input: sign=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2a_cosmic.pdf"
     params: wanted="bulk", legend="yes", addlm="yes"
     script: SRC_DIR+'/fig2_cosmic.R'
 
-rule fig_2a_bis:
+rule figure_3a_bis:
     input: sign=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2abis_cosmic.pdf"
@@ -73,7 +88,7 @@ rule fig_2a_bis:
     script: SRC_DIR+'/fig2_cosmic.R'
 
 # vivo 1st
-rule fig_2b_bis:
+rule figure_3b_bis:
     input: sign=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2b_cosmic.pdf"
@@ -81,101 +96,98 @@ rule fig_2b_bis:
     script: SRC_DIR+'/fig2_cosmic.R'
 
 # cleverers for suppl
-rule edfig_7b:
+rule suppl_fig_11b:
     input: sign=REF_DATASET+"/cleverers_exposures.tsv", 
            palette=MODELS_COLORS_PALETTE_CLEV, order=SORTED_CLEV
     output: plot="edfig_7b_cosmic.pdf"
     params: wanted="shared", legend="yes", addlm="no"
     script: SRC_DIR+'/fig2_cosmic.R'
 
-rule edfig_7b_bis:
+rule suppl_fig11b_bis:
     input: sign=REF_DATASET+"/cleverers_exposures.tsv", 
            palette=MODELS_COLORS_PALETTE_CLEV, order=SORTED_CLEV
     output: plot="edfig_7b_bis_cosmic.pdf"
     params: wanted="private", legend="yes", addlm="no"
     script: SRC_DIR+'/fig2_cosmic.R'
 
-# clevers for 2c
-rule fig_2c:
+# clevers for 3c
+rule figure_3c:
     input: sign=REF_DATASET+"/clevers/heatmap_cosmic.tsv", 
            palette=MODELS_COLORS_PALETTE_CLE, order=SORTED_CLE
     output: plot="fig_2c_cosmic.pdf"
     params: wanted="trunk", legend="yes", addlm="no"
     script: SRC_DIR+'/fig2_cosmic.R'
 
-rule fig_2c_bis:
+rule figure_3c_bis:
     input: sign=REF_DATASET+"/clevers/heatmap_cosmic.tsv", 
            palette=MODELS_COLORS_PALETTE_CLE, order=SORTED_CLE
     output: plot="fic_2cbis_cosmic.pdf"
     params: wanted="leaves", legend="no", addlm="no"
     script: SRC_DIR+'/fig2_cosmic.R'
 
+rule figure_3d_sbs_pri_met:
+    input: ratios=DATA+"/ratios_8_1.tsv", theme=GGTHEME
+    params: random=50, nsim=10000
+    log: log="pri_met_ukbiob.log"
+    output: plot1='pri_met_ukbiob.svg'
+    script: SRC_DIR+'/ukbiobank_sbs_monte.R'
+
+rule figure_3e_ukbiob_subcl_cl:
+    input: sign=DATA+"gecip/18/signatures_subcl_cl.tsv.gz", theme=GGTHEME
+    log: log="ukbiobank_subcl_cl.log"
+    output: plot1='ukbiobank_subcl_cl.svg'
+    script: SRC_DIR+'/ukbiobank_subcl_cl.R'
+
 ### Figure 4
-rule vitro_heatmap:
+rule figure_4a_mr:
+    input: MR=REF_DATASET+"/MR_edu_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='fig_3a_MR.svg', avgdata="fig_3a_avg.tsv"
+    log: log="fig_3a_MR.log"
+    script: SRC_DIR+'/fig3a_MR.R'
+
+rule figure_4b_wilcox_mb:
+    #input: #TCGA=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_TCGA.rds", WES=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_wes.rds", # alt for our servers
+    input: TCGA=SOURCE_DATA+'/all_genes_mb_wilcox_TCGA.rds', WES=SOURCE_DATA+'/all_genes_mb_wilcox_wes.rds',
+           theme=GGTHEME
+    output: plot='fig_3b_wilcox_mb.svg'
+    log: log="fig_3b_wilcox_mb.log"
+    script: SRC_DIR+'/fig3b_wilcox.R'
+
+
+### Figure 5
+rule figure_5a_vitro_heatmap:
     input: cn=REF_DATASET+'/cn_heatmap/vitro_merged.tsv.gz', order=SORTED_MR
     output: plot="fig_4a_cn_heatmap.pdf"
     log: log="fig_4a_cn_heatmap.log"
     script: SRC_DIR+'/heatmap_cn.py'
 
-rule figure_4b_mr:
+rule figure_5b_mr:
     input: MR=REF_DATASET+"/fixedcn_tree", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='fig_4b_CN.svg', avgdata="fig_4b_avg.tsv"
     log: log="fig_4b_CN.log"
     script: SRC_DIR+'/fig4b_CN.R'
 
-
-rule figure_4_support_MR_also2nd:
+# Not used
+rule figure_5_support_MR_also2nd:
     input: MR=REF_DATASET+"/MR_edu_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='support_4.svg', avgdata="support_4_avgMR.tsv"
     log: log="fig_4_support.log"
     script: SRC_DIR+'/fig4b_CN.R'
 
-rule figure_4c_cor:
+rule figure_5c_cor:
     input: mr="support_4_avgMR.tsv", cn="fig_4b_avg.tsv",  theme=GGTHEME, palette=MODELS_COLORS_PALETTE
     output: plot='fig_4c_cor.svg'
     log: log="fig_4c_cor.log"
     script: SRC_DIR+'/fig4c_cor.R'
     
-rule figure_4c_mixedmodel:
+# Not used
+rule figure_5c_mixedmodel:
     input: mr="support_4_avgMR.tsv", cn="fig_4b_avg.tsv",  theme=GGTHEME, palette=MODELS_COLORS_PALETTE
     output: plot='fig_4c_mixed.svg'
     log: log="fig_4c_mixed.log"
     script: SRC_DIR+'/fig4c_lmer.R'
 
-### Figure 5
-rule figure_5a_subclonal:
-    input: subclonal=REF_DATASET+'/fixedthr_subclonal', MR=REF_DATASET+'/MR_edu_SNV',
-           theme=GGTHEME, colors=MANY_COLORS_PALETTE
-    output: plot='fig_5a_subclonal.svg', tsv="fig_5a_subclonal.tsv"
-    log: log='fig_5a_subclonal.log'
-    script: SRC_DIR+'/fig5a_subclonal.R'
-
-rule figure_5b_vaf_histo:
-    input: LM=SOURCE_DATA+'/CRC1599LMX0A02001TUMD03000V2.pass.table.snv.gz', PR=SOURCE_DATA+'/CRC1599PRX0A02002TUMD03000V2.pass.table.snv.gz',
-           theme=GGTHEME
-    output: plot='fig_5b_VAFhistogram.svg'
-    script: SRC_DIR+'/fig5b_VAFhisto.R'
-
-rule figure_5b_cumulative_fit:
-    input: PR=SOURCE_DATA+'/CRC1599PRX0A02002TUMD03000V2.fit.0.12_0.24.pdf.debug.RData', LM=SOURCE_DATA+'/CRC1599LMX0A02001TUMD03000V2.fit.0.12_0.24.pdf.debug.RData',
-           theme=GGTHEME
-    output: plot='fig_5b_cumfit_nolegend.svg'
-    script: SRC_DIR+'/fig5b_cumfit.R'
-
-rule figure_5b_cumulative_nofit:
-    input: PR=SOURCE_DATA+'/CRC1599PRX0A02002TUMD03000V2.fit.0.12_0.24.pdf.debug.RData', LM=SOURCE_DATA+'/CRC1599LMX0A02001TUMD03000V2.fit.0.12_0.24.pdf.debug.RData',
-           theme=GGTHEME
-    output: plot='fig_5b_cum_nolegend.svg'
-    script: SRC_DIR+'/fig5b_cum.R'
-
-rule figure_5c_slopes:
-    input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',
-           theme=GGTHEME
-    output: plot='fig_5c_slopes_pairedscatter.svg'
-    log: log='fig_5c_slopes_pairedscatter.log'
-    script: SRC_DIR+'/fig5c_slopes_pairedscatter.R'
-
-### Figure 6a revision
+### Figure 6
 # average has -2- clones but they do not create issues
 rule avg_new:
     input: "sorted_MR_avg.tsv", NEW_DATASET+"/MR_edu_SNV_averaged.tsv"
@@ -197,42 +209,30 @@ rule figure_6a_revision:
     log: log="fig_6a_MR.log"
     script: SRC_DIR+'/fig_6a_MR_new.R'
 
+rule figure_6b_slopes:
+    input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',
+           theme=GGTHEME
+    output: plot='fig_5c_slopes_pairedscatter.svg'
+    log: log='fig_5c_slopes_pairedscatter.log'
+    script: SRC_DIR+'/fig5c_slopes_pairedscatter.R'
+
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset_Figures_Tables$ grep PR MR_edu_SNV_MSS_new  | cut -f 1 |sort | uniq | wc -l
 #20
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset_Figures_Tables$ grep -v PR MR_edu_SNV_MSS_new  | cut -f 1 |sort | uniq | wc -l
 #52
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset_Figures_Tables$ wc -l MR_edu_SNV_MSS_new 
 #72 MR_edu_SNV_MSS_new
-rule figure_6a_revision_suppl:
+
+rule suppl_figure_16_revision_suppl:
     input: rdata="fig_6a.Rdata"
     output: plot='fig_6a_MR_suppl.svg'
     log: log="fig_6a_MR_suppl.log"
     script: SRC_DIR+'/fig_6a_MR_new_palette.R'
 
-
 ################ Supplementary tables
 #egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data$ head -n1  CRC0282_clones_all/generations.txt > SourceData/gens.tsv;
 #egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data$ for f in CRC0282_clones_all/generations.txt CRC0282/generations.txt CRC0327/generations.txt CRC0441/generations.txt CRC1078/generations.txt CRC1078_clones_all/generations.txt  CRC1307/generations.txt CRC1307_clones_all/generations.txt CRC1502/generations.txt CRC1502_clones_2/generations.txt CRC1599LM_clones_all/generations.txt CRC1599LM/generations.txt CRC1599PR/generations.txt; do n=`echo $f | tr "_" "\t" | tr "\/" "\t" | cut -f 1`;  bawk -vF=$n '{print F, $0}' $f; done | grep -v -w CAMPIONI > SourceData/gens.tsv 
-rule supplementary_edt_3_MR_tsv:
-    input: SNV=REF_DATASET+"/MR_edu_SNV", indel=REF_DATASET+"/MR_edu_indel", glen=REF_DATASET+"/all_len_SNV.tsv", 
-           gens=SOURCE_DATA+"/gens.tsv", SNVn=REF_DATASET+"/vitro_gained_SNV", indeln=REF_DATASET+"/vitro_gained_indel"
-    output: tsv="edt3_MR.tsv"
-    script: SRC_DIR+"/merge_edt3.R"
-
-rule supplementary_edt_3_MR_xlsx:
-    input: "edt3_MR.tsv"
-    output: "edt3_MR.xlsx"
-    shell: 
-           """
-            tsv_to_xls -i {input} -s "Extended Data Table 3" -o {output}
-           """
-
-rule supplementary_wilcox_mut_burden:
-    input: genes=REF_DATASET+"/CRC1502-09C_CRC1502-09C_CRC1502-09-1-C.00.private.tsv", wilcox=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_{ref}"
-    output: tsv="supplementary_wilcox_mut_burden_{ref}.tsv"
-    script: SRC_DIR+'/filter_correct.R'
-
-rule supplementary_edt2:
+rule supplementary_table_2:
     input: expand(REF_DATASET+"/edt_dir/{model}_edt2.tsv", model=MODELS_NOREP_TRUE)
     output:  "Extended_Data_Table2.xlsx"
     params:  inp=lambda wildcards, input: ','.join(input), sheets=lambda x: ','.join(MODELS_NOREP_TRUE)
@@ -240,9 +240,28 @@ rule supplementary_edt2:
         """
             tsv_to_xls -i {params.inp} -s {params.sheets} -o {output}
         """
+rule supplementary_table_3_MR_tsv:
+    input: SNV=REF_DATASET+"/MR_edu_SNV", indel=REF_DATASET+"/MR_edu_indel", glen=REF_DATASET+"/all_len_SNV.tsv", 
+           gens=SOURCE_DATA+"/gens.tsv", SNVn=REF_DATASET+"/vitro_gained_SNV", indeln=REF_DATASET+"/vitro_gained_indel"
+    output: tsv="edt3_MR.tsv"
+    script: SRC_DIR+"/merge_edt3.R"
+
+rule supplementary_table_3_MR_xlsx:
+    input: "edt3_MR.tsv"
+    output: "edt3_MR.xlsx"
+    shell: 
+           """
+            tsv_to_xls -i {input} -s "Extended Data Table 3" -o {output}
+           """
+
+rule supplementary_table_4_150X_williams:
+    input: williams=REF_DATASET+'/williams_bin_0.12_0.24.r2.tsv', gen_len=REF_DATASET+'/len_cnall.txt', b_d=B_D, MR=REF_DATASET+"/MR_edu_SNV"
+    output: out='edt_XXX_150x_williams_MR.tsv'
+    log: log='edt_XXX_150x_williams_MR.log'
+    script: SRC_DIR+'/suppl_table_150x_williams.R' 
 
 # Note: LM/PR were added by hand on drive for the first run of this. Automatize if need to re-run.
-rule supplementary_edt_4_xlsx:
+rule supplementary_table_5_xlsx:
     input: exposures=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", cosine=REF_DATASET+"/vitrovivobulk_cosine_merged_cosmic.tsv"
     output: xls="Extended_Data_Table_4_signatures_vitrovivobulk.xlsx"
     shell:
@@ -255,7 +274,21 @@ rule supplementary_edt_4_xlsx:
             rm {output}.tmp*
         """
 
-rule supplementary_edt6_muts:
+# Note: LM/PR were added by hand on drive for the first run of this. Automatize if need to re-run.
+rule supplementary_table_6_xlsx:
+    input: signal="signal_normalized.tsv", sigfit=SOURCE_DATA+"/sigfit.tsv", 
+    output: xls="Extended_Data_Table_5_signatures_alternatives.xlsx"
+    shell:
+        """
+            bawk 'NR==1{{print "model","class",$0}}' {input.signal}  > {output}.tmp
+            tr "_" "\\t" < {input.signal} | sed 's/bulk/parental/' | sed 1d >> {output}.tmp
+            bawk 'NR==1{{print "model","class",$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30}}' {input.sigfit} | perl -pne 's/mean\.Signature\.(\d+)/SBS$1/g' > {output}.tmp2
+            bawk '{{print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31}}' {input.sigfit} | tr "_" "\\t" | sed 's/bulk/parental/' |sed 1d >> {output}.tmp2
+            tsv_to_xls -i {output}.tmp,{output}.tmp2 -s Signal,sigfit -o {output}
+            rm {output}.tmp*
+        """
+
+rule supplementary_table_7_muts:
     input: expand(REF_DATASET+"/edt_dir/{model}_edt6.tsv", model=MODELS_CLEV)
     output:  "Extended_Data_Table6_muts.xlsx"
     params:  inp=lambda wildcards, input: ','.join(input), sheets=lambda x: ','.join(MODELS_CLEV)
@@ -265,7 +298,7 @@ rule supplementary_edt6_muts:
         """
 
 # By hand: trunk -> truncal and PDT ws model. Fix here if need to rerun.
-rule supplementary_edt7_xlsx:
+rule supplementary_table_8_xlsx:
     input: exposures=REF_DATASET+"/cleverers_exposures.tsv", cosine=REF_DATASET+"/cleverers_cosine.tsv", 
            cleversexp=REF_DATASET+"/clevers/heatmap_cosmic.tsv", cleverscosine=REF_DATASET+"/clevers/cosine_cosmic.tsv"
     output: xls="Extended_Data_Table_7_signatures_cleverers.xlsx"
@@ -282,7 +315,7 @@ rule supplementary_edt7_xlsx:
         """
 
 # Note: LM/PR were added by hand on drive for the first run of this. Automatize if need to re-run.
-rule supplementary_edt8_sign_xlsx:
+rule supplementary_table_9_sign_xlsx:
     input: exposures=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", cosine=REF_DATASET+"/vitrovivobulk_cosine_merged_cosmic.tsv"
     output: xls="Extended_Data_Table_8_signaturesT2.xlsx"
     shell:
@@ -295,7 +328,7 @@ rule supplementary_edt8_sign_xlsx:
             rm {output}.tmp*
         """
 
-rule supplementary_edt8_muts:
+rule supplementary_table_9_muts:
     input: expand(REF_DATASET+"/edt_dir/{model}_edt8.tsv", model=MODELS_T2)
     output:  "Extended_Data_Table8_muts.xlsx"
     params:  inp=lambda wildcards, input: ','.join(input), sheets=lambda x: ','.join(MODELS_T2)
@@ -304,21 +337,18 @@ rule supplementary_edt8_muts:
             tsv_to_xls -i {params.inp} -s {params.sheets} -o {output}
         """
 
-
-
 # List of muts and details added by hand on drive from datasetV2/CRC1502-09C_CRC1502-09C_CRC1502-09-1-C.00.private.tsv
-rule supplementary_edt9_xlsx:
+rule supplementary_table_10_wilcox_mut_burden:
+    input: genes=REF_DATASET+"/CRC1502-09C_CRC1502-09C_CRC1502-09-1-C.00.private.tsv", wilcox=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_{ref}"
+    output: tsv="supplementary_wilcox_mut_burden_{ref}.tsv"
+    script: SRC_DIR+'/filter_correct.R'
+
+rule supplementary_table_10_xlsx:
     input: TCGA="supplementary_wilcox_mut_burden_TCGA.tsv", WES="supplementary_wilcox_mut_burden_wes.tsv"
     output: "Extended_Data_Table_9_wilcox_mutburden.xlsx"
     shell: "tsv_to_xls -i {input.TCGA},{input.WES} -s TCGA,WES -o {output}"
 
-rule supplementary_edt10_xlsx:
-    input: tsv="fig_5a_subclonal.tsv"
-    output: "Extended_Data_Table_10_nsubclonal.xlsx"
-    shell: "tsv_to_xls -i {input.tsv} -s n_subclonal -o {output}"
-
-
-rule supplermentary_edt11_fits:
+rule supplementary_table_12_fits:
     input: data=SOURCE_DATA+'/all_bets.tsv'
     output: 'Extended_Data_Table_11_primet_fits.xlsx'
     shell:
@@ -329,7 +359,20 @@ rule supplermentary_edt11_fits:
             rm {output}.tmp
         """
 
-rule supplementary_edt15_PriMets_qc:
+# 13, 14 and 16 assembled on occam
+## suppl table qc 150x
+#egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data/150x_qc$ echo -e "Sample_id\\tSequencing_id\\tmean_coverage\\tsd_coverage\\tmedian_coverage" >  all150.tsv
+#egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data/150x_qc$ for f in *wgsmetrics; do grep -A 1 MEAN_COVERAGE $f | tail -n 1| bawk -v s=$(echo $f) '{print s,s"_150x",$2,$3,$4}'; done | sed 's/
+#\.wgsmetrics//g' >> all150.tsv 
+rule supplementary_table_15_qc_150x:
+    input: PRJ_ROOT+'/local/share/data/SourceData/all150.tsv'
+    output: "Suppl_Table_120x_qc.xlsx"
+    shell: 
+        """
+            tsv_to_xls -i {input} -s "120x wgsmetrics" -o {output}
+        """
+
+rule supplementary_table_17_PriMets_qc:
     input: data=SOURCE_DATA+"/PriMets_metrics"
     output: 'Extended_Data_Table_15_primet_qc.xlsx'
     shell:
@@ -341,180 +384,128 @@ rule supplementary_edt15_PriMets_qc:
         """
 
 ################# Supplementary Figures
-rule supplementary_edf1b_edu:
+## TODO Fig 1
+
+## dnds subclonal T0
+rule supplementary_fig_2_dnds_fixed_pool:
+    input: dnds_subcl=REF_DATASET+"/dndsfixed_{sub_clo}.tsv", dnds_pool=REF_DATASET+"/dnds_subclonal_poolMSS_t0.tsv",
+            theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot='{sub_clo}_fixeddnds.svg'
+    script: SRC_DIR+'/dndspool_rule.R'
+
+rule supplementary_fig_3b_edu:
     input: edu=PRJ_ROOT+'/local/share/data/edf1b_EDU.txt', theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf1b_EDU.svg'
     log: log="edf1b_EDU.log"
     script: SRC_DIR+'/edfig1b_EDU.R'
 
-rule supplementary_edf2_indel:
+### all_cn
+rule supplementary_fig_4a_all_cn_avg:
+    input: MR=REF_DATASET+"/MR_edu_allcn", palette=MANY_COLORS_PALETTE, order=SORTED_MR,  theme=GGTHEME
+    output: plot="allcn_avg.svg"
+    log: log="allcn_avg.log"
+    script: SRC_DIR+'/edf12_b_allavg.R'
+
+# y axis label needs to be changed.
+rule supplementary_fig_4b_all_cn_corr:
+    input: MR=REF_DATASET+"/MR_edu_SNV", MRclo=REF_DATASET+"/MR_edu_allcn", theme=GGTHEME, palette=MANY_COLORS_PALETTE, palette2=MODELS_COLORS_PALETTE
+    output: plot="allcn_cor.svg"
+    log: log="allcn_cor.log"
+    script: SRC_DIR+'/edf12_c_cor_.R'
+
+rule supplementary_fig_5_indel:
     input: MR=REF_DATASET+"/MR_edu_indel", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf2_indel.svg', avgdata="edf2_indel_avg.tsv"
     log: log="edf2_indel.log"
     script: SRC_DIR+'/edf2_indel.R'
 
-
-rule supplementary_edf2_indel_noMSI:
+# Not used
+rule supplementary_fig_5_indel_noMSI:
     input: MR=REF_DATASET+"/MR_edu_indel", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf2_indel_noMSI.svg', avgdata="edf2_indel_avg_noMSI.tsv"
     log: log="edf2_indel_noMSI.log"
     script: SRC_DIR+'/edf2_indel_noMSI.R'
 
-
-# Note: in the assembled Extended Figure 3A and 3B are inverted
-rule supplementary_edf3a_N:
-    input: MR=REF_DATASET+"/vitro_gained_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
-    output: plot='edf3a_N.svg', avgdata="edf3a_N_avg.tsv"
-    log: log="edf3a_N.log"
-    script: SRC_DIR+'/edfig3a_N.R'
-
-rule supplementary_edf3b_nN:
+rule supplementary_fig_6a_nN:
     input: MR=REF_DATASET+"/MR_conte_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf3b_nN.svg', avgdata="edf3b_nN_avg.tsv"
     log: log="edf3b_nN.log"
     script: SRC_DIR+'/edf3b_nN.R'
 
-rule supplementary_edf4a_localiz:
+rule supplementary_fig_6b_N:
+    input: MR=REF_DATASET+"/vitro_gained_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='edf3a_N.svg', avgdata="edf3a_N_avg.tsv"
+    log: log="edf3a_N.log"
+    script: SRC_DIR+'/edfig3a_N.R'
+
+# correlations for captions of edf 6a/b
+# should remove 2nd to be correct, so using avg from Fig 1 and not support 4.
+rule correlation_MR_gained:
+    input: mr="fig_1b_avg.tsv", tree="edf3a_N_avg.tsv",  theme=GGTHEME, palette=MODELS_COLORS_PALETTE
+    output: plot='MR_n_cor.svg'
+    log: log="MR_n_cor.log"
+    script: SRC_DIR+'/edfig6_cor.R'
+
+rule correlation_MR_doublings:
+    input: mr="fig_1b_avg.tsv", tree="edf3b_nN_avg.tsv",  theme=GGTHEME, palette=MODELS_COLORS_PALETTE
+    output: plot='MR_doub_cor.svg'
+    log: log="MR_doub_cor.log"
+    script: SRC_DIR+'/edfig6_cor.R'
+
+rule supplementary_fig_7a_localiz:
     input: data=REF_DATASET+'/annotatr_locations.tsv', theme=GGTHEME
     output: plot='edf4a_localiz.svg'
     log: log='edf4a_localiz.log'
     script: SRC_DIR+'/edfig4a_localiz.R'
 
-rule supplementary_edf4b_essential:
+rule supplementary_fig_7b_essential:
     input: bulk=REF_DATASET+'/bulk_essential_n.tsv', gained=REF_DATASET+"/SNV_essential_n.tsv", theme=GGTHEME
     output: plot='edf4b_essential.svg'
     log: log='edf4b_essential.log'
     script: SRC_DIR+'/edfig4b_essential.R'
 
-
-rule figure_edf6_mr:
+rule supplementary_fig_8_mr:
     input: MR=REF_DATASET+"/fixedsnvindel_tree", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf6_support.svg', avgdata="edf6_avg.tsv"
     log: log="edf6_snvindel.log"
     script: SRC_DIR+'/fig4b_CN.R'
 
-rule supplementary_edf6_tree_MR:
+rule supplementary_fig_8_tree_MR:
     input: mr="support_4_avgMR.tsv", tree="edf6_avg.tsv",  theme=GGTHEME, palette=MODELS_COLORS_PALETTE
     output: plot='edf6_cor.svg'
     log: log="edf6_cor.log"
     script: SRC_DIR+'/edfig6_cor.R'
 
-rule supplementary_edf7a_signatures:
-    input: signus=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", signclevers=REF_DATASET+'/clevers/heatmap_cosmic.tsv',
-           theme=GGTHEME
-    output: plot1="edfig_7a_SBS1_8_18_us.svg", plot2="edfig_7a_SBS1_8_18_clevers.svg"
-    log: log="edfig_7a_SBS1_8_18_us.log"
-    script: SRC_DIR+'/edfig7a_sign_.R'
-
-# Edf9 has became edf8, keeping original numbering for reference.
-SORTED_MR_T2=PRJ_ROOT+'/local/share/data/sorted_MR_avg_T2.tsv'
-rule supplementary_edf9a:
-    input: dnds=REF_DATASET+"/dnds_t2_vitro_overall.tsv", theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR_T2
-    output: plot='edf9a_dnds.svg'
-    script: SRC_DIR+'/fig1c_dnds.R'
-
-rule supplementary_edf9b:
-    input: sign=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", 
-           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
-    output: plot="edf9b_cosmic.pdf"
-    params: wanted="2nd_vitroMA", legend="no", addlm="yes"
-    script: SRC_DIR+'/fig2_cosmic.R'
-
-# Edf10 has became edf9
-rule supplementary_edf10:
-    input: N=REF_DATASET+"/vitro_gained_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
-    output: plot='edf10_hyp.svg'
-    log: log="edf10_hyp.log"
-    script: SRC_DIR+'/edfig10_hyp.R'
-
-rule edf_12a_R2:
-    input: data=SOURCE_DATA+'/all_bets.tsv',
-           theme=GGTHEME
-    output: plot='edfig_12a_R2.svg'
-    script: SRC_DIR+'/edfig_12a_R2_.R'
-
-rule edf_12a_R2_bis:
-    input: data=SOURCE_DATA+'/all_bets.tsv',
-           theme=GGTHEME
-    output: plot='edfig_12a_R2_bis.svg'
-    script: SRC_DIR+'/edfig_12a_R2_bis.R'
-
-# Edf12 has became edf11
-# 12b and 12c are inverted
-rule figure_12b_slopes_noout:
-    input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',
-           theme=GGTHEME
-    params: what="slopes"
-    output: plot='edfig_12b_slopes.svg'
-    log: log='fig_12b_slopes.log'
-    script: SRC_DIR+'/fig12bc_slopes.R'
-
-rule figure_12c_subcl:
-    input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',
-           theme=GGTHEME
-    params: what="subcl"
-    output: plot='edfig_12c_subcl.svg'
-    log: log='fig_12c_subcl.log'
-    script: SRC_DIR+'/fig12bc_slopes.R'
-
-
-## 3 panels for last supplementary figures on calls QC
-# corr plot 20x - standard
-rule edf_13_a:
-    input: MR=REF_DATASET+"/MR_edu_SNV", MRcov=REF_DATASET+"/check_MR_coverage_MR_edu_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE
-    output: plot="edf12a_corcov.svg", 
-    log: log="edf12a_corcov.log"
-    script: SRC_DIR+'/edf12a_corcov.R'
-    
-
-# MR univ T0:
-rule edf_13_b:
-    input: MR=REF_DATASET+"/MR_edu_univMutect", palette=MANY_COLORS_PALETTE, order=SORTED_MR,  theme=GGTHEME
-    output: plot="edf12b_allavg.svg"
-    log: log="edf12b_allavg.log"
-    script: SRC_DIR+'/edf12_b_allavg.R'
-
-# correlation univ T0 default:
-rule edf_13_c:
-    input: MR=REF_DATASET+"/MR_edu_SNV", MRclo=REF_DATASET+"/MR_edu_univMutect", theme=GGTHEME, palette=MANY_COLORS_PALETTE, palette2=MODELS_COLORS_PALETTE
-    output: plot="edf12c_cor.svg"
-    log: log="edf12c_cor.log"
-    script: SRC_DIR+'/edf12_c_cor_.R'
-
-######################## miscellanea
-# diary 25/05/23 for code run on newer R (4.3.0) on cog + add LM to 1599BULK manually
-# edf7
-
-# Extended data figure 6 panels:
-rule signal_fig2_a:
+### Supplementary figure 9 panels
+rule signal_sfig9_a:
     input: sign=SOURCE_DATA+'/exposures2.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2a_signal.pdf", tsv="signal_normalized.tsv"
     params: wanted="bulk", legend="yes", addlm="yes", norm="yes"
     script: SRC_DIR+'/fig2_signal.R'
 
-rule signal_fig_2a_bis:
+rule signal_sfig_9a_bis:
     input: sign=SOURCE_DATA+'/exposures2.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2abis_signal.pdf"
     params: wanted="vitroMA", legend="no", addlm="yes", norm="yes"
     script: SRC_DIR+'/fig2_signal.R'
 
-rule signal_fig_2b_bis:
+rule signal_sfig_9b_bis:
     input: sign=SOURCE_DATA+'/exposures2.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2b_signal.pdf"
     params: wanted="vivoMA", legend="no", addlm="yes", norm="yes"
     script: SRC_DIR+'/fig2_signal.R'
 
-rule sigfit_fig2_a:
+rule sigfit_sfig9_a:
     input: sign=SOURCE_DATA+'/sigfit.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2a_sigfit.pdf"
     params: wanted="bulk", legend="yes", addlm="yes", norm="no"
     script: SRC_DIR+'/fig2_sigfit.R'
 
-rule sigfit_fig_2a_bis:
+rule sigfit_sfig_9a_bis:
     input: sign=SOURCE_DATA+'/sigfit.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2abis_sigfit.pdf"
@@ -522,26 +513,127 @@ rule sigfit_fig_2a_bis:
     script: SRC_DIR+'/fig2_sigfit.R'
 
 # vivo 1st
-rule sigfit_fig_2b_bis:
+rule sigfit_sfig_9b_bis:
     input: sign=SOURCE_DATA+'/sigfit.tsv', 
            palette=MODELS_COLORS_PALETTE, order=SORTED_MR
     output: plot="fig_2b_sigfit.pdf"
     params: wanted="vivoMA", legend="no", addlm="yes", norm="no"
     script: SRC_DIR+'/fig2_sigfit.R'
 
+###
 
-# Note: LM/PR were added by hand on drive for the first run of this. Automatize if need to re-run.
-rule supplementary_edt5_xlsx:
-    input: signal="signal_normalized.tsv", sigfit=SOURCE_DATA+"/sigfit.tsv", 
-    output: xls="Extended_Data_Table_5_signatures_alternatives.xlsx"
+rule supplementary_fig_10_signatures_150x:
+    input: theme=GGTHEMEOK, s150=REF_DATASET_150+'/vitrovivobulk_heatmap_merged_cosmic.tsv',
+           s30=REF_DATASET_150+'//manual_cosmic.tsv'
+    output: plot='SX4_signatures_150.svg'
+    script: SRC_DIR+'/SX4_signatures150.R'
+
+rule supplementary_fig_11a_signatures:
+    input: signus=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", signclevers=REF_DATASET+'/clevers/heatmap_cosmic.tsv',
+           theme=GGTHEME
+    output: plot1="edfig_7a_SBS1_8_18_us.svg", plot2="edfig_7a_SBS1_8_18_clevers.svg"
+    log: log="edfig_7a_SBS1_8_18_us.log"
+    script: SRC_DIR+'/edfig7a_sign_.R'
+
+rule supplementary_fig_11b_signatures_r2:
+    input: signus=REF_DATASET+"/univMutect_heatmap_merged_cosmic.tsv", signclevers=REF_DATASET+'/clevers/heatmap_cosmic.tsv',
+           theme=GGTHEME
+    output: plot1="edfig_7a_SBS1_8_18_us_r2.svg", plot2="removeme.svg"
+    log: log="edfig_7a_SBS1_8_18_us_r2.log"
+    script: SRC_DIR+'/edfig7a_sign_.R'
+
+SORTED_MR_T2=PRJ_ROOT+'/local/share/data/sorted_MR_avg_T2.tsv'
+rule supplementary_fig_12a:
+    input: dnds=REF_DATASET+"/dnds_t2_vitro_overall.tsv", theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR_T2
+    output: plot='edf9a_dnds.svg'
+    script: SRC_DIR+'/fig1c_dnds.R'
+
+rule supplementary_fig_12b:
+    input: sign=REF_DATASET+"/vitrovivobulk_heatmap_merged_cosmic.tsv", 
+           palette=MODELS_COLORS_PALETTE, order=SORTED_MR
+    output: plot="edf9b_cosmic.pdf"
+    params: wanted="2nd_vitroMA", legend="no", addlm="yes"
+    script: SRC_DIR+'/fig2_cosmic.R'
+
+rule supplementary_fig_13:
+    input: N=REF_DATASET+"/vitro_gained_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    output: plot='edf10_hyp.svg'
+    log: log="edf10_hyp.log"
+    script: SRC_DIR+'/edfig10_hyp.R'
+
+# uk biob DNAH5
+rule supplementary_fig_14_DNAH5_GECIP_crc:
+    input: mb_crc=PRJ_ROOT+'/local/share/data/gecip_DNAH5/dnah5_crc_removemul_nopid.tsv', 
+           mb_panc=PRJ_ROOT+'/local/share/data/gecip_DNAH5/dnah5_panc_removemul_nopid.tsv', 
+           theme=GGTHEME
+    output: plot="SX5A.svg"
+    log: log="SX5A.log"
+    script: SRC_DIR+'/figX5_wilcox_gecip.R'
+
+# S15 assembled by hand from single panels
+
+rule supplementary_fig_17a_R2:
+    input: data=SOURCE_DATA+'/all_bets.tsv',
+           theme=GGTHEME
+    output: plot='edfig_12a_R2.svg'
+    script: SRC_DIR+'/edfig_12a_R2_.R'
+
+rule supplementary_fig_17a_R2_bis:
+    input: data=SOURCE_DATA+'/all_bets.tsv',
+           theme=GGTHEME
+    output: plot='edfig_12a_R2_bis.svg'
+    script: SRC_DIR+'/edfig_12a_R2_bis.R'
+
+rule supplementary_fig_17b_subcl:
+    input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',
+           theme=GGTHEME
+    params: what="subcl"
+    output: plot='edfig_12c_subcl.svg'
+    log: log='fig_12c_subcl.log'
+    script: SRC_DIR+'/fig12bc_slopes.R'
+
+rule supplementary_figure_17c_slopes_noout:
+    input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',
+           theme=GGTHEME
+    params: what="slopes"
+    output: plot='edfig_12b_slopes.svg'
+    log: log='fig_12b_slopes.log'
+    script: SRC_DIR+'/fig12bc_slopes.R'
+
+## 3 panels for last supplementary figures on calls QC
+# corr plot 20x - standard
+rule supplementary_fig_18a:
+    input: MR=REF_DATASET+"/MR_edu_SNV", MRcov=REF_DATASET+"/check_MR_coverage_MR_edu_SNV", theme=GGTHEME, palette=MANY_COLORS_PALETTE
+    output: plot="edf12a_corcov.svg", 
+    log: log="edf12a_corcov.log"
+    script: SRC_DIR+'/edf12a_corcov.R'
+    
+# MR univ T0:
+rule supplementary_fig_18b:
+    input: MR=REF_DATASET+"/MR_edu_univMutect", palette=MANY_COLORS_PALETTE, order=SORTED_MR,  theme=GGTHEME
+    output: plot="edf12b_allavg.svg"
+    log: log="edf12b_allavg.log"
+    script: SRC_DIR+'/edf12_b_allavg.R'
+
+# correlation univ T0 default:
+rule supplementary_fig_18c:
+    input: MR=REF_DATASET+"/MR_edu_SNV", MRclo=REF_DATASET+"/MR_edu_univMutect", theme=GGTHEME, palette=MANY_COLORS_PALETTE, palette2=MODELS_COLORS_PALETTE
+    output: plot="edf12c_cor.svg"
+    log: log="edf12c_cor.log"
+    script: SRC_DIR+'/edf12_c_cor_.R'
+
+### Old rules/not used in submission
+######################## miscellanea
+# diary 25/05/23 for code run on newer R (4.3.0) on cog + add LM to 1599BULK manually
+# edf7
+# Required to change dimensions of text in inkscape
+rule perle:
+    input: '{qualunque}.svg'
+    output: 'perlati/{qualunque}.svg'
     shell:
         """
-            bawk 'NR==1{{print "model","class",$0}}' {input.signal}  > {output}.tmp
-            tr "_" "\\t" < {input.signal} | sed 's/bulk/parental/' | sed 1d >> {output}.tmp
-            bawk 'NR==1{{print "model","class",$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30}}' {input.sigfit} | perl -pne 's/mean\.Signature\.(\d+)/SBS$1/g' > {output}.tmp2
-            bawk '{{print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31}}' {input.sigfit} | tr "_" "\\t" | sed 's/bulk/parental/' |sed 1d >> {output}.tmp2
-            tsv_to_xls -i {output}.tmp,{output}.tmp2 -s Signal,sigfit -o {output}
-            rm {output}.tmp*
+            mkdir -p perlati
+            perl -pne "s/textLength='.+px'//; " < {input} > {output}
         """
 
 rule figure_edf6bis_mr:
@@ -555,16 +647,6 @@ rule supplementary_edf6bis_tree_MR:
     output: plot='edf6bis_cor.svg'
     log: log="edf6bis_cor.log"
     script: SRC_DIR+'/edfig6_cor.R'
-
-rule perle:
-    input: '{qualunque}.svg'
-    output: 'perlati/{qualunque}.svg'
-    shell:
-        """
-            mkdir -p perlati
-            perl -pne "s/textLength='.+px'//; " < {input} > {output}
-        """
-
 
 # msigact
 # input generated on rotpunkt via msigact.R and manual removal of LMO/O for bulk
@@ -590,35 +672,11 @@ rule msigact_fig_2b_bis:
     params: wanted="vivoMA", legend="no", addlm="yes", norm="no"
     script: SRC_DIR+'/fig2_msigact.R'
 
-# methods suppls
-rule figure_1b_mr_clonal:
-    input: MR=REF_DATASET+"/MR_edu_univMutect", theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
-    output: plot='fig_clonal_MR.svg', avgdata="fig_clonal_avg.tsv"
-    log: log="fig_clonal_MR.log"
-    script: SRC_DIR+'/fig1b_MR.R'
-
-# correlations for captions of edf 3a/b
-# should remove 2nd to be correct, so using avg from Fig 1 and not support 4.
-rule correlation_MR_gained:
-    input: mr="fig_1b_avg.tsv", tree="edf3a_N_avg.tsv",  theme=GGTHEME, palette=MODELS_COLORS_PALETTE
-    output: plot='MR_n_cor.svg'
-    log: log="MR_n_cor.log"
-    script: SRC_DIR+'/edfig6_cor.R'
-
-# temporary m$mean_tree <- m$mean_tree*1000000000
-rule correlation_MR_doublings:
-    input: mr="fig_1b_avg.tsv", tree="edf3b_nN_avg.tsv",  theme=GGTHEME, palette=MODELS_COLORS_PALETTE
-    output: plot='MR_doub_cor.svg'
-    log: log="MR_doub_cor.log"
-    script: SRC_DIR+'/edfig6_cor.R'
-
-##################################### misc
 rule n_clonal_bulk_T0:
     input: n=REF_DATASET+"/all_clonal_0.24_n.txt", theme=GGTHEME, palette=MODELS_COLORS_PALETTE
     output: plot='N_clonal_bulk_T0.svg', plotMSI='msi_N_clonal_bulk_T0.svg'
     log: log="N_clonal_bulk_T0.log"
     script: SRC_DIR+'/n_muts.R'
-
 
 rule estim_age_naive:
     input:  n=REF_DATASET+"/all_clonal_0.24_n.txt", gb=REF_DATASET+'/all_len_SNV.tsv', ave_MR='fig_1b_avg.tsv'
@@ -629,8 +687,6 @@ rule estim_divisions_xeno:
     input:  n=REF_DATASET+"/vivo_MR_len_SNV", ave_MR='fig_1b_avg.tsv'
     output: estim_div="xeno_estim.txt"
     script: SRC_DIR+'/estim_xeno_naive.R'
-
-
 
 ### hp r2
 # bulk + vitro 1st
@@ -656,43 +712,6 @@ rule fig_2b_bis_r2:
     params: wanted="vivoMA", legend="no", addlm="yes"
     script: SRC_DIR+'/fig2_cosmic.R'
 
-rule supplementary_edf7a_signatures_r2:
-    input: signus=REF_DATASET+"/univMutect_heatmap_merged_cosmic.tsv", signclevers=REF_DATASET+'/clevers/heatmap_cosmic.tsv',
-           theme=GGTHEME
-    output: plot1="edfig_7a_SBS1_8_18_us_r2.svg", plot2="removeme.svg"
-    log: log="edfig_7a_SBS1_8_18_us_r2.log"
-    script: SRC_DIR+'/edfig7a_sign_.R'
-
-### all_cn
-# SX3 
-rule all_cn_avg:
-    input: MR=REF_DATASET+"/MR_edu_allcn", palette=MANY_COLORS_PALETTE, order=SORTED_MR,  theme=GGTHEME
-    output: plot="allcn_avg.svg"
-    log: log="allcn_avg.log"
-    script: SRC_DIR+'/edf12_b_allavg.R'
-
-# y axis label needs to be changed.
-rule all_cn_corr:
-    input: MR=REF_DATASET+"/MR_edu_SNV", MRclo=REF_DATASET+"/MR_edu_allcn", theme=GGTHEME, palette=MANY_COLORS_PALETTE, palette2=MODELS_COLORS_PALETTE
-    output: plot="allcn_cor.svg"
-    log: log="allcn_cor.log"
-    script: SRC_DIR+'/edf12_c_cor_.R'
-
-## dnds subclonal T0
-# SX2
-rule figure_dnds_fixed_pool:
-    input: dnds_subcl=REF_DATASET+"/dndsfixed_{sub_clo}.tsv", dnds_pool=REF_DATASET+"/dnds_subclonal_poolMSS_t0.tsv",
-            theme=GGTHEME, palette=MODELS_COLORS_PALETTE, order=SORTED_MR
-    output: plot='{sub_clo}_fixeddnds.svg'
-    script: SRC_DIR+'/dndspool_rule.R'
-
-# SX4
-rule figure_signatures_150x:
-    input: theme=GGTHEMEOK, s150=REF_DATASET_150+'/vitrovivobulk_heatmap_merged_cosmic.tsv',
-           s30=REF_DATASET_150+'//manual_cosmic.tsv'
-    output: plot='SX4_signatures_150.svg'
-    script: SRC_DIR+'/SX4_signatures150.R'
-
 # SX7
 rule mandelaar:
     input: sourcedata=DATA+"/fig4_paper_mandelaar.txt", theme=GGTHEME
@@ -700,21 +719,12 @@ rule mandelaar:
     output: plot='SX7_mandelaar.svg'
     script: SRC_DIR+'/mandelaar.R'
     
-
-### uk biobank
-rule sbs_pri_met:
-    input: ratios=DATA+"/ratios_8_1.tsv", theme=GGTHEME
-    params: random=50, nsim=10000
-    log: log="pri_met_ukbiob.log"
-    output: plot1='pri_met_ukbiob.svg'
-    script: SRC_DIR+'/ukbiobank_sbs_monte.R'
-
+## uk biobank
 rule sbs_pri_met_pbp_only:
     input: ratios=DATA+"/ratios_8_1.tsv", theme=GGTHEME
     log: log="pri_met_ukbiob_pbp.log"
     output: plot1='pri_met_ukbiob_pbp.svg'
     script: SRC_DIR+'/ukbiobank_sbs_pbp.R'
-
 
 rule sbs_pri_met_18:
     input: ratios=DATA+"gecip/18/ratios_18_1.tsv", theme=GGTHEME
@@ -723,60 +733,26 @@ rule sbs_pri_met_18:
     output: plot1='pri_met_ukbiob_18.svg'
     script: SRC_DIR+'/ukbiobank_sbs_monte.R'
 
-rule ukbiob_subcl_cl:
-    input: sign=DATA+"gecip/18/signatures_subcl_cl.tsv.gz", theme=GGTHEME
-    log: log="ukbiobank_subcl_cl.log"
-    output: plot1='ukbiobank_subcl_cl.svg'
-    script: SRC_DIR+'/ukbiobank_subcl_cl.R'
-
 rule ukbiob_subcl_cl_18:
     input: sign=DATA+"gecip/18/signatures_subcl_cl.tsv.gz", theme=GGTHEME
     log: log="ukbiobank_subcl_cl_18.log"
     output: plot1='ukbiobank_subcl_cl_18.svg'
     script: SRC_DIR+'/ukbiobank_subcl_cl_18.R'
 
-## subclonal 0.12-0.24 vs all MR
-rule subclonal_vs_MR: # new 2a
-    input:  subclonal=REF_DATASET+'/fixedthr_subclonal', MR=REF_DATASET+'/MR_edu_SNV', 
-            theme=GGTHEME, palette=MANY_COLORS_PALETTE
-    output: plot="subclonal_vs_MR.svg"
-    log: log="subclonal_vs_MR.log"
-    script: SRC_DIR+'/subcl_MR_all.R'
+rule figure_5a_subclonal:
+    input: subclonal=REF_DATASET+'/fixedthr_subclonal', MR=REF_DATASET+'/MR_edu_SNV',
+           theme=GGTHEME, colors=MANY_COLORS_PALETTE
+    output: plot='fig_5a_subclonal.svg', tsv="fig_5a_subclonal.tsv"
+    log: log='fig_5a_subclonal.log'
+    script: SRC_DIR+'/fig5a_subclonal.R'
 
-## this will be a table
-rule figure_XXXc_slopes_MR:
-    input: williams=SOURCE_DATA+'/bestbet_0.12_0.24.tsv', MR=SORTED_MR,
+rule figure_5b_vaf_histo:
+    input: LM=SOURCE_DATA+'/CRC1599LMX0A02001TUMD03000V2.pass.table.snv.gz', PR=SOURCE_DATA+'/CRC1599PRX0A02002TUMD03000V2.pass.table.snv.gz',
            theme=GGTHEME
-    output: plot='fig_XXXc_slopes_MR.svg'
-    params: WESbp=WES
-    log: log='fig_XXXc_slopes_MR.log'
-    script: SRC_DIR+'/figXXXc_slopes_MR.R'
+    output: plot='fig_5b_VAFhistogram.svg'
+    script: SRC_DIR+'/fig5b_VAFhisto.R'
 
-## 
-rule table_150X_williams:
-    input: williams=REF_DATASET+'/williams_bin_0.12_0.24.r2.tsv', gen_len=REF_DATASET+'/len_cnall.txt', b_d=B_D, MR=REF_DATASET+"/MR_edu_SNV"
-    output: out='edt_XXX_150x_williams_MR.tsv'
-    log: log='edt_XXX_150x_williams_MR.log'
-    script: SRC_DIR+'/suppl_table_150x_williams.R' 
-
-
-# uk biob DNAH5
-rule DNAH5_GECIP_crc:
-    input: mb_crc=PRJ_ROOT+'/local/share/data/gecip_DNAH5/dnah5_crc_removemul_nopid.tsv', 
-           mb_panc=PRJ_ROOT+'/local/share/data/gecip_DNAH5/dnah5_panc_removemul_nopid.tsv', 
-           theme=GGTHEME
-    output: plot="SX5A.svg"
-    log: log="SX5A.log"
-    script: SRC_DIR+'/figX5_wilcox_gecip.R'
-
-## suppl table qc 150x
-#egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data/150x_qc$ echo -e "Sample_id\\tSequencing_id\\tmean_coverage\\tsd_coverage\\tmedian_coverage" >  all150.tsv
-#egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data/150x_qc$ for f in *wgsmetrics; do grep -A 1 MEAN_COVERAGE $f | tail -n 1| bawk -v s=$(echo $f) '{print s,s"_150x",$2,$3,$4}'; done | sed 's/
-#\.wgsmetrics//g' >> all150.tsv 
-rule suppltable_qc_150x:
-    input: PRJ_ROOT+'/local/share/data/SourceData/all150.tsv'
-    output: "Suppl_Table_120x_qc.xlsx"
-    shell: 
-        """
-            tsv_to_xls -i {input} -s "120x wgsmetrics" -o {output}
-        """
+rule supplementary_table_11_xlsx:
+    input: tsv="fig_5a_subclonal.tsv"
+    output: "Extended_Data_Table_10_nsubclonal.xlsx"
+    shell: "tsv_to_xls -i {input.tsv} -s n_subclonal -o {output}"
