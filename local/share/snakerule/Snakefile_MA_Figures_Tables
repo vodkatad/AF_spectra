@@ -339,7 +339,7 @@ rule supplementary_table_9_muts:
 
 # List of muts and details added by hand on drive from datasetV2/CRC1502-09C_CRC1502-09C_CRC1502-09-1-C.00.private.tsv
 rule supplementary_table_10_wilcox_mut_burden:
-    input: genes=REF_DATASET+"/CRC1502-09C_CRC1502-09C_CRC1502-09-1-C.00.private.tsv", wilcox=SROOT+"/pdxopedia/dataset/mut_burdens/all_genes_mb_wilcox_{ref}"
+    input: genes=REF_DATASET+"/CRC1502-09C_CRC1502-09C_CRC1502-09-1-C.00.private.tsv", wilcox=SOURCE_DATA+"/all_genes_mb_wilcox_{ref}"
     output: tsv="supplementary_wilcox_mut_burden_{ref}.tsv"
     script: SRC_DIR+'/filter_correct.R'
 
@@ -402,7 +402,7 @@ rule supplementary_fig_2_dnds_fixed_pool:
     script: SRC_DIR+'/dndspool_rule.R'
 
 rule supplementary_fig_3b_edu:
-    input: edu=PRJ_ROOT+'/local/share/data/edf1b_EDU.txt', theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
+    input: edu=SOURCE_DATA+'/edf1b_EDU.txt', theme=GGTHEME, palette=MANY_COLORS_PALETTE, order=SORTED_MR
     output: plot='edf1b_EDU.svg'
     log: log="edf1b_EDU.log"
     script: SRC_DIR+'/edfig1b_EDU.R'
