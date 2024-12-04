@@ -384,7 +384,15 @@ rule supplementary_table_17_PriMets_qc:
         """
 
 ################# Supplementary Figures
-## TODO Fig 1
+rule supplementary_fig_1_histo_VAF:
+    params: rdadir=SOURCE_DATA+"/VAF/", tool=PRJ_ROOT+'/local/bin/grid_FigS1_ggplot'
+    output: "suppl_figS1_VAF_histo.pdf"
+    shell: 
+        """ 
+            {params.tool} {params.rdadir}
+            pdftk temp_S1_soccia_*.pdf cat output {output}
+            rm temp_S1_soccia_*.pdf
+        """
 
 ## dnds subclonal T0
 rule supplementary_fig_2_dnds_fixed_pool:
