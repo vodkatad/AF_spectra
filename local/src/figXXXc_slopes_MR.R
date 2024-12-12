@@ -75,7 +75,7 @@ ggsave(paste0('nolegend_', outplot), plot=pp, width=60, height=60, units="mm")
 
 save.image(paste0(outplot, '.Rdata'))
 
-q(0)
+q('no')
 ###
 setwd('/scratch/trcanmed/AF_spectra/dataset_Figures_Tables/')
 load('fig_XXXc_slopes_MR.svg.Rdata')

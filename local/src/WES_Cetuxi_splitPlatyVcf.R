@@ -164,6 +164,25 @@ for (i in seq(1, ncol(mat252))) {
 #for i in dndsin*; do /scratch/trcanmed/AF_spectra/local/bin/dnds $i dndsout_$i tmp /scratch/trcanmed/AF_spectra/local/share/data/RefCDS_human_GRCh38.p12.rda; done;
 
 
+
+d <- read.table('dndsi.tsv', sep="\t", header=F, stringsAsFactors = F)
+d[,2] <- NULL
+d[,2] <- NULL
+colnames(d) <- c('model','estimate', 'upper', 'lower')
+d$model <- gsub('dndsout_dndsin_', '', d$model)
+d$model <- gsub('.tsv', '', d$model, fixed=T)
+
+
+
+ctheme <- theme_bw()+theme(text=element_text(size=10), axis.text.x = element_text(size=15, angle=90, vjust=0.5, hjust=1), 
+                           axis.title.y=element_text(size=20), axis.text.y=element_text(size=15), 
+                           plot.title = element_text(face = "bold", size = 20, hjust = 0.5), legend.position='none'
+)
+
+
+ggplot(d, aes(x=model, y=estimate, color=model)) +  geom_point(stat="identity", size=2) +
+  geom_errorbar(aes(ymin=lower, ymax=upper, x=model, width=0.1, color=model), size=0.2)+theme_bw()+ggtitle('dN/dS nonsyn+truncating')+ylab('ML estimate')+xlab('')+
+  ctheme
 #### scatters
 average <- function(data) {
   data_ce <- data[, grepl('Cetux', colnames(data))]

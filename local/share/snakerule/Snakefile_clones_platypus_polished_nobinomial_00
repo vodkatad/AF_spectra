@@ -718,3 +718,15 @@ rule n_tot_gained:
         """
          zcat {input.annot} | sed 1d | filter_1col 9 <(cut -f 2 {input.vitro}) | cut -f 9 | sort | uniq | wc -l > {output}
         """
+
+## all gained on promoters
+rule all_gain_prom:
+    input: lambda w: wanted_pairs_inputfun('.n_gained_prom.tsv')
+
+rule gain_prom:
+    input: gain="{t1sample}_{t0sample}.gain.bed", prom="/home/egrassi/playground/tss_default.bed"
+    output: "{t1sample}_{t0sample}.n_gained_prom.tsv"
+    shell:  
+        """
+            bedtools intersect -wo -a {input.gain} -b {input.prom} | cut -f 8 |sort | uniq -c |tr -s " " "\\t"| bawk '{{print $3, $2}}' > {output}
+        """
