@@ -1,0 +1,34 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
+
+HROOT='/home/egrassi'
+DATA=PRJ_ROOT+'/local/share/data/ma_treats_cleverers_bulk'
+SDATA=DATA
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+
+PLOIDY=2
+
+KIND="SNV" # | indel
+MULTI="nomulti"
+
+VCFTOBED=BIN_DIR+"/vcf_to_bed_platypus"
+VCFTOBED1=BIN_DIR+"/vcf_to_bed"
+CNLEN=BIN_DIR+"/cn_len_plot"
+CNLEN2=BIN_DIR+"/cn_len_plot2"
+
+MODELS=['CRC2566', 'CRC2573', 'CRC2608']
+BULK=['CRC2566LMO-L5', 'CRC2573LMO-L8', 'CRC2608PRO-L6']
+SAMPLES=['CRC2566LMO', 'CRC2573LMO', 'CRC2608PRO']
