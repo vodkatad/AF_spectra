@@ -46,7 +46,7 @@ ggplot(data = data, aes(x = cn, y = perc)) + geom_line() + geom_point()+theme_bw
 ggsave(outputcumplot)
 
 save.image('p.Rdata')
-sink(outputlen2, append=T)
-write.table(data, sep="\t", quote=FALSE, row.names=FALSE)
-cat("\n")
-sink()
+#sink(outputlen2, append=T)
+#write.table(data, sep="\t", quote=FALSE, row.names=FALSE)
+#cat("\n")
+#sink()

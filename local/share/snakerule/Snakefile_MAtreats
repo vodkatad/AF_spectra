@@ -1,0 +1,37 @@
+include: "conf.sk"
+GGTHEME="themeok_8.Rdata"
+
+rule all_MR:
+    input: "T_CRC1430/platypus_nobin_00/all.MR_baseline_ov"
+    output: "all_MR_baseline_ov"
+    shell:
+    	"""
+	head -n1 {input} > {output}
+	cat */platypus_nobin_00/all.MR_baseline_ov | grep -v n_gained >> {output}    
+	"""
+
+COLUMNS={'MR_edu': 8, 'MR_conte': 7}
+
+def find_col(wildcards):
+	return COLUMNS[wildcards.what]
+
+rule meh_rdata_bellabella:
+    input: data='all_MR_baseline_ov', theme=GGTHEME, pal=PALETTE
+    output: p='all_{what}_baseline_ov.png', d='all_{what}_baseline_ov.png.Rdata'
+    params: tool=BIN_DIR+'/MR_plot', column=find_col
+    shell:
+        """
+	    cut -f 2,{params.column} {input.data} | grep -v end > {output.p}.tmp
+            {params.tool} {output.p}.tmp {output.p} {input.pal} {input.theme}
+	    rm {output.p}.tmp
+        """
+
+rule ggplot_theme_sizeok:
+	output: Rimage='themeok_{size}.Rdata'
+	script: SRC_DIR+'/ggthemes_sizeok.R'
+
+rule generic_plot:
+    input: data="all_{what}_baseline_ov.png.Rdata", theme=GGTHEME, palette=PALETTE
+    output: plot='plot_{what}.svg'
+    log: log="plot_{what}.log"
+    script: SRC_DIR+'/meh_plot.R'
