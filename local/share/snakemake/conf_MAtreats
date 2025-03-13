@@ -14,5 +14,6 @@ SNAKE_ROOT="/mnt/trcanmed/snaketree"
 SROOT="/scratch/trcanmed"
 
 PALETTE=PRJ_ROOT+"/local/share/data/palette_MAtreats.rds"
+PALETTE_MODELS=PRJ_ROOT+"/local/share/data/palette_models_MAtreats.rds"
 #PALETTE=PRJ_ROOT+"/local/share/data/palette.rds"
 
