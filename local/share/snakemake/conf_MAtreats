@@ -17,3 +17,5 @@ PALETTE=PRJ_ROOT+"/local/share/data/palette_MAtreats.rds"
 PALETTE_MODELS=PRJ_ROOT+"/local/share/data/palette_models_MAtreats.rds"
 #PALETTE=PRJ_ROOT+"/local/share/data/palette.rds"
 
+# unused legacy colors for signatures
+COLORS_MODELS_2="#cc3300,#f607b9,#9900ff,#155d00,#77a003,#0829fc,#ff9900,#ffff00" # without 2nd round, aggregated

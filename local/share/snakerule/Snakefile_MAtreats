@@ -66,6 +66,44 @@ rule all_muts:
         """
 
 # plot by hand in treats_numbers_coding.R
+SAMPLES=['baseline_CRC1430', 'baseline_CRC1620',  'NT_CRC1430',  'NT_CRC1620',  'T_CRC1430',  'T_CRC1620']
+# signatures
+rule all_sign_input:
+    input: expand("{sample}/platypus_nobin_00/vitro.merged.vcf.gz", sample=SAMPLES)
+    output: "signinput_vitro"
+    run:
+        import re
+        with open(output[0],'w') as out:
+            for vcf in input:
+                crc = re.search('CRC\d{4}', vcf) # 1599 have LM/PR and we need to keep it
+                sample_kind = "NA"
+                sample = crc.group()
+                if re.search('baseline', vcf) is not None:
+                    sample_kind = 'baseline'
+                elif re.search('NT_', vcf) is not None:
+                    sample_kind = 'NT'
+                elif re.search('^T', vcf) is not None: # but for other bulk we have always LMO...
+                    sample_kind = 'Afatinib'
+                annotation = sample + '_' + sample_kind
+                out.write("{}\t{}".format(vcf, annotation))
+                out.write("\n")
+
+rule all_sign:
+    input: "signinput_vitro"
+    output: heat="vitrovivobulk_heatmap_cosmic.png", cosine="vitrovivobulk_cosine_cosmic.png",
+            heat_tsv="vitrovivobulk_heatmap_cosmic.tsv", cosine_tsv="vitrovivobulk_cosine_cosmic.tsv",
+    params: tool=BIN_DIR+"/mut_pat_signatures_fit", colors=COLORS_MODELS_2
+    log: log="vitrovivobulk_heatmap_cosmic.png.log"
+    shell:
+        """
+            {params.tool} {input} {output.heat} {output.cosine} '{params.colors}' {log.log} {output.heat_tsv} {output.cosine_tsv}
+        """
+
+rule signatures:
+    input: sign="vitrovivobulk_heatmap_cosmic.tsv", 
+           palette=PALETTE_MODELS
+    output: plot="signatures_{what}.pdf"
+    script: SRC_DIR+'/fig_signatures_treats.R'
 
 # Required to change dimensions of text in inkscape
 rule perle:
