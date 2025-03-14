@@ -36,7 +36,12 @@ annot_rows <- data.frame(row.names=rownames(data))
 #annot_rows$sample <-  as.factor(unlist(lapply(strsplit(rownames(annot_rows),'_'), function(x){ x[length(x)] })))
 annot_rows$model <- unlist(lapply(strsplit(rownames(annot_rows),'-'), function(x){ x[1] }))
 annot_rows$model <- as.factor(unlist(lapply(strsplit(annot_rows$model,'_'), function(x){ x[1] })))
-annot_rows$treat <- factor(data$treat,  levels=c('NT', 'Afatinib'))
+if (!grepl('baseline', what)) {
+  annot_rows$treat <- factor(data$treat,  levels=c('NT', 'Afatinib'))
+} else {
+  annot_rows$treat <- factor(data$treat,  levels=c('baseline', 'NT', 'Afatinib'))
+  
+}
 
 data$faketreat <- NULL
 data$model <- NULL
@@ -45,7 +50,14 @@ data$r <- NULL
 colnames(data) <- gsub('X', 'SBS', colnames(data))
 data <- t(data)  
 
-annot_colors <- list(model=pal)
+if (!grepl('baseline', what)) {
+  treatcol <- c('#C0C0C0', '#FF8000')
+  names(treatcol) <- c('NT',  'Afatinib')
+} else{
+  treatcol <- c('#C0C0C0', '#404040', '#FF8000')
+  names(treatcol) <- c('NT', 'baseline', 'Afatinib')
+}
+annot_colors <- list(model=pal, treat=treatcol)
 pdf(outplot, family="sans")#, width=2.2, height=1.4) # resize by hand cause otherwise it will be a mess
 ph <- pheatmap(data, cellwidth=5.67, cellheight=5.67, fontsize_row = 5, fontsize_col=5, fontsize.number=5, show_colnames = FALSE, show_rownames = TRUE,  
          cluster_cols=FALSE, annotation_col=annot_rows, annotation_colors = annot_colors,  
