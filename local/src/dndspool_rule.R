@@ -68,3 +68,5 @@ p <- ggplot(d, aes(x=order(order, model), y=estimate, color=model)) +  geom_poin
 
 
 ggsave(outplot, plot=p, width=89, height=89, units="mm")
+
+save.image(paste0(outplot, '.Rdata'))

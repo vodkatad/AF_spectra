@@ -764,3 +764,70 @@ rule supplementary_table_11_xlsx:
     input: tsv="fig_5a_subclonal.tsv"
     output: "Extended_Data_Table_10_nsubclonal.xlsx"
     shell: "tsv_to_xls -i {input.tsv} -s n_subclonal -o {output}"
+
+
+### Source data
+rule source_data_fig2A:
+    input: rd="subclonal_vs_MR.svg.Rdata"
+    output: tsv="SD/SD_Fig2A.tsv"
+    shell:
+        """
+         Rscript -e 'load("{input.rd}"); sd=data.frame(id=merged$sample, MR=merged$MR_edu, n_subclonal=merged$n); write.table(sd, file="{output.tsv}", sep="\\t", row.names=F, quote=F, col.names=T)'
+        """
+
+rule source_Data_fig5B:
+    input: rd="fig_4b_CN.svg.Rdata"
+    output: tsv="SD/SD_Fig5B.tsv"
+    shell:
+        """
+         Rscript -e 'load("{input.rd}"); sd=data.frame(id=our$sample, MEDICC2_events=our$CN); write.table(sd, file="{output.tsv}", sep="\\t", row.names=F, quote=F, col.names=T)'
+        """
+
+rule source_Data_fig5C:
+    input: rd="fig_4c_cor.svg.Rdata"
+    output: tsv="SD/SD_Fig5C.tsv"
+    shell:
+        """
+         Rscript -e 'load("{input.rd}"); sd=data.frame(id=m$model, MEDICC2_events=m$mean_cn, MR=m$mean_mr); write.table(sd, file="{output.tsv}", sep="\\t", row.names=F, quote=F, col.names=T)'
+        """
+
+rule source_Data_sfig2:
+    input: rd="subclonal_fixeddnds.svg.Rdata"
+    output: tsv="SD/SD_SFig2.tsv"
+    shell:
+        """
+         Rscript -e 'load("{input.rd}"); sd=data.frame(id=d$model, lower=d$lower, mean=d$estimate, upper=d$upper); write.table(sd, file="{output.tsv}", sep="\\t", row.names=F, quote=F, col.names=T)'
+        """
+    
+rule source_Data_sfig3b:
+    input: rd="edf1b_EDU.svg.Rdata"
+    output: tsv="SD/SD_SFig3B.tsv"
+    shell:
+        """
+         Rscript -e 'load("{input.rd}"); sd=data.frame(id=our$sample, perc_cells_EDUpos=our$EDU); write.table(sd, file="{output.tsv}", sep="\\t", row.names=F, quote=F, col.names=T)'
+        """
+
+rule source_Data_sfig4a:
+    input: rd="allcn_avg.svg.Rdata"
+    output: tsv="SD/SD_SFig4A.tsv"
+    shell:
+        """
+         Rscript -e 'load("{input.rd}"); sd=data.frame(id=our$sample, MR=our$MR); write.table(sd, file="{output.tsv}", sep="\\t", row.names=F, quote=F, col.names=T)'
+        """
+
+rule source_Data_sfig4b:
+    input: rd="allcn_cor.svg.Rdata"
+    output: tsv="SD/SD_SFig4B.tsv"
+    shell:
+        """
+         Rscript -e 'load("{input.rd}"); sd=data.frame(id=merged$sample, MR=merged$MR_edu, MR_all_cn=merged$MR_edu_cl); write.table(sd, file="{output.tsv}", sep="\\t", row.names=F, quote=F, col.names=T)'
+        """
+
+rule source_data_assembly:
+    input: F2A="SD/SD_Fig2A.tsv", F5B="SD/SD_Fig5B.tsv", F5C="SD/SD_Fig5C.tsv", SF2="SD/SD_SFig2.tsv", SF3B="SD/SD_SFig3B.tsv", SF4A="SD/SD_SFig4A.tsv", SF4B="SD/SD_SFig4B.tsv"
+    output: "SD/data_file_S1.xlsx"
+    shell:
+        """
+         tsv_to_xls -i {input.F2A},{input.F5B},{input.F5C},{input.SF2},{input.SF3B},{input.SF4A},{input.SF4B}  \\
+         -s Fig.2A,Fig.5B,Fig.5C,SupFig2,SupFig.3B,SupFig.4A,SupFig.4B -o {output}
+        """
