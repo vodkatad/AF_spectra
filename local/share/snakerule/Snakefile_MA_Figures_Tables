@@ -839,6 +839,14 @@ rule source_Data_sfig6b:
          Rscript -e 'load("{input.rd}"); sd=data.frame(id=our$sample, N_SNVs=our$MR); write.table(sd, file="{output.tsv}", sep="\\t", row.names=F, quote=F, col.names=T)'
         """
 
+rule source_Data_sfig11c:
+    input: rd="edfig_7a_SBS1_8_18_clevers.svg.Rdata"
+    output: tsv="SD/SD_SFig11C.tsv"
+    shell:
+        """
+         Rscript -e 'load("{input.rd}"); sd=data.frame(id=mp$id, signature=mp$Signature, contribution=mp$exp); write.table(sd, file="{output.tsv}", sep="\\t", row.names=F, quote=F, col.names=T)'
+        """
+
 rule source_Data_sfig12a:
     input: rd="edf9a_dnds.svg.Rdata"
     output: tsv="SD/SD_SFig12A.tsv"
@@ -847,14 +855,39 @@ rule source_Data_sfig12a:
          Rscript -e 'load("{input.rd}"); sd=data.frame(id=d$model, lower=d$lower, estimate=d$estimate, upper=d$upper); write.table(sd, file="{output.tsv}", sep="\\t", row.names=F, quote=F, col.names=T)'
         """
 
+rule source_Data_sfig18a:
+    input: rd="edf12a_corcov.svg.Rdata"
+    output: tsv="SD/SD_SFig18A.tsv"
+    shell:
+        """
+         Rscript -e 'load("{input.rd}"); sd=data.frame(id=m$sample, MR_1x=m$MR1x, MR_20x=m$MR2x); write.table(sd, file="{output.tsv}", sep="\\t", row.names=F, quote=F, col.names=T)'
+        """
+
+rule source_Data_sfig18b:
+    input: rd="edf12b_allavg.svg.Rdata"
+    output: tsv="SD/SD_SFig18B.tsv"
+    shell:
+        """
+         Rscript -e 'load("{input.rd}"); sd=data.frame(id=our$sample, MR=our$MR); write.table(sd, file="{output.tsv}", sep="\\t", row.names=F, quote=F, col.names=T)'
+        """
+
+rule source_Data_sfig18c:
+    input: rd="edf12c_cor.svg.Rdata"
+    output: tsv="SD/SD_SFig18C.tsv"
+    shell:
+        """
+         Rscript -e 'load("{input.rd}"); sd=data.frame(id=merged$sample, MR=merged$MR_edu, MR_clonal=merged$MR_edu_cl); write.table(sd, file="{output.tsv}", sep="\\t", row.names=F, quote=F, col.names=T)'
+        """
+
 rule source_data_assembly:
     input: F2A="SD/SD_Fig2A.tsv", F5B="SD/SD_Fig5B.tsv", F5C="SD/SD_Fig5C.tsv", SF2="SD/SD_SFig2.tsv", SF3B="SD/SD_SFig3B.tsv", SF4A="SD/SD_SFig4A.tsv", SF4B="SD/SD_SFig4B.tsv",
-            SF6A="SD/SD_SFig6A.tsv", SF6B="SD/SD_SFig6B.tsv", SF12A="SD/SD_SFig12A.tsv"
+            SF6A="SD/SD_SFig6A.tsv", SF6B="SD/SD_SFig6B.tsv", SF11C="SD/SD_SFig11C.tsv", SF12A="SD/SD_SFig12A.tsv", SF18A="SD/SD_SFig18A.tsv", SF18B="SD/SD_SFig18B.tsv", SF18C="SD/SD_SFig18C.tsv"
     output: "SD/data_file_S1.xlsx"
     shell:
         """
-         tsv_to_xls -i {input.F2A},{input.F5B},{input.F5C},{input.SF2},{input.SF3B},{input.SF4A},{input.SF4B},{input.SF6A},{input.SF6B},{input.SF12A}  \\
-         -s Fig.2A,Fig.5B,Fig.5C,SupFig2,SupFig.3B,SupFig.4A,SupFig.4B,SupFig.6A,SupFig.6B,SupFig.12A -o {output}
+         tsv_to_xls -i {input.F2A},{input.F5B},{input.F5C},{input.SF2},{input.SF3B},{input.SF4A},{input.SF4B},{input.SF6A},{input.SF6B},{input.SF11C},{input.SF12A},{input.SF18A},{input.SF18B},{input.SF18C}  \\
+         -s Fig.2A,Fig.5B,Fig.5C,SupFig.2,SupFig.3B,SupFig.4A,SupFig.4B,SupFig.6A,SupFig.6B,SupFig.11C,SupFig.12A,SupFig.18A,SupFig.18B,SupFig.18C -o {output}
         """
 
-# missing S11  S13 S18 A - B - C
+# No S13: already available in table S3 
+#S18 A - B - C

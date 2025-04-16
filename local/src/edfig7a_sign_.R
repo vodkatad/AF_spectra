@@ -79,3 +79,6 @@ sink()
 # Further work
 # remove ticks
 # remove upper grey boxes?
+
+
+save.image(paste0(outplot2, '.Rdata'))
