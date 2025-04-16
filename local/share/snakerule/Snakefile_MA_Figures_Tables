@@ -856,3 +856,5 @@ rule source_data_assembly:
          tsv_to_xls -i {input.F2A},{input.F5B},{input.F5C},{input.SF2},{input.SF3B},{input.SF4A},{input.SF4B},{input.SF6A},{input.SF6B},{input.SF12A}  \\
          -s Fig.2A,Fig.5B,Fig.5C,SupFig2,SupFig.3B,SupFig.4A,SupFig.4B,SupFig.6A,SupFig.6B,SupFig.12A -o {output}
         """
+
+# missing S11  S13 S18 A - B - C
