@@ -1,0 +1,21 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+
+PRJ_ROOT=find_prj_root()
+DNDSCV_RDA=PRJ_ROOT+"/local/share/data/RefCDS_human_GRCh38.p12.rda"
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+SNAKE_ROOT="/mnt/trcanmed/snaketree"
+SROOT="/scratch/trcanmed"
+
+PALETTE=PRJ_ROOT+"/local/share/data/palette_MAtreats.rds"
+PALETTE_MODELS=PRJ_ROOT+"/local/share/data/palette_models_MAtreats.rds"
+#PALETTE=PRJ_ROOT+"/local/share/data/palette.rds"
+
+# unused legacy colors for signatures
+COLORS_MODELS_2="#cc3300,#f607b9,#9900ff,#155d00,#77a003,#0829fc,#ff9900,#ffff00" # without 2nd round, aggregated
