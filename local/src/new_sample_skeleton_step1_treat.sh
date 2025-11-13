@@ -4,7 +4,8 @@ mkdir $1
 mkdir $1/platypus_nobin_indels $1/sequenza $1/mutect_nobin $1/platypus_nobin $1/MutationalPatterns
 cd $1/platypus_nobin
 ln -s ../../../local/share/snakerule/Snakefile_clones_platypus_polished_nobinomial Snakefile
-cp ../../../local/share/snakemake/conf_baseline_CRC1430_mutect_platypus_polished.sk ../../../local/share/snakemake/conf_$1_mutect_platypus_polished.sk
+#cp ../../../local/share/snakemake/conf_baseline_CRC1430_mutect_platypus_polished.sk ../../../local/share/snakemake/conf_$1_mutect_platypus_polished.sk
+#conf_T_CRC1430_2_mutect_platypus_polished.sk
 ln -s ../../../local/share/snakemake/conf_$1_mutect_platypus_polished.sk conf.sk
 cd ../platypus_nobin_indels/
 ln -s ../../../local/share/snakerule/Snakefile_clones_platypus_polished_nobinomial Snakefile

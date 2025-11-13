@@ -1,0 +1,25 @@
+DATA='/scratch/trcanmed/AF_spectra/local/share/data'
+MUT=DATA+'/aomdss_wes.tsv'
+VCF=DATA+'/CRC1307/CRC1307-02-0.pass.vcf.gz'
+
+SAMPLES=["10-1-T","10-2-T","10-3-T","10-4-T","10-5-T","7-1-A","7-1-T","7-2-A","7-2-T","7-3-A","7-3-T","7-4-A","7-4-T","7-5-T"] 
+
+rule all_vcf:
+    input:  expand("{sample}_vcf.gz", sample=SAMPLES)
+    output: "signinput"
+    shell:  
+        """
+           for i in {input}; do echo -e "$i\\t$(echo $i |  tr "_" "\\t" | cut -f 1)"; done > {output}
+        """
+
+rule vcf:
+    input: muts=MUT, vcf=VCF
+    output: "{sample}_vcf.gz"
+    shell:
+        """
+            zcat {input.vcf} | grep "^##" > {output}.tmp
+            zcat {input.vcf} | grep -v "^##" | grep "^#" | cut -f 11 --complement >> {output}.tmp
+            sed 1d {input.muts} | bawk '$15=="{wildcards.sample}" && $5=="SNP" {{print $1,$2,$1":"$2"_"$3"/"$4,$3,$4,".","PASS","CONTQ=42","GT:AF","0/1:0.5"}}' >> {output}.tmp
+            bgzip -c {output}.tmp > {output}
+            rm {output}.tmp
+        """

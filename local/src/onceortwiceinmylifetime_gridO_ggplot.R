@@ -27,7 +27,11 @@ while (i <= tot) {
   }
   ggl <- lapply(mylist, readRDS)
   m <- ggarrange(plotlist=ggl, ncol=1, nrow=5)
-  pdf(paste0('soccia_', k, '.pdf'), width=8.27, height=11.69)
+  #pdf(paste0('soccia_', k, '.pdf'), width=8.27, height=11.69)
+  #print(m+ theme(plot.margin = margin(t = 58.5, r = 15, b = 58.5, l = 15, unit = "mm")))
+  #print(m)
+  #graphics.off()  
+  png(paste0('SupFig.1_page_', k, '.jpg'), width=8.27, height=11.69, res=300, units='in')
   print(m+ theme(plot.margin = margin(t = 58.5, r = 15, b = 58.5, l = 15, unit = "mm")))
   #print(m)
   graphics.off()  

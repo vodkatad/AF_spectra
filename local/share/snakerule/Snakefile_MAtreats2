@@ -1,0 +1,116 @@
+include: "conf.sk"
+GGTHEME="themeok_8.Rdata"
+
+rule all_MR:
+    input: "T_CRC1430/platypus_nobin_00/all.MR_baseline_ov"
+    output: "all_MR_baseline_ov"
+    shell: """
+        head -n1 {input} > {output}
+        cat */platypus_nobin_00/all.MR_baseline_ov | grep -v n_gained >> {output}    
+        """
+
+COLUMNS={'MR_edu': 8, 'MR_conte': 7}
+
+def find_col(wildcards):
+	return COLUMNS[wildcards.what]
+
+rule meh_rdata_bellabella:
+    input: data='all_MR_baseline_ov', theme=GGTHEME, pal=PALETTE
+    output: p='all_{what}_baseline_ov.png', d='all_{what}_baseline_ov.png.Rdata'
+    params: tool=BIN_DIR+'/MR_plot', column=find_col
+    shell: """
+    cut -f 2,{params.column} {input.data} | grep -v end > {output.p}.tmp
+    {params.tool} {output.p}.tmp {output.p} {input.pal} {input.theme}
+    rm {output.p}.tmp
+    """
+
+rule ggplot_theme_sizeok:
+    output: Rimage='themeok_{size}.Rdata'
+    script: SRC_DIR+'/ggthemes_sizeok.R'
+
+rule generic_plot:
+    input: data="all_{what}_baseline_ov.png.Rdata", theme=GGTHEME, palette=PALETTE
+    output: plot='plot_{what}.svg'
+    log: log="plot_{what}.log"
+    script: SRC_DIR+'/meh_plot.R'
+
+# We skip baseline cause it's not computable for 1430.
+rule all_dnds:
+    input: "T_CRC1430_2/platypus_nobin_00/dndsvitro.tsv"
+    output: "all_dnds.tsv"
+    shell: """
+    for f in */platypus_nobin_00/dndsvitro.tsv; do  \\
+        grep wall $f | cut -f 3,4,5 | bawk -v n=$f '{{print n,$0}}' | sed 's/\/platypus_nobin_00\/dndsvitro\.tsv//1'; \\
+    done > {output}
+    """
+
+rule dnds_plot:
+    input: dnds="all_dnds.tsv", theme=GGTHEME, palette=PALETTE_MODELS
+    output: plot='dnds.svg'
+    script: SRC_DIR+'/dnds_treat.R'
+
+
+rule all_muts_coding:
+    input: "T_CRC1430_2/platypus_nobin_00/dnds_n.tsv"
+    output: "all_muts_coding.tsv"
+    shell: """
+        head -n1 {input} > {output}
+        cat */platypus_nobin_00/dnds_n.tsv | grep -v Freq | sed 's/\/scratch\/trcanmed\/AF_spectra\/dataset_MAtreats\///1' | sed 's/\/platypus_nobin_00//1' >> {output}    
+        """
+
+rule all_muts:
+    input: "T_CRC1430_2/platypus_nobin_00/n_tot_gained_2.txt"
+    output: "all_muts.tsv"
+    shell: """
+        cat */platypus_nobin_00/n_tot_gained_2.txt | sed 's/\/scratch\/trcanmed\/AF_spectra\/dataset_MAtreats\///1' | sed 's/\/platypus_nobin_00//1' > {output}    
+        """
+
+# plot by hand in treats_numbers_coding.R
+SAMPLES=['baseline_CRC1430', 'baseline_CRC1620',  'NT_CRC1430',  'NT_CRC1620',  'T_CRC1430',  'T_CRC1620']
+# signatures
+rule all_sign_input:
+    input: expand("{sample}/platypus_nobin_00/vitro.merged.vcf.gz", sample=SAMPLES)
+    output: "signinput_vitro"
+    run:
+        import re
+        with open(output[0],'w') as out:
+            for vcf in input:
+                crc = re.search('CRC\d{4}', vcf) # 1599 have LM/PR and we need to keep it
+                sample_kind = "NA"
+                sample = crc.group()
+                if re.search('baseline', vcf) is not None:
+                    sample_kind = 'baseline'
+                elif re.search('NT_', vcf) is not None:
+                    sample_kind = 'NT'
+                elif re.search('^T', vcf) is not None: # but for other bulk we have always LMO...
+                    sample_kind = 'Afatinib'
+                annotation = sample + '_' + sample_kind
+                out.write("{}\t{}".format(vcf, annotation))
+                out.write("\n")
+
+rule all_sign:
+    input: "signinput_vitro"
+    output: heat="vitrovivobulk_heatmap_cosmic.png", cosine="vitrovivobulk_cosine_cosmic.png",
+            heat_tsv="vitrovivobulk_heatmap_cosmic.tsv", cosine_tsv="vitrovivobulk_cosine_cosmic.tsv",
+    params: tool=BIN_DIR+"/mut_pat_signatures_fit", colors=COLORS_MODELS_2
+    log: log="vitrovivobulk_heatmap_cosmic.png.log"
+    shell:
+        """
+            {params.tool} {input} {output.heat} {output.cosine} '{params.colors}' {log.log} {output.heat_tsv} {output.cosine_tsv}
+        """
+
+rule signatures:
+    input: sign="vitrovivobulk_heatmap_cosmic.tsv", 
+           palette=PALETTE_MODELS
+    output: plot="signatures_{what}.pdf"
+    script: SRC_DIR+'/fig_signatures_treats.R'
+
+# Required to change dimensions of text in inkscape
+rule perle:
+    input: '{qualunque}.svg'
+    output: 'perlati/{qualunque}.svg'
+    shell:
+        """
+            mkdir -p perlati
+            perl -pne "s/textLength='.+px'//; " < {input} > {output}
+        """
