@@ -1,0 +1,31 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+
+PRJ_ROOT=find_prj_root()
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+SNAKE_ROOT="/mnt/trcanmed/snaketree"
+SROOT="/scratch/trcanmed"
+
+ADIR=PRJ_ROOT+'/local/share/data/MUseq'
+SAMPLES=['CRC1502', 'CRC0282', 'CRC1307']
+
+rule pippo:
+    params: d=SAMPLES
+    shell: "echo {params.d}"
+
+rule all_annovar:
+   input: expand('{sample}.hg38_multianno.txt', sample=SAMPLES)
+
+rule ln:
+    params: ADIR+'/{sample}.hg38_multianno.txt' # input wtf?
+    output: '{sample}.hg38_multianno.txt'
+    shell: 
+        """
+            ln -s {params} {output}
+        """

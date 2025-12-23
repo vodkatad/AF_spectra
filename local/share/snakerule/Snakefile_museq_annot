@@ -1,0 +1,27 @@
+include: "conf.sk"
+
+rule all_annovar:
+   input: expand('{sample}.hg38_multianno.txt', sample=SAMPLES)
+#egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data/MUseq$ sed 1d syn_nonsyn_0282.csv | bawk '{print $1,$2,$2+1, $3, $4, $6}' > CRC0282.bed
+#egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data/MUseq$ table_annovar.pl CRC0282.bed /mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/ -otherinfo -buildver hg38 -out CRC0282  -remove -protocol refGene,avsnp150,cosmic87_coding -operation g,f,f -nastring . -polish &> CRC0282.log
+#1       4804605 G       A       92      50      2
+rule annovar:
+    input: ADIR+"/allP_{sample}.tsv"
+    output: "{sample}.hg38_multianno.txt"
+    log: log="{sample}_annovar.log"
+    shell: 
+        """ 
+            cat {input} | bawk '{{print $1,$2,$2, $3, $4}}' > {output}.bed
+            table_annovar.pl {output}.bed /mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/ -otherinfo -buildver hg38 -out {wildcards.sample}  -remove -protocol refGene,avsnp150,cosmic87_coding -operation g,f,f -nastring . -polish &> {log.log}
+            rm {output}.bed
+        """
+
+
+rule all_GO:
+   input: expand('{sample}.relevantGO.tsv', sample=SAMPLES)
+
+rule get_GO_descendants:
+    input: annovar='{sample}.hg38_multianno.txt'
+    output: outf='{sample}.relevantGO.tsv'
+    log: log="{sample}.log"
+    script: SRC_DIR+'/annotate_genes_GOterms_all_desc.R'
