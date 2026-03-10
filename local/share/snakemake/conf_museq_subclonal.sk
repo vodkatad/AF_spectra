@@ -19,9 +19,6 @@ rule pippo:
     params: d=SAMPLES
     shell: "echo {params.d}"
 
-rule all_annovar:
-   input: expand('{sample}.hg38_multianno.txt', sample=SAMPLES)
-
 rule ln:
     params: ADIR+'/{sample}.hg38_multianno.txt' # input wtf?
     output: '{sample}.hg38_multianno.txt'

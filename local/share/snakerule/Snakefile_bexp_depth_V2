@@ -1372,3 +1372,4 @@ rule all_exonic_or_all_T1:
     shell: """
             cat {input} > {output}
            """
+

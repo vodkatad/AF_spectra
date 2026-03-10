@@ -10,9 +10,6 @@ universe_f <- snakemake@input[["universe"]]
 out_f <- snakemake@output[["outf"]]
 enrich_f <- snakemake@output[["enrich"]]
 log_f <- snakemake@log[['log']]
-go_f  <- snakemake@input[['go']]
-
-go_desc <- readRDS(go_f)
 
 d <- read.table(annovar_f, sep='\t', header=T, stringsAsFactors = F)
 nonsyn <- d[d$Func.refGene=="exonic" & d$ExonicFunc.refGene=="nonsynonymous SNV",]
@@ -33,14 +30,14 @@ geneUni <- as.character(geneUni)
 #dplyr::select(gs_name, gene_symbol)
 
 ego <- enrichGO(gene          = geneList,
-                  universe      = geneUni,
-                  OrgDb         = "org.Hs.eg.db",
-                  keyType = "SYMBOL",
-                  ont           = "ALL",
-                  pAdjustMethod = "BH",  
-                  pvalueCutoff  = 1,
-                  qvalueCutoff  = 1,
-                  readable      = FALSE)
+                universe      = geneUni,
+                OrgDb         = "org.Hs.eg.db",
+                keyType = "SYMBOL",
+                ont           = "ALL",
+                pAdjustMethod = "BH",  
+                pvalueCutoff  = 1,
+                qvalueCutoff  = 1,
+                readable      = FALSE)
 
 if (!is.null(ego)) {
   # readjust cause it does each ontology separately with ALL
@@ -71,7 +68,7 @@ dfg <- data.frame(goid=w, term=c('cell cycle', 'cell death', 'dna repair'))
 
 ### downward traversing
 # Function: check if genes are annotated to GO terms or any of their descendants
-genes_hit_go_terms <- function(gene_vector, go_desc, orgdb = org.Hs.eg.db) {
+genes_hit_go_terms <- function(gene_vector, w, orgdb = org.Hs.eg.db) {
   
   # Step 1: Convert gene symbols to Entrez IDs
   gene_df <- bitr(
@@ -86,15 +83,11 @@ genes_hit_go_terms <- function(gene_vector, go_desc, orgdb = org.Hs.eg.db) {
     orgdb,
     keys     = gene_df$ENTREZID,
     keytype  = "ENTREZID",
-    columns  = c("GO", "ONTOLOGY")
+    columns  = c("GOALL", "ONTOLOGYALL")
   ) %>%
     left_join(gene_df, by = "ENTREZID")
   
-  go_annot %>%
-    inner_join(go_desc, by = "GO") %>%
-    group_by(SYMBOL, ENTREZID, GO, ONTOLOGY) %>%
-    summarise(HIT_TERM = paste(sort(unique(term)), collapse = ";"), .groups = "drop")
-  
+  go_annot <- go_annot[go_annot$GOALL %in% w,]
   return(go_annot)
 }
 
@@ -102,6 +95,10 @@ genes_hit_go_terms <- function(gene_vector, go_desc, orgdb = org.Hs.eg.db) {
 # Example usage:
 
 
-results <- as.data.frame(genes_hit_go_terms(geneList, go_desc))
+w <- c('GO:0007049', 'GO:0008219', 'GO:0006281') # all bp
+dfg <- data.frame(goid=w, term=c('cell cycle', 'cell death', 'dna repair'))
+
+results <- as.data.frame(genes_hit_go_terms(geneList, w))
+results <- merge(results, dfg, by.x='GOALL', by.y='goid')
 
 write.table(results, file=out_f, sep="\t", row.names=F, quote=F)

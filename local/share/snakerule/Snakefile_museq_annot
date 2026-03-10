@@ -16,12 +16,52 @@ rule annovar:
             rm {output}.bed
         """
 
-
 rule all_GO:
    input: expand('{sample}.relevantGO.tsv', sample=SAMPLES)
 
+rule GO_desc:
+    output: outf='godesc.rds'
+    script: SRC_DIR+'/get_desc_terms_GO.R'
+    
+
 rule get_GO_descendants:
-    input: annovar='{sample}.hg38_multianno.txt'
-    output: outf='{sample}.relevantGO.tsv'
-    log: log="{sample}.log"
+    input: annovar='{sample}.hg38_multianno.txt', universe='/mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt', go='godesc.rds'
+    output: outf='{sample}.relevantGO.tsv', enrich='{sample}_enriched.GO'
+    log: log="{sample}.2.log"
     script: SRC_DIR+'/annotate_genes_GOterms_all_desc.R'
+
+rule get_GO_descendants_2:
+    input: annovar='{sample}.hg38_multianno.txt', universe='/mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt'
+    output: outf='{sample}.relevantGO2.tsv', enrich='{sample}_enriched2.GO'
+    log: log="{sample}.log"
+    script: SRC_DIR+'/annotate_genes_GOterms_all_desc_viaGOALL.R'
+
+
+rule goenrich_tab:
+    input: expand('{sample}_enriched2.GO', sample=SAMPLES)
+    output: 'allGOenrich.tsv'
+    shell: """
+            head -n1 {input[0]} | bawk '{{print  "sample",$1,$2,$3,$4,$5,$12,$14}}' > {output}
+            for f in {input}; do bawk -v sample="$f" 'NR!=1{{print sample,$1,$2,$3,$4,$5,$12,$14}}' $f; done | sed 's/_enriched2\.GO//1' >> {output}
+
+           """
+
+rule gorelevant_tab:
+    input: expand('{sample}.relevantGO2.tsv', sample=SAMPLES)
+    output: 'allGOrelevant.tsv'
+    shell: """
+            head -n1 {input[0]} | bawk '{{print  "sample",$5,$1,$6}}' > {output}
+            for f in {input}; do bawk -v sample="$f" 'NR!=1{{print sample,$5,$1,$6}}' $f | sort | uniq; done | sed 's/\.relevantGO2\.tsv//1' >> {output}
+
+           """
+
+rule xls:
+    input: 'allGOrelevant.tsv', 'allGOenrich.tsv'
+    output: 'GO_annot.xlsx'
+    shell:
+        """
+            tsv_to_xls -s GOenrich,GOtraversal -i {input[1]},{input[0]} -o {output}
+        """
+
+
+# fare montercarlo prendendo 100 geni a caso dell'universo di annovar e ottenendo loro relevant?
