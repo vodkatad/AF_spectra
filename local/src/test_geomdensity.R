@@ -5,8 +5,9 @@ flat <- runif(300)
 low <- runif(50, min=0, max=0.2)
 high <- runif(300, min=0.8, max=1)
 flatless <- runif(100)
+lowmid <- runif(50, min=0.5, 0.7)
 
-d <- data.frame(x=c(flat, low, high, flatless), type=c(rep('flat', 300), rep('low', 50), rep('high', 300), rep('flatless', 100)))
+d <- data.frame(x=c(flat, low, high, flatless, lowmid), type=c(rep('flat', 300), rep('low', 50), rep('high', 300), rep('flatless', 100),  rep('lowmid', 50)))
 
 ggplot(data=d, aes(x=x, fill=type))+geom_histogram(position='identity', alpha=0.4)
 ggplot(data=d, aes(x=x, color=type))+geom_density()
@@ -50,3 +51,8 @@ ggplot(data=data, aes(x=x, y=yy, color=colour))+geom_line()
 #alias for scaled, to mirror the syntax of stat_bin().
 
 #https://stackoverflow.com/questions/65631194/scale-density-curve-made-with-geom-density-to-similar-height-of-geom-histogram
+
+d3 <- data.frame(x=rep(100, 10))
+ggplot(data=d3, aes(x=x))+geom_density()
+
+                                       

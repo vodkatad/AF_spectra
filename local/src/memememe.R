@@ -39,7 +39,7 @@ p <- ggplot(as.data.frame(longfp), aes(x = reorder(tmodel, order), y = perc, fil
   xlab('')+ylab('% accumulated SNVs')
 
 
-coding <- coding[!grepl('baseline', coding$model),]
+#coding <- coding[!grepl('baseline', coding$model),]
 longfp <- coding %>% 
   group_by(model) %>% 
   mutate(perc = Freq/sum(Freq))
