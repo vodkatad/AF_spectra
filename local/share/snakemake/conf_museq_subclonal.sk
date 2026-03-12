@@ -15,14 +15,3 @@ SROOT="/scratch/trcanmed"
 ADIR=PRJ_ROOT+'/local/share/data/MUseq'
 SAMPLES=['CRC1502', 'CRC0282', 'CRC1307']
 
-rule pippo:
-    params: d=SAMPLES
-    shell: "echo {params.d}"
-
-rule ln:
-    params: ADIR+'/{sample}.hg38_multianno.txt' # input wtf?
-    output: '{sample}.hg38_multianno.txt'
-    shell: 
-        """
-            ln -s {params} {output}
-        """
