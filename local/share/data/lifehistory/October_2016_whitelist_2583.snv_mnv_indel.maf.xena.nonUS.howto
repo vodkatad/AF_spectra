@@ -1,0 +1,30 @@
+cohortPCAWG (donor centric)
+dataset IDOctober_2016_whitelist_2583.snv_mnv_indel.maf.xena.nonUS
+downloadhttps://pcawg-hub.s3.us-east-1.amazonaws.com/download/October_2016_whitelist_2583.snv_mnv_indel.maf.xena.nonUS; Full metadata
+samples1782
+version2017-07-25
+type of datasimple somatic mutation (SNVs and indels)
+assemblyhg19
+raw datahttps://www.synapse.org/#!Synapse:syn7364923
+raw data https://www.synapse.org/#!Synapse:syn7118450
+
+cohortPCAWG (donor centric)
+dataset IDpcawg_specimen_histology_August2016_v9_donor
+downloadhttps://pcawg-hub.s3.us-east-1.amazonaws.com/download/pcawg_specimen_histology_August2016_v9_donor; Full metadata
+samples2834
+version2017-09-21
+type of dataphenotype
+raw datahttps://www.synapse.org/#!Synapse:syn10389164
+raw data https://www.synapse.org/#!Synapse:syn4974831
+raw data https://wiki.oicr.on.ca/pages/viewpage.action?pageId=57771274
+wrangling
+
+cohortPCAWG (donor centric)
+dataset IDPCAWG_sub_signatures_in_samples_beta2.20170320.donor
+statusloaded with warning
+downloadhttps://pcawg-hub.s3.us-east-1.amazonaws.com/download/PCAWG_sub_signatures_in_samples_beta2.20170320.donor; Full metadata
+samples2588
+version2017-07-19
+type of datamutational signature
+raw datahttps://www.synapse.org/#!Synapse:syn8366024
+raw data https://www.synapse.org/#!Synapse:syn8500886

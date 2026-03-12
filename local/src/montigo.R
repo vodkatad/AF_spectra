@@ -38,8 +38,8 @@ w <- c('GO:0007049', 'GO:0008219', 'GO:0006281') # all bp
 dfg <- data.frame(goid=w, term=c('cell cycle', 'cell death', 'dna repair'))
 
 rand <- function() {
-  geneList <- sample(geneUni, 60)
+  geneList <- sample(geneUni, 59)
   results <- genes_hit_go_terms(geneList, w)
 }
 
-monti <- replicate(10, rand())
+monti <- replicate(100, rand())

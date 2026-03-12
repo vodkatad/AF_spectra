@@ -90,7 +90,7 @@ genes_hit_go_terms <- function(gene_vector, go_desc, orgdb = org.Hs.eg.db) {
   ) %>%
     left_join(gene_df, by = "ENTREZID")
   
-  go_annot %>%
+  go_annot <- go_annot %>%
     inner_join(go_desc, by = "GO") %>%
     group_by(SYMBOL, ENTREZID, GO, ONTOLOGY) %>%
     summarise(HIT_TERM = paste(sort(unique(term)), collapse = ";"), .groups = "drop")
@@ -101,7 +101,7 @@ genes_hit_go_terms <- function(gene_vector, go_desc, orgdb = org.Hs.eg.db) {
 # =========================
 # Example usage:
 
-
+save.image('p.Rdata')
 results <- as.data.frame(genes_hit_go_terms(geneList, go_desc))
 
 write.table(results, file=out_f, sep="\t", row.names=F, quote=F)
