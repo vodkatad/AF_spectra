@@ -16,14 +16,12 @@ nonsyn <- d[d$Func.refGene=="exonic" & d$ExonicFunc.refGene=="nonsynonymous SNV"
 geneList <- unique(unlist(strsplit(nonsyn$Gene.refGene, ';')))
 
 ## standard enrichments
-uni <- read.table('/mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt', sep='\t', header=F, stringsAsFactors = F)
-geneUni <- unique(uni$V13)
 # get exonic non syn
 #uni <- unique(unlist(strsplit(d$Gene.refGene, ';')))
 
 ### as.character universe
 uni <- read.table(universe_f, sep='\t', header=F, stringsAsFactors = F)
-geneUni <- unique(uni$V13)
+geneUni <- unique(uni$V1)
 geneUni <- as.character(geneUni)
 
 #m_t2g <- msigdbr(collection = "C6", db_species='HS', species='human') %>% 

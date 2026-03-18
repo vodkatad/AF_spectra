@@ -1,0 +1,3 @@
+egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data/lifehistory$ aws s3 cp s3://icgc25k-open/release_28/summary_files/simple_somatic_mutation.aggregated.vcf.gz  --endpoint-url https://object.genomeinform
+atics.org --no-sign-request  .
+

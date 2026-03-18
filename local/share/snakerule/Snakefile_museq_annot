@@ -17,6 +17,14 @@ rule annovar:
             rm {output}.bed
         """
 
+rule universe:
+    input: pc='/home/egrassi/playground/gencode_genes.abed', anno='/mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt'
+    output: 'universe'
+    shell:  
+         """
+            cut -f 13 {input.anno} | filter_1col 1 <(bawk '$5=="protein_coding" && $4 != "" {{print $4}}' {input.pc} ) | sort | uniq > {output}
+         """
+
 rule all_GO:
    input: expand('{sample}.relevantGO.tsv', sample=SAMPLES)
 
@@ -26,13 +34,13 @@ rule GO_desc:
     
 
 rule get_GO_descendants:
-    input: annovar='{sample}.hg38_multianno.txt', universe='/mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt', go='godesc.rds'
+    input: annovar='{sample}.hg38_multianno.txt', universe='universe', go='godesc.rds'
     output: outf='{sample}.relevantGO.tsv', enrich='{sample}_enriched.GO'
     log: log="{sample}.2.log"
     script: SRC_DIR+'/annotate_genes_GOterms_all_desc.R'
 
 rule get_GO_descendants_2:
-    input: annovar='{sample}.hg38_multianno.txt', universe='/mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt'
+    input: annovar='{sample}.hg38_multianno.txt', universe='universe'
     output: outf='{sample}.relevantGO2.tsv', enrich='{sample}_enriched2.GO'
     log: log="{sample}.log"
     script: SRC_DIR+'/annotate_genes_GOterms_all_desc_viaGOALL.R'
