@@ -53,3 +53,31 @@ summary(sign_coad$Signature_8)
 
 # https://pcawg-hub.s3.us-east-1.amazonaws.com/download/October_2016_whitelist_2583.snv_mnv_indel.maf.xena.nonUS
 # hg19
+
+library(MutationalPatterns)
+library(GenomicRanges)
+
+ref_genome <- "BSgenome.Hsapiens.UCSC.hg19"
+library(ref_genome, character.only = TRUE)
+
+vcfs <- read_vcfs_as_granges('/scratch/trcanmed/AF_spectra/local/share/data/blokzijl/STE0072SC12A_BOXTELBLOOD0072_Q100_PASS_20X_autosomal_noSNP_nonRECUR_final.vcf', 'test', ref_genome)
+##############
+maf <- read.table(gzfile('/scratch/trcanmed/AF_spectra/local/share/data/lifehistory/October_2016_whitelist_2583.snv_mnv_indel.maf.xena.nonUS.gz'), sep="\t", header=T, comment.char='', quote='')
+
+#https://github.com/mskcc/vcf2maf
+tt <- read.table('/scratch/trcanmed/AF_spectra/local/share/data/pcawg_specimen_histology_August2016_v9_donor', sep='\t', header=T, comment.char='', quote='')
+
+coad_pz <- tt[tt$histology_abbreviation== 'ColoRect-AdenoCA',]
+
+
+ov <- intersect(unique(maf$Sample), coad_pz$icgc_specimen_id)
+
+#makeGRangesFromDataFrame(df, keep.extra.columns=FALSE, ignore.strand=FALSE, seqinfo=NULL, seqnames.field=c("seqnames", "seqname", "chromosome", "chrom", "chr", "chromosome_name", "seqid"), start.field="start", end.field=c("end", "stop"), strand.field="strand", starts.in.df.are.0based=FALSE)
+#> length(unique(maf$Sample))
+#[1] 1782
+#> length(unique(tt$icgc_specimen_id))
+#[1] 2834
+
+
+#egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data/lifehistory$ zcat simple_somatic_mutation.aggregated.vcf.gz | grep COAD | wc -l
+
