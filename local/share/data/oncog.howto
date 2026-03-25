@@ -1,0 +1,3 @@
+data@rotpunkt:~/work/def_targeted_sanger672_iorio$ bawk '$10=="Act"{print $1}' magnum/local/share/data/cn_drivers/IntOGen_Compendium_Cancer_Genes_19062020_manual.txt   |sort |uniq > oncog
+data@rotpunkt:~/work/def_targeted_sanger672_iorio$ bawk '$10=="LoF"{print $1}' magnum/local/share/data/cn_drivers/IntOGen_Compendium_Cancer_Genes_19062020_manual.txt   |sort |uniq > tsb
+

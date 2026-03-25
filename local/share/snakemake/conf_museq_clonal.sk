@@ -14,6 +14,7 @@ SROOT="/scratch/trcanmed"
 
 ADIR=PRJ_ROOT+'/local/share/data/MUseq'
 SAMPLES=['CRC1502', 'CRC0282', 'CRC1307']
+DNDSCV_RDA=PRJ_ROOT+"/local/share/data/RefCDS_human_GRCh38.p12.rda"
 
 #egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data/MUseq$ sed 1d syn_nonsyn_0282.csv | bawk '{print $1,$2,$2+1, $3, $4, $6}' > CRC0282.bed
 #egrassi@godot:/scratch/trcanmed/AF_spectra/local/share/data/MUseq$ table_annovar.pl CRC0282.bed /mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/ -otherinfo -buildver hg38 -out CRC0282  -remove -protocol refGene,avsnp150,cosmic87_coding -operation g,f,f -nastring . -polish &> CRC0282.log
@@ -30,3 +31,31 @@ rule annovar_clonal:
             table_annovar.pl {output}.bed /mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/ -otherinfo -buildver hg38 -out {wildcards.sample}  -remove -protocol refGene,avsnp150,cosmic87_coding -operation g,f,f -nastring . -polish &> {log.log}
             rm {output}.bed
         """
+INTOGEN='/scratch/trcanmed/AF_spectra/local/share/data/IntOGen-Drivers-20240920_2024-06-18_IntOGen-Drivers_Compendium_Cancer_Genes.tsv'
+
+ruleorder: dnds_clonal > dnds
+
+rule dnds_clonal:
+    input:  p=ADIR+"/clonal_A-B_{sample}.tsv.gz",  rda=DNDSCV_RDA
+    output: "{sample}_dnds.tsv", "{sample}_dnds.Rdata"
+    log: "{sample}_dnds.log"
+    params:  tool=BIN_DIR+"/dnds"
+    shell:
+        """
+            zcat {input.p} |  bawk '{{print "all","chr"$1,$2,$3,$4}}' > {output[0]}.tmp
+            {params.tool} {output[0]}.tmp {output} {input.rda} &> {log}
+            rm {output[0]}.tmp
+        """ 
+
+# dbnsfp30a
+rule annovar_2:
+    input: ADIR+"/extracted_p2_{sample}.txt.gz", ADIR+"/extracted_p3_{sample}.txt.gz"
+    output: "effect_{sample}.hg38_multianno.txt"
+    log: log="{sample}_annovar2.log"
+    shell: 
+        """ 
+            zcat {input} | bawk '{{print $1,$2,$2, $3, $4}}' > {output}.bed
+            table_annovar.pl {output}.bed /mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/ -otherinfo -buildver hg38 -out effect_{wildcards.sample}  -remove -protocol dbnsfp35c -operation f -nastring . -polish &> {log.log}
+            rm {output}.bed
+        """
+

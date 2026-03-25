@@ -1,5 +1,20 @@
 include: "conf.sk"
 
+rule dnds:
+    input: mut=ADIR+"/extracted_p2_{sample}.txt.gz", mut2=ADIR+"/extracted_p3_{sample}.txt.gz", rda=DNDSCV_RDA
+    output: "{sample}_dnds.tsv", "{sample}_dnds.Rdata"
+    log: "{sample}_dnds.log"
+    params:  tool=BIN_DIR+"/dnds"
+    shell:
+        """
+            zcat {input.mut} {input.mut2} |  bawk '{{print "all","chr"$1,$2,$3,$4}}' > {output[0]}.tmp
+            {params.tool} {output[0]}.tmp {output} {input.rda} &> {log}
+            rm {output[0]}.tmp
+        """ 
+
+rule all_dnds:
+   input: expand('{sample}_dnds.tsv', sample=SAMPLES)
+
 rule all_annovar:
    input: expand('{sample}.hg38_multianno.txt', sample=SAMPLES)
 
@@ -16,6 +31,30 @@ rule annovar:
             table_annovar.pl {output}.bed /mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/ -otherinfo -buildver hg38 -out {wildcards.sample}  -remove -protocol refGene,avsnp150,cosmic87_coding -operation g,f,f -nastring . -polish &> {log.log}
             rm {output}.bed
         """
+
+# manual check no ;, we keep entire row to have cosmic
+rule nonsyn_orstop:
+    input: "{sample}.hg38_multianno.txt"
+    output: "{sample}_nonsynstop.txt"
+    shell: 
+        """
+            bawk '$6=="exonic" && ($9=="nonsynonymous SNV" || $9=="stopgain")' {input} > {output}
+        """
+
+rule intogen:   
+    input: muts="{sample}_nonsynstop.txt", drivers=INTOGEN
+    output: "{sample}_relevant.txt"
+    shell:
+        """
+            join -t $'\\t' -1 1 -2 7 <(sed 1d {input.drivers} | sort -k1,1) <(sort -k7,7 {input.muts}) > {output}
+        """
+
+rule all_relevant:
+   input: expand('{sample}_relevant.txt', sample=SAMPLES)
+
+#egrassi@godot:/scratch/trcanmed/AF_spectra/dataset_museq/clonal$ bawk '$31!="."' *_relevant.txt  | wc -l
+#12
+
 
 rule universe:
     input: pc='/home/egrassi/playground/gencode_genes.abed', anno='/mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt'

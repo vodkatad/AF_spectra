@@ -15,7 +15,7 @@ go_f  <- snakemake@input[['go']]
 go_desc <- readRDS(go_f)
 
 d <- read.table(annovar_f, sep='\t', header=T, stringsAsFactors = F)
-nonsyn <- d[d$Func.refGene=="exonic" & d$ExonicFunc.refGene=="nonsynonymous SNV",]
+nonsyn <- d[d$Func.refGene=="exonic" & d$ExonicFunc.refGene=="nonsynonymous SNV",] # STOPGAINS!
 geneList <- unique(unlist(strsplit(nonsyn$Gene.refGene, ';')))
 
 ## standard enrichments

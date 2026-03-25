@@ -15,3 +15,18 @@ SROOT="/scratch/trcanmed"
 ADIR=PRJ_ROOT+'/local/share/data/MUseq'
 SAMPLES=['CRC1502', 'CRC0282', 'CRC1307']
 
+DNDSCV_RDA=PRJ_ROOT+"/local/share/data/RefCDS_human_GRCh38.p12.rda"
+INTOGEN='/scratch/trcanmed/AF_spectra/local/share/data/IntOGen-Drivers-20240920_2024-06-18_IntOGen-Drivers_Compendium_Cancer_Genes.tsv'
+
+# dbnsfp30a
+rule annovar_2:
+    input: ADIR+"/extracted_p2_{sample}.txt.gz", ADIR+"/extracted_p3_{sample}.txt.gz"
+    output: "{sample}.hg38_multianno2.txt"
+    log: log="{sample}_annovar2.log"
+    shell: 
+        """ 
+            zcat {input} | bawk '{{print $1,$2,$2, $3, $4}}' > {output}.bed
+            table_annovar.pl {output}.bed /mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/ -otherinfo -buildver hg38 -out {wildcards.sample}  -remove -protocol dbnsfp35c -operation f -nastring . -polish &> {log.log}
+            rm {output}.bed
+        """
+

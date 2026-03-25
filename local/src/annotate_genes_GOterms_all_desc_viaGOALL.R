@@ -12,7 +12,7 @@ enrich_f <- snakemake@output[["enrich"]]
 log_f <- snakemake@log[['log']]
 
 d <- read.table(annovar_f, sep='\t', header=T, stringsAsFactors = F)
-nonsyn <- d[d$Func.refGene=="exonic" & d$ExonicFunc.refGene=="nonsynonymous SNV",]
+nonsyn <- d[d$Func.refGene=="exonic" & (d$ExonicFunc.refGene=="nonsynonymous SNV" | d$ExonicFunc.refGene=="stopgain"),]
 geneList <- unique(unlist(strsplit(nonsyn$Gene.refGene, ';')))
 
 ## standard enrichments
@@ -32,7 +32,7 @@ ego <- enrichGO(gene          = geneList,
                 OrgDb         = "org.Hs.eg.db",
                 keyType = "SYMBOL",
                 ont           = "ALL",
-                pAdjustMethod = "BH",  
+                pAdjustMethod = "bonferroni",  
                 pvalueCutoff  = 1,
                 qvalueCutoff  = 1,
                 readable      = FALSE)
@@ -40,7 +40,7 @@ ego <- enrichGO(gene          = geneList,
 if (!is.null(ego)) {
   # readjust cause it does each ontology separately with ALL
   ego <- as.data.frame(ego)
-  ego$padj <- p.adjust(ego$pvalue, method='BH')
+  ego$padj <- p.adjust(ego$pvalue, method='bonferroni')
   res <- ego[ego$padj < 0.05,]
   write.table(res, file=enrich_f, sep='\t', quote=F, row.names=FALSE)
 } else {
