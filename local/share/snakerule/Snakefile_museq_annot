@@ -99,7 +99,7 @@ rule get_GO_descendants_2:
 
 rule get_GO_global:
     input: genes='nonsyn_stop_allgenes.tsv', universe='universe'
-    output:  "GO_global.tsv"
+    output:  enrich="GO_global.tsv"
     script: SRC_DIR+'/GO_enrich.R'
 
 rule goenrich_tab:

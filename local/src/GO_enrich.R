@@ -9,7 +9,7 @@ genes_f <- snakemake@input[["genes"]]
 universe_f <- snakemake@input[["universe"]]
 enrich_f <- snakemake@output[["enrich"]]
 
-d <- read.table(genes_f, sep='\t', header=T, stringsAsFactors = F)
+d <- read.table(genes_f, sep='\t', header=F, stringsAsFactors = F)
 geneList <- unique(as.character(d$V1))
 
 ## standard enrichments
@@ -41,10 +41,8 @@ if (!is.null(ego)) {
   res <- ego[ego$padj < 0.05,]
   write.table(res, file=enrich_f, sep='\t', quote=F, row.names=FALSE)
 } else {
-  sink(log_f)
-  'No GO'
-  sink()
   write.table(data.frame(), file=enrich_f, sep='\t', quote=F, row.names=FALSE)
 }
 
 ##
+save.image('GOGO.Rdata')
