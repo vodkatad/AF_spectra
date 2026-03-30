@@ -30,3 +30,5 @@ rule annovar_2:
             rm {output}.bed
         """
 
+N=8
+REP=1000

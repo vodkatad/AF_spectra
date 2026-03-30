@@ -52,6 +52,19 @@ rule intogen:
 rule all_relevant:
    input: expand('{sample}_relevant.txt', sample=SAMPLES)
 
+
+rule nonsyn_all:
+    input: expand('{sample}_nonsynstop.txt', sample=SAMPLES)
+    output: tsv="nonsyn_stop_all.tsv", genes="nonsyn_stop_allgenes.tsv"
+    shell:
+        """
+            cat CRC0282.hg38_multianno.txt |  bawk 'NR==1{{print "sample",$0}}' > {output.tsv}
+            for f in {input}; do cat $f | bawk -v n="$f" 'NR!=1{{print n, $0}}'; done | sed 's/_nonsynstop.txt//1'  >> {output.tsv}
+            sed 1d {output.tsv} | cut -f 8 | sort | uniq > {output.genes}
+        """
+
+# TODO load in R annotate with INTOGEN and save tsv (or translate?)
+
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset_museq/clonal$ bawk '$31!="."' *_relevant.txt  | wc -l
 #12
 
@@ -84,14 +97,17 @@ rule get_GO_descendants_2:
     log: log="{sample}.log"
     script: SRC_DIR+'/annotate_genes_GOterms_all_desc_viaGOALL.R'
 
+rule get_GO_global:
+    input: genes='nonsyn_stop_allgenes.tsv', universe='universe'
+    output:  "GO_global.tsv"
+    script: SRC_DIR+'/GO_enrich.R'
 
 rule goenrich_tab:
     input: expand('{sample}_enriched2.GO', sample=SAMPLES)
     output: 'allGOenrich.tsv'
     shell: """
             head -n1 {input[0]} | bawk '{{print  "sample",$1,$2,$3,$4,$5,$12,$14}}' > {output}
-            for f in {input}; do bawk -v sample="$f" 'NR!=1{{print sample,$1,$2,$3,$4,$5,$12,$14}}' $f; done | sed 's/_enriched2\.GO//1' >> {output}
-
+            for f in {input}; do bawk -v sample="$f" 'NR!=1 {{print sample,$1,$2,$3,$4,$5,$12,$14}}' $f; done | sed 's/_enriched2\.GO//1' >> {output}
            """
 
 rule gorelevant_tab:
@@ -113,3 +129,8 @@ rule xls:
 
 
 # fare montercarlo prendendo 100 geni a caso dell'universo di annovar e ottenendo loro relevant?
+rule monti:
+    input: pipGO='pipGO.Rdata'
+    output: monti='monti.RDS'
+    params: n=N, rep=REP
+    script: SRC_DIR+'/montigo.R'

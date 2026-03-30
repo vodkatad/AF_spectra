@@ -4,12 +4,18 @@ library(dplyr)
 library(GO.db)
 library(clusterProfiler)
 library(msigdbr)
-load('/scratch/trcanmed/AF_spectra/dataset_museq/subclonal/pipGO.Rdata')
+#load('/scratch/trcanmed/AF_spectra/dataset_museq/subclonal/pipGO.Rdata')
 
 set.seed(42)
 
+n <- as.numeric(snakemake@params[['n']])
+rep <- as.numeric(snakemake@params[['rep']])
+outf <- snakemake@output[['monti']]
+print(n)
+print(rep)
+print(outf)
 
-
+load(snakemake@input[['pipGO']])
 
 genes_hit_go_terms <- function(gene_vector, w, orgdb = org.Hs.eg.db) {
   
@@ -38,8 +44,10 @@ w <- c('GO:0007049', 'GO:0008219', 'GO:0006281') # all bp
 dfg <- data.frame(goid=w, term=c('cell cycle', 'cell death', 'dna repair'))
 
 rand <- function() {
-  geneList <- sample(geneUni, 59)
+  geneList <- sample(geneUni, n)
   results <- genes_hit_go_terms(geneList, w)
 }
 
-monti <- replicate(100, rand())
+monti <- replicate(rep, rand())
+
+saveRDS(monti, file=outf)
