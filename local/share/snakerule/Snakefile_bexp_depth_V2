@@ -16,17 +16,19 @@ def input_signatures(wildcards):
         return expand("{model}/platypus_nobin_00/vitro.merged.vcf.gz", model=MODELS_NO327_2) + expand("{model}/platypus_nobin_00/vivo.merged.vcf.gz", model=MODELS) + BULK_VCF
     elif wildcards.kind == "univMutect":
         return expand("{model}/univMutect/vitro.merged.vcf.gz", model=MODELS_NO327_2) + expand("{model}/univMutect/vivo.merged.vcf.gz", model=MODELS) + BULK_VCF
+    elif wildcards.kind == "indelvitrobulk":
+        return expand("{model}/platypus_nobin_indels_00/vitro.merged.vcf.gz", model=MODELS_NO327_2) + BULK_VCF
     else:
         print("wrong option, baby")
 
 rule all_sign_input:
     input: input_signatures
-    output: "signinput_{kind}_{merged}"
+    output: "signinput_{kind}_merged"
     run:
         import re
         with open(output[0],'w') as out:
             for vcf in input:
-                crc = re.search('CRC\d{4}(LM|PR)*', vcf) # 1599 have LM/PR and we need to keep it
+                crc = re.search('CRC\\d{4}(LM|PR)*', vcf) # 1599 have LM/PR and we need to keep it
                 sample_kind = "NA"
                 sample = crc.group()
                 if re.search('vitro', vcf) is not None:
@@ -68,6 +70,16 @@ rule all_univMutect_sign:
             {params.tool} {input} {output.heat} {output.cosine} '{params.colors}' {log.log} {output.heat_tsv} {output.cosine_tsv}
         """
 
+rule all_sign_indel:
+    input: "signinput_indelvitrobulk_merged"
+    output: heat="indelvitrobulk_heatmap_merged_cosmic.png", cosine="indelvitrobulk_cosine_merged_cosmic.png",
+            heat_tsv="indelvitrobulk_heatmap_merged_cosmic.tsv", cosine_tsv="indelvitrobulk_cosine_merged_cosmic.tsv",
+    params: tool=BIN_DIR+"/mut_pat_signaturesID_fit", colors=COLORS_MODELS_2
+    log: log="indelvitrobulk_heatmap_merged_cosmic.png.log"
+    shell:
+        """
+            {params.tool} {input} {output.heat} {output.cosine} '{params.colors}' {log.log} {output.heat_tsv} {output.cosine_tsv}
+        """
 
 rule count_sbs1:
     input: "signinput_vitrovivobulk_merged"
@@ -443,11 +455,11 @@ rule all_dnds_subclonal_vitroMSS_T0:
     log: "dnds_subclonal_poolMSS_t0.log"
     params:  tool=BIN_DIR+"/dnds", rda=DNDSCV_RDA
     shell:
-        """
+        r"""
             cat {input} | tr ":" "\\t" | bawk '{{print "all",$2,$3,$4,$5}}' | sort | uniq > {output[0]}.tmp
             {params.tool} {output[0]}.tmp {output} {params.rda} &> {log}
             rm {output[0]}.tmp
-        """
+        r"""
 
 
 rule all_dnds_vitroMSS_T1_T2:
@@ -1373,3 +1385,24 @@ rule all_exonic_or_all_T1:
             cat {input} > {output}
            """
 
+## T0 T1 separately
+rule sign_input_all:
+    output: "sign_input_allmuts"
+    shell:
+        """
+            ls CRC*/platypus_nobin_00/*.allmuts.vcf.gz | bawk ' function basename(file, a, n) {{
+                 n = split(file, a, "/")
+                 return a[n]
+                }} {{print $1, basename($1)}}' | sed 's/\.allmuts\.vcf\.gz//2' > {output}
+        """
+
+rule all_allmuts_sign:
+    input: "sign_input_allmuts"
+    output: heat="allmuts_cosmic.png", cosine="allmuts_cosine_cosmic.png",
+            heat_tsv="allmuts_heatmap_cosmic.tsv", cosine_tsv="allmuts_cosine_cosmic.tsv",
+    params: tool=BIN_DIR+"/mut_pat_signatures_fit", colors=COLORS_MODELS_2
+    log: log="allmuts_cosmic.png.log"
+    shell:
+        """
+            {params.tool} {input} {output.heat} {output.cosine} '{params.colors}' {log.log} {output.heat_tsv} {output.cosine_tsv}
+        """

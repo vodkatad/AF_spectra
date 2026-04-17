@@ -690,3 +690,19 @@ rule n_tot_gained:
         """
          zcat {input.annot} | sed 1d | filter_1col 9 <(cut -f 2 {input.vitro}) | cut -f 9 | sort | uniq | wc -l > {output}
         """
+
+## Signatures on T1/T0 directly
+rule all_allmuts_vcf:
+    input: expand("{sample}.allmuts.vcf.gz", sample=SAMPLES)
+
+rule vcf:
+    input: muts="{sample}.tsv.gz", vcf=DATA+"/{sample}.pass.vcf.gz"
+    output: "{sample}.allmuts.vcf.gz"
+    shell:
+        """
+            zcat {input.vcf} | grep "^##" > {output}.tmp
+            zcat {input.vcf} | grep -v "^##" | grep "^#" | cut -f 11 --complement >> {output}.tmp 
+            zcat {input.muts} | tr ":" "\\t" | tr "@" "\\t" | bawk '{{print $1,$3,$1":"$3"_"$6"/"$7,$6,$7,".","PASS","CONTQ=42","GT:AF",$8":"$11}}' >> {output}.tmp
+            bgzip -c {output}.tmp > {output}
+            rm {output}.tmp
+        """

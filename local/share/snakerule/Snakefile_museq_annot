@@ -59,11 +59,14 @@ rule nonsyn_all:
     shell:
         """
             cat CRC0282.hg38_multianno.txt |  bawk 'NR==1{{print "sample",$0}}' > {output.tsv}
-            for f in {input}; do cat $f | bawk -v n="$f" 'NR!=1{{print n, $0}}'; done | sed 's/_nonsynstop.txt//1'  >> {output.tsv}
+            for f in {input}; do cat $f | bawk -v n="$f" '{{print n, $0}}'; done | sed 's/_nonsynstop.txt//1'  >> {output.tsv}
             sed 1d {output.tsv} | cut -f 8 | sort | uniq > {output.genes}
         """
 
-# TODO load in R annotate with INTOGEN and save tsv (or translate?)
+rule annote_intogen:
+    input: muts="nonsyn_stop_all.tsv", drivers=INTOGEN
+    output: "nonsyn_annot.tsv"
+    script: SRC_DIR+'/intogen_merge.R'
 
 #egrassi@godot:/scratch/trcanmed/AF_spectra/dataset_museq/clonal$ bawk '$31!="."' *_relevant.txt  | wc -l
 #12
@@ -127,7 +130,14 @@ rule xls:
             tsv_to_xls -s GOenrich,GOtraversal -i {input[1]},{input[0]} -o {output}
         """
 
-
+rule xls2:
+    input: go='GO_global.tsv', annot='nonsyn_annot.tsv'
+    output: 'GO_annot_2.xlsx'
+    shell:
+        """
+            tsv_to_xls -s Muts_annotations,GO_enrich -i {input.annot},{input.go} -o {output}
+        """
+    
 # fare montercarlo prendendo 100 geni a caso dell'universo di annovar e ottenendo loro relevant?
 rule monti:
     input: pipGO='pipGO.Rdata'

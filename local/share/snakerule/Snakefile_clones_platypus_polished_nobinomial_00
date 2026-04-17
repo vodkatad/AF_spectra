@@ -335,13 +335,14 @@ def find_pairs_vcf(wildcards):
 rule all_gain_vcf:
     input: find_pairs_vcf
 
+# ran with cut -f 10 for CRC1599PR by hand...
 rule class_vcf:
     input: ovcnok="{t1sample}_{t0sample}.ovcnokdelta.tsv.gz", vcf=DATA+"/{t1sample}.pass.vcf.gz"
     output: "{t1sample}_{t0sample}.{class}.vcf.gz"
     shell:
         """
             zcat {input.vcf} | grep "^##" > {output}.tmp
-            zcat {input.vcf} | grep -v "^##" | grep "^#" | cut -f 11 --complement >> {output}.tmp
+            zcat {input.vcf} | grep -v "^##" | grep "^#" | cut -f 11 --complement >> {output}.tmp 
             zcat {input.ovcnok} | bawk '$16=="{wildcards.class}" {{print $5,$6,$5":"$6"_"$7"/"$8,$7,$8,".","PASS","CONTQ=42","GT:AF","0/1:"$11}}' >> {output}.tmp
             bgzip -c {output}.tmp > {output}
             rm {output}.tmp
@@ -747,4 +748,20 @@ rule n_tot_gained_2:
     shell: 
         """
          cut -f 2 {input.vitro} | sort | uniq | wc -l | bawk -v p=$PWD '{{print $0, p}}' > {output}
+        """
+        
+## Signatures on T1/T0 directly
+rule all_allmuts_vcf:
+    input: expand("{sample}.allmuts.vcf.gz", sample=SAMPLES)
+
+rule vcf:
+    input: muts="{sample}.tsv.gz", vcf=DATA+"/{sample}.pass.vcf.gz"
+    output: "{sample}.allmuts.vcf.gz"
+    shell:
+        """
+            zcat {input.vcf} | grep "^##" > {output}.tmp
+            zcat {input.vcf} | grep -v "^##" | grep "^#" | cut -f 11 --complement >> {output}.tmp 
+            zcat {input.muts} | tr ":" "\\t" | tr "@" "\\t" | bawk '{{print $1,$3,$1":"$3"_"$6"/"$7,$6,$7,".","PASS","CONTQ=42","GT:AF",$8":"$11}}' >> {output}.tmp
+            bgzip -c {output}.tmp > {output}
+            rm {output}.tmp
         """
