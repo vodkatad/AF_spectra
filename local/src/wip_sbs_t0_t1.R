@@ -1,5 +1,5 @@
 load('/scratch/trcanmed/AF_spectra/datasetV2/p.Rdata')
-
+library(ggpubr)
 
 cos_sim_ori_rec <- cos_sim_matrix(mut_mat, ff$reconstructed)
 cos_sim_ori_rec <- as.data.frame(diag(cos_sim_ori_rec))
@@ -52,7 +52,8 @@ dd$clone <-  as.factor(unlist(lapply(strsplit(rownames(dd),'-'), function(x){ x[
 
 # only in vivo T1 for this
 dd <- dd[rownames(dd) != 'CRC1599LM-07-0',]
-
+pal <- RColorBrewer::brewer.pal(name = 'OrRd', n=8)
+pl <- c()
 for (m in unique(dd$model)) {
   md <- dd[dd$model == m, ]
   md0 <- md[md$time == 0,]
@@ -69,5 +70,109 @@ for (m in unique(dd$model)) {
     md1[which(md1$clone==c & md1$ratio == ll),]$lineage <- paste0('clone', c)
   }
   md <- rbind(md0, md1)
+  lenc <- length(unique(md$clone))
+  pl <- c(pl, ggplot(data=md, aes(x=time, y= ratio))+geom_line(data=md[!is.na(md$lineage),], aes(group=lineage, color=clone))+geom_point(aes(color=clone))+theme_bw(base_size = 15)+ggtitle(m)+
+        scale_color_manual(values=pal[seq(8, 8 - lenc)])++ theme(legend.position="none"))
+}
+
+pl <- c()
+for (m in unique(dd$model)) {
+  md <- dd[dd$model == m, ]
+  md0 <- md[md$time == 0,]
+  #md0$lineage <- NA
+  #md0$lineage <- paste0('clone', md0[,'clone'])
+  md1 <- md[md$time == 1,]
+  #md1$lineage <- NA
+  md1 <- md1 %>% summarize(ratio=mean(ratio), .by=c(clone))
+  md1$time <- 1
+  md1$model <- m
+  md1 <- md1[, colnames(md0)]
+  md <- rbind(md0, md1)
+  lenc <- length(unique(md$clone))
+  pl <- c(pl, ggplot(data=md, aes(x=time, y= ratio))+geom_line(aes(group=clone, color=clone))+geom_point(aes(color=clone))+theme_bw(base_size = 15)+ggtitle(m)+
+            scale_color_manual(values=pal[seq(8, 8 - lenc)])+ theme(legend.position="none")+ylim(0,4))
+}
+
+
+ggarrange(plotlist=pl)
+
+## get estimates
+# (deltaTumor * nDiv) / deltaMA
+
+gens <- read.table('/scratch/trcanmed/AF_spectra/dataset_Figures_Tables/edt3_MR.tsv', sep="\t", header=T)
+gens$time <-  as.factor(unlist(lapply(strsplit(gens$id,'-'), function(x){ x[[3]] })))
+gens$model <-  as.factor(unlist(lapply(strsplit(gens$id,'-'), function(x){ x[[1]] })))
+gens$clone <-  as.factor(unlist(lapply(strsplit(gens$id,'-'), function(x){ x[[2]] })))
+
+gens <- gens[gens$time != 2,]
+
+# deltaMA : deltaTumor =  ngenMA : ngenTumor
+# ngenTumor = (deltaTumor * ngenMA ) / deltaMA
+# deltaTumor : ngenTumor = deltaMA : ngenMA
+
+models <- unique(dd$model)
+ages <- c()
+for (m in models) {
+  md <- dd[dd$model == m, ]
+  md0 <- md[md$time == 0,]
+  md1 <- md[md$time == 1,]
+  t1s <- c()
+  t0s <- c()
+  for (c in unique(md$clone)) {
+    ave_t1 <- mean(md1[md1$clone==c,'ratio'])
+    t0 <- md0[md0$clone==c,'ratio']
+    t0s <- c(t0s, t0)
+    t1s <- c(t1s, ave_t1)
+  }
+  n_gen <- mean(unique(gens[gens$model == m, 'Generations_EDU']))
+  ages <- c(ages, (n_gen*mean(t0s))/(mean(t1s)-mean(t0s)) )
+}
+
+dfage <- data.frame(row.names=models, ages=ages)
+
+### different plot with SBS1 and 8 as separate lines
+library(dplyr)
+
+###################
+dd2 <- data.frame(SBS8=data2[,8], SBS1=data2[,1], row.names= rownames(data2))
+dd2$time <-  as.factor(unlist(lapply(strsplit(rownames(dd2),'-'), function(x){ x[[3]] })))
+dd2$model <-  as.factor(unlist(lapply(strsplit(rownames(dd2),'-'), function(x){ x[[1]] })))
+dd2$clone <-  as.factor(unlist(lapply(strsplit(rownames(dd2),'-'), function(x){ x[[2]] })))
+
+# only in vivo T1 for this
+dd2 <- dd2[rownames(dd2) != 'CRC1599LM-07-0',]
+
+for (m in unique(dd2$model)) {
+  md <- dd2[dd2$model == m, ]
+  md0 <- md[md$time == 0,]
+  md0$lineage <- NA
+  md0$lineage <- paste0('clone', md0[,'clone'])
+  md1 <- md[md$time == 1,]
+  md1$lineage <- NA
+  for (c in unique(md1$clone)) {
+    ll <- median(md1[md1$clone == c,'ratio'])
+    if (!any(ll ==  md1[md1$clone == c,'ratio'])) {
+      # solo CRC1599PR
+      ll = max(md1[md1$clone == c,'ratio'])
+    }
+    md1[which(md1$clone==c & md1$ratio == ll),]$lineage <- paste0('clone', c)
+  }
+  md <- rbind(md0, md1)
   print(ggplot(data=md, aes(x=time, y= ratio))+geom_line(data=md[!is.na(md$lineage),], aes(group=lineage, color=clone))+geom_point(aes(color=clone))+theme_bw(base_size = 15)+ggtitle(m))
 }
+
+# fare vs media e togliere legenda
+
+md$model <- NULL
+pd <- melt(md, id=c('time', 'clone'), value=c('SBS1', 'SBS2'))
+pdt1 <- pd[pd$time == 1,]
+pdt0 <- pd[pd$time == 0,]
+#pdt1av <- sapply(unique(pdt1$group), function(x) { su <- pdt0[pdt0$group==x, 'value']; mean(su)})
+pdt1 <- pdt1 %>% summarize(value=mean(value), .by=c(clone, variable))
+pdt1$time <- 1
+pdt1 <- pdt1[, colnames(pdt0)]
+pd2 <- rbind(pdt0, pdt1)
+pd2$group <- paste0(pd2$clone,pd2$variable)
+ggplot(data=pd2,aes(x=time, y=value))+geom_point(aes(color=variable))+geom_line(aes(group=variable))
+
+## che misero!
