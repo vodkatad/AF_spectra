@@ -203,11 +203,32 @@ rule mr_input_new:
     output: "MR_edu_SNV_MSS_new"
     shell: "cat {input} | grep -v CRC0282 | grep -v '\-2\-' | grep -v UECH > {output}"
 
+rule mr_input_eo:
+    input: MR=NEW_DATASET+"/MR_edu_SNV", MRold=REF_DATASET+"/MR_edu_SNV"
+    output: "MR_edu_SNV_MSS_new_eo"
+    shell: "cat {input} | grep -v CRC0282 | grep -v '\-2\-' > {output}"
+
+rule avg_eo:
+    input: "sorted_MR_avg.tsv", NEW_DATASET+"/MR_edu_SNV_averaged.tsv"
+    output: "sorted_MR_avg_eo.tsv"
+    shell: 
+        """
+           cat {input[0]} | grep -v CRC0282 > {output}.tmp
+           cat {input[1]} | sed 1d >> {output}.tmp
+           sort -gk3,3 {output}.tmp > {output} 
+        """
+
 rule figure_6a_revision:
     input: MR="MR_edu_SNV_MSS_new", theme=GGTHEME, order='sorted_MR_avg_new.tsv', palette=MANY_COLORS_PALETTE_NEW
     output: plot='fig_6a_MR.svg', avgdata="fig_6a_avg.tsv", rdata="fig_6a.Rdata"
     log: log="fig_6a_MR.log"
     script: SRC_DIR+'/fig_6a_MR_new.R'
+
+rule figure_6a_eo:
+    input: MR="MR_edu_SNV_MSS_new_eo", theme=GGTHEME, order='sorted_MR_avg_eo.tsv', palette=MANY_COLORS_PALETTE_NEW
+    output: plot='fig_6a_MR_eo.svg', avgdata="fig_6a_avg_eo.tsv", rdata="fig_6a_eo.Rdata"
+    log: log="fig_6a_MR_eo.log"
+    script: SRC_DIR+'/fig_6a_MR_eo.R'
 
 rule figure_6b_slopes:
     input: data=SOURCE_DATA+'/bestbet_0.12_0.24.tsv',

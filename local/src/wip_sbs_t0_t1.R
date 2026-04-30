@@ -45,6 +45,14 @@ data3 <- data2[,apply(data2, 2, sum) > 1 ]
 pheatmap(data3, fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_cols=FALSE,  annotation_row=annot_rows2, color=brewer.pal(9, 'PuBu'))
 
 ###################
+load('/scratch/trcanmed/AF_spectra/dataset_Figures_Tables/theme_10.Rdata')
+pali <- readRDS("/scratch/trcanmed/AF_spectra/local/share/data/IANG_allclones_palette.rds")
+palma <- readRDS("/scratch/trcanmed/AF_spectra/local/share/data/palette.rds")
+palette_df <- rbind(palma, pali)
+pal <- palette_df$palette
+names(pal) <- palette_df$model
+names(pal) <- gsub('-', '_', names(pal))
+
 dd <- data.frame(ratio=data2[,8] / data2[,1], row.names= rownames(data2))
 dd$time <-  as.factor(unlist(lapply(strsplit(rownames(dd),'-'), function(x){ x[[3]] })))
 dd$model <-  as.factor(unlist(lapply(strsplit(rownames(dd),'-'), function(x){ x[[1]] })))
@@ -71,12 +79,14 @@ for (m in unique(dd$model)) {
   }
   md <- rbind(md0, md1)
   lenc <- length(unique(md$clone))
-  pl <- c(pl, ggplot(data=md, aes(x=time, y= ratio))+geom_line(data=md[!is.na(md$lineage),], aes(group=lineage, color=clone))+geom_point(aes(color=clone))+theme_bw(base_size = 15)+ggtitle(m)+
+  pl <- c(pl, ggplot(data=md, aes(x=time, y= ratio))+geom_line(data=md[!is.na(md$lineage),], aes(group=lineage, color=clone))+
+        geom_point(aes(color=clone))+ theme_bw(base_size = 15)+
         scale_color_manual(values=pal[seq(8, 8 - lenc)])++ theme(legend.position="none"))
 }
 
 pl <- c()
 for (m in unique(dd$model)) {
+  
   md <- dd[dd$model == m, ]
   md0 <- md[md$time == 0,]
   #md0$lineage <- NA
@@ -88,9 +98,11 @@ for (m in unique(dd$model)) {
   md1$model <- m
   md1 <- md1[, colnames(md0)]
   md <- rbind(md0, md1)
+  md$col <- paste0(md$model,'_', md$clone)
   lenc <- length(unique(md$clone))
-  pl <- c(pl, ggplot(data=md, aes(x=time, y= ratio))+geom_line(aes(group=clone, color=clone))+geom_point(aes(color=clone))+theme_bw(base_size = 15)+ggtitle(m)+
-            scale_color_manual(values=pal[seq(8, 8 - lenc)])+ theme(legend.position="none")+ylim(0,4))
+  mpal <- pal[names(pal) %in% unique(md$col)]
+  pl <- c(pl, ggplot(data=md, aes(x=time, y= ratio))+geom_line(aes(group=clone, color=col))+geom_point(aes(color=col))+theme_bw(base_size = 15)+ggtitle(m)+
+            scale_color_manual(values=mpal)+ theme(legend.position="none"))
 }
 
 

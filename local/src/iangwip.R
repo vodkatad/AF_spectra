@@ -20,7 +20,7 @@ sign$model <- paste0(sign$model, ifelse(!grepl('\\d$', sign$model), '', ifelse(s
 #colnames(treat) <- c('model', paste0('X', seq(1, 30)))
 
 sign <- sign[, c('model',  'X1')]
-treat <- treat[, c('model', 'X1')]
+#treat <- treat[, c('model', 'X1')]
 
 #sign <- rbind(sign, treat)
 
@@ -61,7 +61,6 @@ p2 <- ggplot()+geom_point(data=m ,aes(x=X1, y=age))+
 ggsave(plot=p1, file='/scratch/trcanmed/AF_spectra/dataset_fIANG/lie1.svg',width=89, height=89, units="mm")
 ggsave(plot=p2, file='/scratch/trcanmed/AF_spectra/dataset_fIANG/lie2_legend.svg',width=89, height=89, units="mm")
 
-
 p3 <- ggplot()+geom_point(data=m ,aes(x=X1, y=age))+
   geom_point(data=sub, aes(x=X1, y=age, color=name, size=1))+
   theme_bw(base_size=15)+theme(legend.position='none')+xlab('SBS1')+scale_color_manual(values=pal)+geom_smooth(data=m ,aes(x=X1, y=age),method=lm, fullrange=T, lwd=0.5)+
@@ -80,6 +79,77 @@ models <- c("CRCUECHPRO-01","CRCUECHPRO-05","CRCUECHPRO-06","CRCUECHPRO-07","CRC
 colors <- "#10d8eb,#0fc0d1,#097c87,#47dfed,#7ec5cc,#5b3d80,#a772e8,#7e57ad,#643f91,#e69c6e"
 model_palette_df <- data.frame(palette=unlist(strsplit(colors, ',')), model_clone=unlist(strsplit(models, ',')), stringsAsFactors=F)
 saveRDS(model_palette_df, file="/scratch/trcanmed/AF_spectra/local/share/data/IANG_allclones_palette.rds")
+
+############ put together
+#https://www.nature.com/articles/ng.3441/figures/3
+#https://pmc.ncbi.nlm.nih.gov/articles/PMC10515775/
+load('/scratch/trcanmed/AF_spectra/dataset_Figures_Tables/theme_10.Rdata')
+pali <- readRDS("/scratch/trcanmed/AF_spectra/local/share/data/IANG_palette.rds")
+palma <- readRDS("/scratch/trcanmed/AF_spectra/local/share/data/model_palette.rds")
+palette_df <- rbind(palma, pali)
+pal <- palette_df$palette
+names(pal) <- palette_df$model
+
+
+iang <- sub[,c('name', 'age', 'X1')]
+colnames(iang)[1] <- 'model'
+
+tot <- rbind(m, iang)
+
+burd <- read.table('/scratch/trcanmed/AF_spectra/local/share/data/snvburden_bulk', sep="\t", header=F)
+colnames(burd) <- c('model', 'burden')
+
+tot <- merge(burd, tot, by='model')
+tot$SBS1b <- (tot$X1 * tot$burden) / 3
+
+fittot <- lm(data=tot, formula=as.formula(X1~age))
+sfittot <- summary(fittot)
+
+tot$model <- paste0(tot$model, ifelse(!grepl('\\d$', tot$model), '', ifelse(tot$model=="CRC0282", 'PR', 'LM')))
+names(pal) <- paste0(names(pal), ifelse(!grepl('\\d$', names(pal)), '', ifelse(names(pal)=="CRC0282", 'PR', 'LM')))
+names(pal) <- gsub('PRO', 'PR', names(pal))
+
+y_breaks <- c(15, 30, 45, 60, 75, 90)
+x_breaks <- c(0, 0.10, 0.20, 0.30, 0.40)
+#x_breaks <- c(0, 0.2, 0.4, 0.6, 0.8)
+p1 <- ggplot(data=tot, aes(y=X1, x=age, color=model))+geom_point(size=1)+
+  theme_bw(base_size=15)+ylab('SBS1')+
+  geom_abline(slope=sfittot$coefficients[2,1], intercept=sfittot$coefficients[1,1], color='darkgray', lwd=0.5)+
+  scale_color_manual(values=pal)+
+  scale_x_continuous(breaks=y_breaks,limits=c(15, max(y_breaks)),expand = c(0, 0))+
+  scale_y_continuous(breaks=x_breaks,limits=c(0, max(x_breaks)),expand = c(0, 0))+
+  theme(legend.position="none")
+p1
+
+pfitgecip <- ggplot(data=tot, aes(y=X1, x=age, color=model))+geom_point(size=1)+
+  theme_bw(base_size=15)+ylab('SBS1')+
+  geom_abline(slope=sfittot$coefficients[2,1], intercept=sfittot$coefficients[1,1], color='darkgray', lwd=0.5)+
+  geom_abline(slope=0.002, intercept=0.207, color='blue', lwd=0.5)+
+  scale_color_manual(values=pal)+
+  scale_x_continuous(breaks=y_breaks,limits=c(15, max(y_breaks)),expand = c(0, 0))+
+  scale_y_continuous(breaks=x_breaks,limits=c(0, max(x_breaks)),expand = c(0, 0))+
+  theme(legend.position="none")
+pfitgecip
+
+
+bfittot <- lm(data=tot, formula=as.formula(SBS1b~age))
+bsfittot <- summary(bfittot)
+
+y_breaks <- c(0,15, 30, 45, 60, 75, 90)
+x_breaks <- c(0, 500, 1000, 1500, 2000, 2500)
+#x_breaks <- c(0, 0.2, 0.4, 0.6, 0.8)
+p1 <- ggplot(data=tot, aes(y=SBS1b, x=age, color=model))+geom_point(size=1)+
+  theme_bw(base_size=20)+ylab('SBS1 mutations / Gb')+
+  geom_abline(slope=bsfittot$coefficients[2,1], intercept=bsfittot$coefficients[1,1], color='darkgray', lwd=0.5)+
+  scale_color_manual(values=pal)+
+  scale_x_continuous(breaks=y_breaks,limits=c(0, max(y_breaks)),expand = c(0, 0))+
+  scale_y_continuous(breaks=x_breaks,limits=c(0, max(x_breaks)),expand = c(0, 0))+
+  theme(legend.position="none")
+p1
+
+ggsave(plot=p1, file='/scratch/trcanmed/AF_spectra/temp/progress_fit.svg', width=95, height=95, units="mm")
+
+######################
 
 ##
 load('/scratch/trcanmed/AF_spectra/dataset_Figures_Tables/fig_1b_MR.svg.Rdata')

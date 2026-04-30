@@ -60,7 +60,7 @@ ff <- fit_to_signatures(mut_mat, ref_signatures)
 #which(rowSums(ff$contribution) > 10)
 #select <- which(rowSums(ff$contribution) > 10)
 #plot_contribution_heatmap(ff$contribution,cluster_samples = TRUE,method = "complete")
-
+save.image('p.Rdata')
 
 cos_sim_ori_rec <- cos_sim_matrix(mut_mat, ff$reconstructed)
 cos_sim_ori_rec <- as.data.frame(diag(cos_sim_ori_rec))

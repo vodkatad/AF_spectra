@@ -39,3 +39,6 @@ sink(my_log_f)
 wilcox.test(our[our$type=="LMs", 'MR_edu'], our[our$type=="PRs", 'MR_edu'])
 wilcox.test(our[our$type=="LMs", 'MR_edu'], our[our$type=="PRs", 'MR_edu'], alt='greater')
 sink()
+
+exit(0)
+
