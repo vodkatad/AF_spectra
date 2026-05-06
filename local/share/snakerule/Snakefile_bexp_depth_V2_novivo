@@ -41,13 +41,13 @@ rule all_sign_input:
                     #if re.search('1599', vcf) is None: # re remove LM from the un-needed samples. Very bad but at this point this seems the only way around this issue.
                     #    sample = sample[0:7]
                 if re.search('clones_all', vcf) :
-                    sample = sample + "-2nd" 
+                    sample = sample + "-2nd"
                 if re.search('clones_2', vcf) :
                     continue
                 annotation = sample + '_' + sample_kind
                 out.write("{}\t{}".format(vcf, annotation))
                 out.write("\n")
-                  
+
 
 rule all_sign:
     input: "signinput_vitrobulk_merged"
@@ -86,14 +86,14 @@ rule count_sbs1:
 # manually remove 282 clones all from signinput_vitrovivobulk_merged 22/06/23
 rule msigact:
     input: "signinput_vitrovivobulk_merged"
-    output: chip="msigact.png", 
+    output: chip="msigact.png",
             chip_tsv="msigact.tsv",
     params: tool=BIN_DIR+"/msigact", colors=COLORS_MODELS_2
     log: log="msigact.png.log"
     shell:
         """
             {params.tool} {input} {output.chip} {output.chip_tsv} '{params.colors}' {log.log}
-        """ 
+        """
 
 #### shared muts
 # right now selection of files is done inside R with list.files, this is DANGEROUS, FIXME
@@ -136,7 +136,7 @@ def kind_MR(wildcards):
         return expand("{model}/univMutect/all.MR_ov", model=MODELS_NO327_2)
     elif wildcards.kind == "allcn":
         return expand("{model}/platypus_nobin_00_allcn/all.MR_ov", model=MODELS_NO327_2)
-    else: 
+    else:
         print("boh!")
 
 # == 0 for MR_univ PORCOPORCOPORCOPORCO
@@ -148,7 +148,7 @@ rule overall_MR_edu_vitro:
         """
             cat {input} | bawk '$4==1 || $4 == 2 {{print $2,$8}}' > {output}
         """
-    
+
 rule overall_MR_conte_vitro:
     output: "MR_conte_{kind}"
     input: kind_MR
@@ -171,7 +171,7 @@ rule check_noplaty_plot:
     input: r1="MR_edu_SNV", r2="check_MR_noplaty_MR_edu_SNV", ggtheme=GGTHEME
     output: plot="platy_vs_noplaty.pdf", stats="platy_vs_noplaty.log"
     params: name="platy_vs_noplaty", tool=BIN_DIR+"/check_plot", colors=MANY_COLORS_PALETTE
-    shell: "{params.tool} {input.r1} {input.r2} {params.name} {params.colors} {input.ggtheme}" 
+    shell: "{params.tool} {input.r1} {input.r2} {params.name} {params.colors} {input.ggtheme}"
 
 
 rule check_coverage:
@@ -186,7 +186,7 @@ rule check_coverage_plot:
     input: r1="MR_edu_SNV", r2="check_MR_coverage_MR_edu_SNV", ggtheme=GGTHEME
     output: plot="cov1x_vs_cov20x.pdf", stats="cov1x_vs_cov20x.log"
     params: name="cov1x_vs_cov20x", tool=BIN_DIR+"/check_plot", colors=MANY_COLORS_PALETTE
-    shell: "{params.tool} {input.r1} {input.r2} {params.name} {params.colors} {input.ggtheme}" 
+    shell: "{params.tool} {input.r1} {input.r2} {params.name} {params.colors} {input.ggtheme}"
 
 
 rule overall_len:
@@ -256,7 +256,7 @@ rule overall_MR_len_vivo:
         """
             cat {input} | bawk '$4!=1 && $4!=2 && $4!="class"{{print $2,$5,$6}}' > {output}
         """
-        
+
 rule overall_SNV_gained:
     output: "vitro_gained_{kind}"
     input: kind_MR
@@ -264,7 +264,7 @@ rule overall_SNV_gained:
         """
             cat {input} | bawk '$4==1 || $4==2 {{print $2,$5}}' > {output}
         """
-        
+
 rule overall_SNV_gained_T1:
     output: "vitro_T1gained_{kind}"
     input: kind_MR
@@ -292,7 +292,7 @@ rule overall_tree_tips:
 rule rename_removefiltered_cn:
     input: "tree_cn_tree"
     output: "fixedcn_tree"
-    shell:  
+    shell:
         """
             grep -v -w 'CRC0282-01A-2-3' {input} | grep -v -w 'CRC0282-07E-2-2' | \
             sed 's/CRC1307-08D-2-4/CRC1307-09E-2-4/' {input} | sed 's/CRC1307-08D-2-3/CRC1307-09E-2-3/' | \
@@ -303,7 +303,7 @@ rule rename_removefiltered_cn:
 rule rename_removefiltered_snvindel:
     input: "tree_snvindel_tree"
     output: "fixedsnvindel_tree"
-    shell:  
+    shell:
         """
             grep -v -w 'CRC0282-01A-2-3' {input} | grep -v -w 'CRC0282-07E-2-2'  > {output}
         """
@@ -412,7 +412,7 @@ rule all_dnds:
             {params.tool} {output[0]}.tmp {output} {params.rda} &> {log}
             rm {output[0]}.tmp
         """
- 
+
 rule all_dnds_vitroMSS:
     input: expand("{model}/platypus_nobin_00/all_gained_named.tsv", model=MODELS[1:])
     output: "dnds_vitroMSS.tsv", "dnds_vitroMSS.Rdata"
@@ -485,7 +485,7 @@ rule dnds_plot_R2:
     output: "dnds_overall_vitro_R2.png"
     params: tool=BIN_DIR+"/dnds_plot_overall", colors=COLORS_MODELS_2
     shell:
-        """ 
+        """
             grep wall {input} | cut -f1,4,5,6 > {output}.tmp
             {params.tool} {output}.tmp {output} '{params.colors}' {output}.Rimage
             rm {output}.tmp
@@ -649,7 +649,7 @@ rule gained_nn_plot:
         """
             {params.tool} {input} {output} {params.colors} {wildcards.vivi} nonorm
         """
-        
+
 ### quick and dirty remove 282
 rule MSS_MR_edu_plot:
     input: data="MR_edu_{kind}", ggtheme=GGTHEME
@@ -678,7 +678,7 @@ rule tree_plot:
 
 
 #wildcard_constraints:
-#    which="[\w\d_.]+"   
+#    which="[\w\d_.]+"
 
 #rule bed:
 #    input: bed=BED+"/{which}.bed", chain="chain.gz"
@@ -815,7 +815,7 @@ rule universe:
 
 # essenziali che non sono nell'universo vanno non considerati (non sto a cercare la lista di testati di Iorio)
 rule universe_essential:
-    input: u="nonsyn_universe.tsv", filter=PRJ_ROOT+"/local/share/data/common_iorio_crisp_essential"    
+    input: u="nonsyn_universe.tsv", filter=PRJ_ROOT+"/local/share/data/common_iorio_crisp_essential"
     output: "nonsyn_universe_essential.tsv"
     shell: "filter_1col 1 {input.u} < {input.filter} > {output}"
 
@@ -833,7 +833,7 @@ rule essential_or_onco_n:
     input: tot_gained="{kind}_nonsyn.tsv", gained_essential="{kind}_{gclass}_nonsyn.tsv", universe="nonsyn_universe.tsv",
             ess="nonsyn_universe_{gclass}.tsv"
     output: "{kind}_{gclass}_n.tsv"
-    shell: 
+    shell:
         """
             echo -e "n_univ\\tn_gainedess\\tn_gained\\tn_ess\\tn_gainedess2\\tn_gained2" > {output}
             cat {input.universe} | wc -l >> {output}
@@ -850,8 +850,8 @@ rule essential_phyper:
     output: "{kind}_{gclass}_phyper.txt"
     shell:
         """
-            Rscript -e "d <- read.table('{input[0]}', header=T, fill=T); d2 <- data.frame(row.names=colnames(d), n=d[,1]); 
-                        print(d2[2,1]==d2[5,1]); print(d2[3,1]==d2[6,1]); 
+            Rscript -e "d <- read.table('{input[0]}', header=T, fill=T); d2 <- data.frame(row.names=colnames(d), n=d[,1]);
+                        print(d2[2,1]==d2[5,1]); print(d2[3,1]==d2[6,1]);
                         print(phyper(d2[2,1]-1, d2[4,1], d2[1,1]-d2[4,1], d2[3,1], lower.tail=FALSE));" \\
                 > {output}
         """
@@ -905,7 +905,7 @@ rule gene_crc_onco_crc:
 # seems so...should use -w to remove incmpl
 #https://www.biostars.org/p/152555/
 rule n_crc:
-    input: genes=PRJ_ROOT+"/local/share/data/intogen_crc", annovar='/mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt' 
+    input: genes=PRJ_ROOT+"/local/share/data/intogen_crc", annovar='/mnt/trcanmed/snaketree/task/variant_annotations/dataset/annovar/hg38/humandb/hg38_refGene.txt'
     output: "crc_n"
     shell:
         """
@@ -977,7 +977,7 @@ rule all_all_annovar:
     input: expand("{b}.multianno.txt", b=MODELS_NOREP_TRUE[:-1])
     output: "all.annovar.gz"
     shell: "cat {input} | sed 1d | gzip >  {output}"
-    
+
 
 rule binary_nonsyn:
     input: data="all.annovar.gz", wanted=PRJ_ROOT+"/local/share/data/nonsyn"
@@ -1027,7 +1027,7 @@ rule correlation_snv_subclonal:
 rule bed_simplerepeat:
     input: SNAKE_ROOT+'/task/annotations/local/share/data/hg38_simpleRepeat.txt.gz'
     output: 'simpleRepeat.bed'
-    shell: 
+    shell:
         """
             zcat {input} | cut -f 2,3,4 |sort -k1,1 -k2,2n |uniq | bedtools merge -i -  > {output}
         """
@@ -1035,7 +1035,7 @@ rule bed_simplerepeat:
 rule bed_repeatmask:
     input: SNAKE_ROOT+'/task/annotations/local/share/data/hg38_rmsk.txt.gz'
     output: 'rmsk.bed'
-    shell: 
+    shell:
         """
             zcat {input} | cut -f 6,7,8 |sort -k1,1 -k2,2n |uniq | bedtools merge -i - > {output}
         """
@@ -1092,7 +1092,7 @@ rule pcgr:
         """
 
 #
-#--input-vcf WD4086.vcf --output-maf WD4086.maf 
+#--input-vcf WD4086.vcf --output-maf WD4086.maf
 #--inhibit-vep
 #--ncbi-build  GRCh38
 #--ref-fasta
@@ -1107,7 +1107,7 @@ rule pcgr:
 # 1- 24 samples, no 2nd round for technicalities right now, vitro-vivo together all children of a given t0 clone together
 # 2- 15 samples, vitro-vivo separated, 2nd round included, 1 sample for each model (1 vivo 1 vitro)
 # 3- 130 samples, but few muts, no 2nd round for technicalities now, each clone is 1 sample
-#   
+#
 rule all_MR_ov:
     input: expand("{model}/platypus_nobin/all.MR_ov", model=MODELS)
     output: "all_MR_ov.tsv"
@@ -1116,13 +1116,13 @@ rule all_MR_ov:
             cat {input} | head -n1 > {output} || 'echo ciao'
             cat {input} | grep -w -v start >> {output}
         """
-        
+
 
 ### Evil spawn non syn
 rule evil_muts:
-    input: second_genes='CRC1502_clones_all/platypus_nobin_{altclass}/nonsyn.binary.tsv.gz', 
-           first_genes='CRC1502/platypus_nobin_{altclass}/nonsyn.binary.tsv.gz', 
-           second_muts='CRC1502_clones_all/platypus_nobin_{altclass}/CRC1502-09.annovar.gz', 
+    input: second_genes='CRC1502_clones_all/platypus_nobin_{altclass}/nonsyn.binary.tsv.gz',
+           first_genes='CRC1502/platypus_nobin_{altclass}/nonsyn.binary.tsv.gz',
+           second_muts='CRC1502_clones_all/platypus_nobin_{altclass}/CRC1502-09.annovar.gz',
            first_muts='CRC1502/platypus_nobin_{altclass}/CRC1502-09.annovar.gz'
     params: target='CRC1502-09C', targetT1='CRC1502-09-1-C', nbrothers=3
     output: muts="CRC1502-09C_CRC1502-09C_CRC1502-09-1-C.{altclass}.private.tsv"
@@ -1137,7 +1137,7 @@ def all_gained_bed(wildcards):
         return expand("{model}/platypus_nobin_indels_00/all.gain.bed", model=MODELS)
     elif wildcards.kind == "bulk":
         return expand("{model}/tree/bulk.bed", model=MODELS_NOREP_TRUE)
-    else: 
+    else:
         print("boh!")
 
 rule overall_bed:
@@ -1166,7 +1166,7 @@ rule cleverers_merge_exp:
     output: "cleverers_exposures.tsv"
     shell: """
             head -n1 {input[0]} > {output}
-            cat {input} | grep CRC >> {output} 
+            cat {input} | grep CRC >> {output}
            """
 
 rule cleverers_merge_cosine:
@@ -1174,7 +1174,7 @@ rule cleverers_merge_cosine:
     output: "cleverers_cosine.tsv"
     shell: """
             head -n1 {input[0]} > {output}
-            cat {input} | grep CRC >> {output} 
+            cat {input} | grep CRC >> {output}
            """
 
 # lagomarsino subclonal all
@@ -1194,7 +1194,7 @@ rule subclonal_all_thr:
     script: SRC_DIR+'/subclonal_all_lago.R'
 
 def my_expand_thr(wildcards):
-    exp = expand("thr_{lowAF}-{highAF}_subclonal.png", lowAF=[0.025, 0.05, 0.1, 0.12, 0.15], 
+    exp = expand("thr_{lowAF}-{highAF}_subclonal.png", lowAF=[0.025, 0.05, 0.1, 0.12, 0.15],
                                                        highAF=[0.05, 0.1, 0.15, 0.2, 0.24, 0.3, 0.5])
     res = []
     import re
@@ -1216,7 +1216,7 @@ rule all_subclonal_thr:
 rule number_clonal:
     input: bulk="{model}/tree/bulk.tsv.gz", clone="{model}/mutect_nobin/all_T0_fbcalls.tsv.gz"
     output: "{model}_clonal_{thr}_SNVs.tsv.gz"
-    shell: 
+    shell:
         """
 	        zcat {input.clone} | sed 's/\.fbcalls\.tsv\.gz//1' | bawk '$3 > {wildcards.thr} {{print $1,$2":"$3":"$4}}' > {output}.tmp
             zcat {input.bulk} | tr ":" "\\t" | bawk '$10 > {wildcards.thr} {{print "bulk_{wildcards.model}",$3}}' >> {output}.tmp
@@ -1246,32 +1246,32 @@ rule tsv_anno_muts_T1:
 
 # put together T2 accumulated SNVs list and annotations (not CRC0327 in vivo) for suppl table 8
 rule all_anno_muts_T2:
-    input: expand("edt_dir/{model}_edt8.tsv", model=MODELS_T2) 
+    input: expand("edt_dir/{model}_edt8.tsv", model=MODELS_T2)
 
 rule tsv_anno_muts_T2:
     input: acc="{model}/platypus_nobin_00/mutinfo.tsv.gz", essential=PRJ_ROOT+"/local/share/data/common_iorio_crisp_essential"
     output: outtsv="edt_dir/{model}_edt8.tsv"
     log: log="edt_dir/{model}_edt8.log"
-    script:  SRC_DIR+"/merge_mutinfo_onlyclones.R" 
+    script:  SRC_DIR+"/merge_mutinfo_onlyclones.R"
 
 # suppl table 6 cleverers annotations
 rule all_anno_muts_cleverers:
-    input: expand("edt_dir/{model}_edt6.tsv", model=MODELS_CLEV) 
+    input: expand("edt_dir/{model}_edt6.tsv", model=MODELS_CLEV)
 
 rule tsv_anno_muts_cleverers:
     input: acc="cleverers/{model}/mutinfo.tsv.gz", essential=PRJ_ROOT+"/local/share/data/common_iorio_crisp_essential"
     output: outtsv="edt_dir/{model}_edt6.tsv"
     log: log="edt_dir/{model}_edt6.log"
-    script:  SRC_DIR+"/merge_mutinfo_onlyclones.R" 
+    script:  SRC_DIR+"/merge_mutinfo_onlyclones.R"
 
 ### Williams 150x
 rule puttogheter:
     input: '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1307_clones_150x/CRC1307-09-0.fit.0.12_0.24.r2',
            '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1502_120x/CRC1502-03-1-A.fit.0.12_0.24.r2',
-           '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1502_120x/CRC1502-03-0.fit.0.12_0.24.r2', 
-           '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC0282_clones_150x/CRC0282-05-1-C.fit.0.12_0.24.r2', 
-           '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC0282_clones_150x/CRC0282-05-0.fit.0.12_0.24.r2', 
-           '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1307_120x/CRC1307-09-1-B.fit.0.12_0.24.r2', 
+           '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1502_120x/CRC1502-03-0.fit.0.12_0.24.r2',
+           '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC0282_clones_150x/CRC0282-05-1-C.fit.0.12_0.24.r2',
+           '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC0282_clones_150x/CRC0282-05-0.fit.0.12_0.24.r2',
+           '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1307_120x/CRC1307-09-1-B.fit.0.12_0.24.r2',
            '/mnt/trcanmed/snaketree/prj/snakegatk/dataset/CRC1307_120x/CRC1307-02-1-E.fit.0.12_0.24.r2'
     output: 'williams_bin_0.12_0.24.r2.tsv'
     shell:
@@ -1327,4 +1327,29 @@ rule d_plot:
             cut -f 1,4 {input.b} | sed 1d > {output}.tmp
             {params.tool} {output}.tmp {output} {input.colors} death
             rm {output}.tmp
+        """
+
+## T0 T1 separately
+rule sign_input_all:
+    output: "sign_input_allmuts"
+    shell:
+        """
+            ls CRC*/platypus_nobin_00/*.allmuts.vcf.gz | bawk ' function basename(file, a, n) {{
+                 n = split(file, a, "/")
+                 return a[n]
+                }} {{print $1, basename($1)}}' | sed 's/\.allmuts\.vcf\.gz//2' > {output}
+        """
+
+rule all_allmuts_sign:
+    input: other="../datasetV2/sign_input_allmuts", here="sign_input_allmuts"
+    output: heat="allmuts_cosmic.png", cosine="allmuts_cosine_cosmic.png",
+            heat_tsv="allmuts_heatmap_cosmic.tsv", cosine_tsv="allmuts_cosine_cosmic.tsv",
+    params: tool=BIN_DIR+"/mut_pat_signatures_fit", colors=COLORS_MODELS_2
+    log: log="allmuts_cosmic.png.log"
+    shell:
+        """
+            cat {input.here} > {output.heat}.tmp
+            bawk '{{print "../datasetV2/"$0}}' {input.other} >> {output.heat}.tmp
+            {params.tool} {output.heat}.tmp {output.heat} {output.cosine} '{params.colors}' {log.log} {output.heat_tsv} {output.cosine_tsv}
+            rm {output.heat}.tmp
         """

@@ -51,6 +51,20 @@ all(keep2 == keep)
 bd <- bd[keep,]
 ma <- ma[keep,]
 
+# order according to MR
+mod <- c("CRC1599PR","CRC2826PRO","CRC3023PRO","CRC0327","CRC0441","CRCUECHPRO","CRC1502","CRC1599LM","CRC1078","CRC1307")
+modma <- paste0(mod, '_vitroMA')
+modb <- paste0(mod, '_bulk')
+
+dim(bd)
+dim(ma)
+
+ma <- ma[, modma]
+bd <- bd[, modb]
+
+dim(bd)
+dim(ma)
+
 pdf('/scratch/trcanmed/AF_spectra/temp/sign_bulk.pdf', family="sans")#, width=2.2, height=1.4) # resize by hand cause otherwise it will be a mess
 pheatmap(bd, cellwidth=5.67, cellheight=5.67, fontsize_row = 5, fontsize_col=5, fontsize.number=5, show_colnames = FALSE, show_rownames = TRUE,  
          cluster_cols=FALSE, annotation_col=annot_rows_bulk, annotation_colors = annot_colors,  

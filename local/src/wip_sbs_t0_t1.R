@@ -1,4 +1,5 @@
-load('/scratch/trcanmed/AF_spectra/datasetV2/p.Rdata')
+#load('/scratch/trcanmed/AF_spectra/datasetV2/p.Rdata') # only first cohort data
+load('/scratch/trcanmed/AF_spectra/dataset_IANG/sign.Rdata') # + IANG
 library(ggpubr)
 
 cos_sim_ori_rec <- cos_sim_matrix(mut_mat, ff$reconstructed)
@@ -81,12 +82,15 @@ for (m in unique(dd$model)) {
   lenc <- length(unique(md$clone))
   pl <- c(pl, ggplot(data=md, aes(x=time, y= ratio))+geom_line(data=md[!is.na(md$lineage),], aes(group=lineage, color=clone))+
         geom_point(aes(color=clone))+ theme_bw(base_size = 15)+
-        scale_color_manual(values=pal[seq(8, 8 - lenc)])++ theme(legend.position="none"))
+        scale_color_manual(values=pal[seq(8, 8 - lenc)])+ theme(legend.position="none"))
 }
 
 pl <- c()
-for (m in unique(dd$model)) {
-  
+
+#mod <- c('CRC0327', 'CRC0441', 'CRC1502', 'CRC1307', 'CRC1078', 'CRC1599LM', 'CRC1599PR', 'CRC2826PRO', 'CRC3023PRO', 'CRCUECHPRO')
+mod <- c("CRC1599PR","CRC2826PRO","CRC3023PRO","CRC0327","CRC0441","CRCUECHPRO","CRC1502","CRC1599LM","CRC1078","CRC1307")
+#for (m in unique(dd$model)) {
+for (m in mod) {
   md <- dd[dd$model == m, ]
   md0 <- md[md$time == 0,]
   #md0$lineage <- NA
@@ -101,8 +105,9 @@ for (m in unique(dd$model)) {
   md$col <- paste0(md$model,'_', md$clone)
   lenc <- length(unique(md$clone))
   mpal <- pal[names(pal) %in% unique(md$col)]
-  pl <- c(pl, ggplot(data=md, aes(x=time, y= ratio))+geom_line(aes(group=clone, color=col))+geom_point(aes(color=col))+theme_bw(base_size = 15)+ggtitle(m)+
-            scale_color_manual(values=mpal)+ theme(legend.position="none"))
+  pl <- c(pl, ggplot(data=md, aes(x=time, y= ratio))+geom_line(aes(group=clone, color=col))+geom_point(aes(color=col))+theme_bw(base_size = 15)+#ggtitle(m)+
+            scale_color_manual(values=mpal)+ theme(legend.position="none", axis.title.x=element_blank(), axis.title.y=element_blank())+
+            scale_x_discrete(labels=c('T0', 'T1')))
 }
 
 

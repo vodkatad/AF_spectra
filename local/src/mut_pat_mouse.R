@@ -1,6 +1,6 @@
 library(MutationalPatterns)
-ref_genome <- 'BSgenome.Mmusculus.UCSC.mm9'
-ref_transcriptome <- "TxDb.Mmusculus.UCSC.mm9.knownGene"
+ref_genome <- 'BSgenome.Mmusculus.UCSC.mm9' # 9 for paper
+ref_transcriptome <- "TxDb.Mmusculus.UCSC.mm9.knownGene" # 9 for paper
 library(ref_genome, character.only = TRUE)
 library(ref_transcriptome, character.only = TRUE)
 library(NMF)
@@ -11,6 +11,7 @@ library(pheatmap)
 library(RColorBrewer)
 
 
+#input <- '/scratch/trcanmed/AF_spectra/dataset/AOMDSS_WES/signinput_gio3'
 input <- '/scratch/trcanmed/AF_spectra/dataset/AOMDSS_WES/signinput'
 setwd('/scratch/trcanmed/AF_spectra/dataset/AOMDSS_WES/')
 # infile is tsv vfc / samplename_bulk|vivo|vitro
@@ -87,6 +88,32 @@ pheatmap(data, fontsize_row = 9, fontsize_col=9, show_colnames = TRUE,  cluster_
 
 write.table(data, file=outputheattsv, sep="\t", quote=FALSE)
 
+###########################
+annot_rows_bulks <- data.frame(row.names=rownames(data))
+annot_rows_bulks$week <- unlist(lapply(strsplit(rownames(data),'-'), function(x){ x[1] }))
+annot_rows_bulks$mouse <- unlist(lapply(strsplit(rownames(data),'-'), function(x){ x[2] }))
+annot_rows_bulks$lesion <- unlist(lapply(strsplit(rownames(data),'-'), function(x){ x[3] }))
+data <- data[order(as.numeric(annot_rows_bulks$week)),]
+
+ma <- t(data)
+annot_rows_MA <- annot_rows
+
+keep <- apply(ma, 1, function(x) {any(x>0.1)})
+keep[1] <- TRUE
+ma <- ma[keep,]
+rownames(ma) <- paste0('SBS', rownames(ma))
+
+
+
+pdf('/scratch/trcanmed/AF_spectra/temp/aom.pdf', family="sans")#, width=2.2, height=1.4) # resize by hand cause otherwise it will be a mess
+
+pheatmap(ma, cellwidth=5.67, cellheight=5.67, fontsize_row = 5, fontsize_col=5, fontsize.number=5, show_colnames = FALSE, show_rownames = TRUE,  
+         cluster_cols=FALSE, annotation_col=annot_rows_bulks,
+         color=brewer.pal(9, 'Blues'), breaks=seq(0, 0.9, by=0.1),
+         cluster_rows=FALSE)
+
+dev.off()
+#annotation_col=annot_rows_bulk, annotation_colors = annot_colors,  
 ############# manual AIRC
 save.image('sign.Rdata')
 
