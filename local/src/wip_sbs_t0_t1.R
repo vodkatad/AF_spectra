@@ -98,7 +98,7 @@ for (m in mod) {
   #md0$lineage <- NA
   #md0$lineage <- paste0('clone', md0[,'clone'])
   md0$rratio <- md0$ratio / md0$ratio ############################### correction add
-  
+  md0$dratio <- md0$ratio - md0$ratio ############################### correction add
   
   md1 <- md[md$time == 1,]
   #md1$lineage <- NA
@@ -106,6 +106,8 @@ for (m in mod) {
   md1$time <- 1
   md1$model <- m
   md1$rratio <- md1$ratio / md0$ratio ############################### correction add
+  md1$dratio <- md1$ratio - md0$ratio ############################### correction add
+  
   md1 <- md1[, colnames(md0)]
   
   md <- rbind(md0, md1)
@@ -160,11 +162,56 @@ pdata$xmodel <- seq(1, nrow(pdata))
 
 
 p <- ggplot()+theme_bw(base_size = 15)+#ggtitle(m)+
-  scale_color_manual(values=pal)+ theme(legend.position="none", axis.title.x=element_blank(), axis.title.y=element_blank())+
+  scale_color_manual(values=pal)+ theme(legend.position="none", axis.title.x=element_blank())+
   geom_point(data=wholeT1, aes(x=model, y=rratio, color=col), stat="identity", size=2, shape=18, position=position_dodge(0.7))+
   geom_segment(data=pdata, aes(x=xmodel-0.2, y=mean,  xend=xmodel+0.2),size=.3) +
   geom_errorbar(data=pdata, aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+scale_x_discrete(labels=paste0('P', pdata$xmodel))
 #+scale_x_discrete(labels=substr(pdata$model, 0, 7))
+#+
+p <- p+geom_hline(yintercept=1, color='red', linetype='dashed')+ylim(c(0.8, 2))+ylab('Fold increase in SBS8/SBS1 over six months')
+
+ggsave('~/HT_rratio_2.svg', plot=p, width=89, height=89, units="mm")
+#egrassi@godot:~$ perl -pne "s/textLength='.+px'//; " <  HT_rratio_2.svg > HT_rratio_3.svg
+
+#### order
+pdata <- pdata[order(pdata$mean),]
+pdata$xmodel <- seq(1, nrow(pdata))
+wholeT1$x <- factor(wholeT1$model, levels=pdata$model)
+
+p <- ggplot()+theme_bw(base_size = 15)+#ggtitle(m)+
+  scale_color_manual(values=pal)+ theme(legend.position="none", axis.title.x=element_blank(), axis.title.y=element_blank())+
+  geom_point(data=wholeT1, aes(x=x, y=rratio, color=col), stat="identity", size=2, shape=18, position=position_dodge(0.7))+
+  geom_segment(data=pdata, aes(x=xmodel-0.2, y=mean,  xend=xmodel+0.2),size=.3) +
+  geom_errorbar(data=pdata, aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+scale_x_discrete(labels=paste0('P', pdata$xmodel))
+#+scale_x_discrete(labels=substr(pdata$model, 0, 7))
+#+
+p+geom_hline(yintercept=1, color='red', linetype='dashed')+ylim(c(0.8, 2))
+
+#### dratio
+ic_clones <- sapply(unique(wholeT1$model), function(x) { confidence_interval(wholeT1[wholeT1$model==x,'dratio'], LEVEL) })
+colnames(ic_clones) <- unique(wholeT1$model)
+pdata <- as.data.frame(t(ic_clones))
+pdata$model <- rownames(pdata)
+
+wholeT1 <- wholeT1[order(wholeT1$model),]
+pdata <- pdata[order(pdata$model),]
+pdata$xmodel <- seq(1, nrow(pdata))
+
+
+p <- ggplot()+theme_bw(base_size = 15)+#ggtitle(m)+
+  scale_color_manual(values=pal)+ theme(legend.position="none", axis.title.x=element_blank(), axis.title.y=element_blank())+
+  geom_point(data=wholeT1, aes(x=model, y=dratio, color=col), stat="identity", size=2, shape=18, position=position_dodge(0.7))+
+  geom_segment(data=pdata, aes(x=xmodel-0.2, y=mean,  xend=xmodel+0.2),size=.3) +
+  geom_errorbar(data=pdata, aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+scale_x_discrete(labels=paste0('P', pdata$xmodel))
+#+scale_x_discrete(labels=substr(pdata$model, 0, 7))
+#+
+p+geom_hline(yintercept=0, color='red', linetype='dashed')
+################
+
+whole$model_time <- paste0(whole$model, whole$time)
+ggplot()+theme_bw(base_size = 15)+#ggtitle(m)+
+  scale_color_manual(values=pal)+ theme(legend.position="none", axis.title.x=element_blank(), axis.title.y=element_blank())+
+  geom_point(data=whole, aes(x=model_time, y=rratio, color=col), stat="identity", size=2, shape=18, position=position_dodge(0.7))
 
 
 ggsave('~/HT_rratio.svg', plot=p, width=89, height=89, units="mm")
