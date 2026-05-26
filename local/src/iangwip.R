@@ -95,7 +95,9 @@ iang <- sub[,c('name', 'age', 'X1')]
 colnames(iang)[1] <- 'model'
 
 tot <- rbind(m, iang)
-
+# 1558  for f in bulk/*; do echo -en "$f\t"; zcat $f | grep -v "^#" | bawk 'length($4)==1 && length($5)==1'| wc -l; done > snvburden_bulk
+#1560  for f in IANG_bulk/*.vcf.gz; do echo -en "$f\t"; zcat $f | grep -v "^#" | bawk 'length($4)==1 && length($5)==1'| wc -l; done >> snvburden_bulk 
+#then lazy hand removal to keep only modelPR
 burd <- read.table('/scratch/trcanmed/AF_spectra/local/share/data/snvburden_bulk', sep="\t", header=F)
 colnames(burd) <- c('model', 'burden')
 
@@ -109,12 +111,34 @@ tot$model <- paste0(tot$model, ifelse(!grepl('\\d$', tot$model), '', ifelse(tot$
 names(pal) <- paste0(names(pal), ifelse(!grepl('\\d$', names(pal)), '', ifelse(names(pal)=="CRC0282", 'PR', 'LM')))
 names(pal) <- gsub('PRO', 'PR', names(pal))
 
+tot <- tot[tot$model != 'CRC0282PR', ]
+
+textSize <- 15
+largerSize <- textSize + 2
+
+#textSize <- textSize * (96/72) # these conversion were needed because the default dpi for text was 96?
+# in the svg the number passed to theme was reported as size = ..px.. rather than pt (?)
+#largerSize <- largerSize * (96/72) 
+unmute_theme <- theme(
+  text = element_text(size = textSize, family='sans'),
+  axis.title = element_text(size = largerSize),
+  axis.text.x = element_text(size = textSize, color="black"),#, angle = 90, vjust = 0.5, hjust=1)
+  axis.text.y = element_text(size = textSize, color="black"),
+  plot.title = element_text(size = largerSize, hjust = 0.5),
+  legend.title = element_text(size=largerSize, hjust = 0.5),
+  legend.text = element_text(size=textSize),
+  panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+  axis.line = element_line(colour = "black"),
+  axis.ticks = element_line(color = "black"),
+  panel.background = element_blank()
+)
+
 y_breaks <- c(15, 30, 45, 60, 75, 90)
 x_breaks <- c(0, 0.10, 0.20, 0.30, 0.40)
 #x_breaks <- c(0, 0.2, 0.4, 0.6, 0.8)
 p1 <- ggplot(data=tot, aes(y=X1, x=age, color=model))+geom_point(size=1)+
-  theme_bw(base_size=15)+ylab('SBS1')+
-  geom_abline(slope=sfittot$coefficients[2,1], intercept=sfittot$coefficients[1,1], color='darkgray', lwd=0.5)+
+  unmute_theme+ylab('SBS1')+
+  geom_abline(slope=sfittot$coefficients[2,1], intercept=sfittot$coefficients[1,1], color='darkgray', lwd=1)+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=y_breaks,limits=c(15, max(y_breaks)),expand = c(0, 0))+
   scale_y_continuous(breaks=x_breaks,limits=c(0, max(x_breaks)),expand = c(0, 0))+
@@ -139,16 +163,17 @@ y_breaks <- c(0,15, 30, 45, 60, 75, 90)
 x_breaks <- c(0, 500, 1000, 1500, 2000, 2500)
 #x_breaks <- c(0, 0.2, 0.4, 0.6, 0.8)
 p1 <- ggplot(data=tot, aes(y=SBS1b, x=age, color=model))+geom_point(size=1)+
-  theme_bw(base_size=20)+ylab('SBS1 mutations / Gb')+
-  geom_abline(slope=bsfittot$coefficients[2,1], intercept=bsfittot$coefficients[1,1], color='darkgray', lwd=0.5)+
+  unmute_theme+ylab('SBS1 mutations / Gb')+
+  geom_abline(slope=bsfittot$coefficients[2,1], intercept=bsfittot$coefficients[1,1], color='darkgray', lwd=1)+
   scale_color_manual(values=pal)+
   scale_x_continuous(breaks=y_breaks,limits=c(0, max(y_breaks)),expand = c(0, 0))+
   scale_y_continuous(breaks=x_breaks,limits=c(0, max(x_breaks)),expand = c(0, 0))+
-  theme(legend.position="none")
+  theme(legend.position="none", plot.margin = margin(0.5, 0.5, 0.5, 0.5, "cm"))+coord_cartesian(clip = "off")
 p1
 
 ggsave(plot=p1, file='/scratch/trcanmed/AF_spectra/temp/progress_fit.svg', width=95, height=95, units="mm")
 
+cor.test(tot$SBS1b, tot$age)
 ######################
 
 ##

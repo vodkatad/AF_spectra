@@ -55,64 +55,119 @@ names(pal) <- palette_df$model
 names(pal) <- gsub('-', '_', names(pal))
 
 dd <- data.frame(ratio=data2[,8] / data2[,1], row.names= rownames(data2))
+#dd <- data.frame(ratio=data2[,18] / data2[,1], row.names= rownames(data2))
 dd$time <-  as.factor(unlist(lapply(strsplit(rownames(dd),'-'), function(x){ x[[3]] })))
 dd$model <-  as.factor(unlist(lapply(strsplit(rownames(dd),'-'), function(x){ x[[1]] })))
 dd$clone <-  as.factor(unlist(lapply(strsplit(rownames(dd),'-'), function(x){ x[[2]] })))
 
 # only in vivo T1 for this
 dd <- dd[rownames(dd) != 'CRC1599LM-07-0',]
-pal <- RColorBrewer::brewer.pal(name = 'OrRd', n=8)
-pl <- c()
-for (m in unique(dd$model)) {
-  md <- dd[dd$model == m, ]
-  md0 <- md[md$time == 0,]
-  md0$lineage <- NA
-  md0$lineage <- paste0('clone', md0[,'clone'])
-  md1 <- md[md$time == 1,]
-  md1$lineage <- NA
-  for (c in unique(md1$clone)) {
-    ll <- median(md1[md1$clone == c,'ratio'])
-    if (!any(ll ==  md1[md1$clone == c,'ratio'])) {
-      # solo CRC1599PR
-      ll = max(md1[md1$clone == c,'ratio'])
-    }
-    md1[which(md1$clone==c & md1$ratio == ll),]$lineage <- paste0('clone', c)
-  }
-  md <- rbind(md0, md1)
-  lenc <- length(unique(md$clone))
-  pl <- c(pl, ggplot(data=md, aes(x=time, y= ratio))+geom_line(data=md[!is.na(md$lineage),], aes(group=lineage, color=clone))+
-        geom_point(aes(color=clone))+ theme_bw(base_size = 15)+
-        scale_color_manual(values=pal[seq(8, 8 - lenc)])+ theme(legend.position="none"))
-}
+#pal <- RColorBrewer::brewer.pal(name = 'OrRd', n=8)
+# pl <- c()
+# for (m in unique(dd$model)) {
+#   md <- dd[dd$model == m, ]
+#   md0 <- md[md$time == 0,]
+#   md0$lineage <- NA
+#   md0$lineage <- paste0('clone', md0[,'clone'])
+#   md1 <- md[md$time == 1,]
+#   md1$lineage <- NA
+#   for (c in unique(md1$clone)) {
+#     ll <- median(md1[md1$clone == c,'ratio'])
+#     if (!any(ll ==  md1[md1$clone == c,'ratio'])) {
+#       # solo CRC1599PR
+#       ll = max(md1[md1$clone == c,'ratio'])
+#     }
+#     md1[which(md1$clone==c & md1$ratio == ll),]$lineage <- paste0('clone', c)
+#   }
+#   md <- rbind(md0, md1)
+#   lenc <- length(unique(md$clone))
+#   pl <- c(pl, ggplot(data=md, aes(x=time, y= ratio))+geom_line(data=md[!is.na(md$lineage),], aes(group=lineage, color=clone))+
+#         geom_point(aes(color=clone))+ theme_bw(base_size = 15)+
+#         scale_color_manual(values=pal[seq(8, 8 - lenc)])+ theme(legend.position="none"))
+# }
 
 pl <- c()
-
+whole <- NULL
 #mod <- c('CRC0327', 'CRC0441', 'CRC1502', 'CRC1307', 'CRC1078', 'CRC1599LM', 'CRC1599PR', 'CRC2826PRO', 'CRC3023PRO', 'CRCUECHPRO')
 mod <- c("CRC1599PR","CRC2826PRO","CRC3023PRO","CRC0327","CRC0441","CRCUECHPRO","CRC1502","CRC1599LM","CRC1078","CRC1307")
 #for (m in unique(dd$model)) {
 for (m in mod) {
   md <- dd[dd$model == m, ]
+  md <- md[order(md$clone, rownames(md)),] ############################### correction add
   md0 <- md[md$time == 0,]
   #md0$lineage <- NA
   #md0$lineage <- paste0('clone', md0[,'clone'])
+  md0$rratio <- md0$ratio / md0$ratio ############################### correction add
+  
+  
   md1 <- md[md$time == 1,]
   #md1$lineage <- NA
   md1 <- md1 %>% summarize(ratio=mean(ratio), .by=c(clone))
   md1$time <- 1
   md1$model <- m
+  md1$rratio <- md1$ratio / md0$ratio ############################### correction add
   md1 <- md1[, colnames(md0)]
+  
   md <- rbind(md0, md1)
   md$col <- paste0(md$model,'_', md$clone)
   lenc <- length(unique(md$clone))
   mpal <- pal[names(pal) %in% unique(md$col)]
-  pl <- c(pl, ggplot(data=md, aes(x=time, y= ratio))+geom_line(aes(group=clone, color=col))+geom_point(aes(color=col))+theme_bw(base_size = 15)+#ggtitle(m)+
+  pl <- c(pl, ggplot(data=md, aes(x=time, y=rratio))+geom_line(aes(group=col, color=col))+geom_point(aes(color=col))+theme_bw(base_size = 15)+#ggtitle(m)+
             scale_color_manual(values=mpal)+ theme(legend.position="none", axis.title.x=element_blank(), axis.title.y=element_blank())+
             scale_x_discrete(labels=c('T0', 'T1')))
+  if (is.null(whole)) {
+    whole <- md
+  } else {
+    whole <- rbind(whole, md)
+  }
 }
 
 
 ggarrange(plotlist=pl)
+ggplot(data=whole, aes(x=time, y=rratio))+geom_line(aes(color=col, group=col))+geom_point(aes(color=col))+theme_bw(base_size = 15)+#ggtitle(m)+
+  scale_color_manual(values=pal)+ theme(legend.position="none", axis.title.x=element_blank(), axis.title.y=element_blank())+
+  scale_x_discrete(labels=c('T0', 'T1'))
+ggplot(data=whole, aes(x=time, y=rratio))+geom_line(aes(color=col, group=col))+geom_point(aes(color=col))+theme_bw(base_size = 15)+#ggtitle(m)+
+  scale_color_manual(values=pal)+ theme(legend.position="none", axis.title.x=element_blank(), axis.title.y=element_blank())+
+  scale_x_discrete(labels=c('T0', 'T1'))+scale_y_log10()
 
+wholeT1 <- whole[whole$time==1,]
+
+confidence_interval <- function(vector, interval) {
+  # Standard deviation of sample
+  vec_sd <- sd(vector)
+  # Sample size
+  n <- length(vector)
+  # Mean of sample
+  vec_mean <- mean(vector)
+  # Error according to t distribution
+  error <- vec_sd
+  
+  # Confidence interval as a vector
+  result <- c("lower" = vec_mean - error, "upper" = vec_mean + error, "mean" = vec_mean)
+  return(result)
+}
+
+LEVEL <- 0.99
+ic_clones <- sapply(unique(wholeT1$model), function(x) { confidence_interval(wholeT1[wholeT1$model==x,'rratio'], LEVEL) })
+colnames(ic_clones) <- unique(wholeT1$model)
+pdata <- as.data.frame(t(ic_clones))
+pdata$model <- rownames(pdata)
+
+wholeT1 <- wholeT1[order(wholeT1$model),]
+pdata <- pdata[order(pdata$model),]
+pdata$xmodel <- seq(1, nrow(pdata))
+
+
+p <- ggplot()+theme_bw(base_size = 15)+#ggtitle(m)+
+  scale_color_manual(values=pal)+ theme(legend.position="none", axis.title.x=element_blank(), axis.title.y=element_blank())+
+  geom_point(data=wholeT1, aes(x=model, y=rratio, color=col), stat="identity", size=2, shape=18, position=position_dodge(0.7))+
+  geom_segment(data=pdata, aes(x=xmodel-0.2, y=mean,  xend=xmodel+0.2),size=.3) +
+  geom_errorbar(data=pdata, aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+scale_x_discrete(labels=paste0('P', pdata$xmodel))
+#+scale_x_discrete(labels=substr(pdata$model, 0, 7))
+
+
+ggsave('~/HT_rratio.svg', plot=p, width=89, height=89, units="mm")
 ## get estimates
 # (deltaTumor * nDiv) / deltaMA
 

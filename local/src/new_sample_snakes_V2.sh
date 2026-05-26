@@ -5,8 +5,9 @@
 cd $1/platypus_nobin_00
 #rm *_ov *ov.tsv
 #snakemake -j 1 all.MR_ov
-snakemake -j 12 all_gain_vcf all_gained_named.tsv vitro.merged.vcf.gz
+#snakemake -j 12 all_gain_vcf all_gained_named.tsv vitro.merged.vcf.gz
 #snakemake -j 12 dnds.tsv dndsvitro.tsv
+snakemake  --rerun-triggers mtime -p -j1 all_allmuts_vcf
 
 #snakemake -j 12 all_mrca.tsv
 #snakemake vitro.merged.vcf.gz vivo.merged.vcf.gz
