@@ -168,10 +168,38 @@ p <- ggplot()+theme_bw(base_size = 15)+#ggtitle(m)+
   geom_errorbar(data=pdata, aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+scale_x_discrete(labels=paste0('P', pdata$xmodel))
 #+scale_x_discrete(labels=substr(pdata$model, 0, 7))
 #+
-p <- p+geom_hline(yintercept=1, color='red', linetype='dashed')+ylim(c(0.8, 2))+ylab('Fold increase in SBS8/SBS1 over six months')
-
-ggsave('~/HT_rratio_2.svg', plot=p, width=89, height=89, units="mm")
 #egrassi@godot:~$ perl -pne "s/textLength='.+px'//; " <  HT_rratio_2.svg > HT_rratio_3.svg
+
+library(pwr)
+pwr.t2n.test(
+n1 = 18,
+n2 = 17,
+sig.level = 0.05,
+power = 0.80,
+alternative = "greater", d=NULL
+)
+
+
+#The F test has numerator and denominator degrees of freedom. 
+#The numerator degrees of freedom, u, is the number of coefficients you'll have in your model (minus the intercept). 
+#In our example, u = 2. The denominator degrees of freedom, v, is the number of error degrees of freedom: v=n−u−1.
+#This implies n=v+u+1
+# ratio ~ mouse + time
+# ho u = 2, v=n-u-1= 18+17-2+1
+n <- 18+17
+u <- 2
+v <- n - u -1
+pwr.f2.test(u = u, v = v, f2 = NULL, sig.level = 0.05, power = 0.8)
+
+
+#The effect size, f2, is R2/(1−R2), where R2 is the coefficient of determination, 
+#aka the “proportion of variance explained”. To determine effect size you hypothesize the proportion of
+#variance your model explains, or the R2. For example, if I think my model explains 45% of the variance 
+#in my dependent variable, the effect size is 0.45/(1 - 0.45) ≈ 0.81.
+ # f2 = R2/(1-R2)
+# R2 = f2-f2*R2
+# R2 + f2*R2 = f2
+f2 <- 0.3
 
 #### order
 pdata <- pdata[order(pdata$mean),]
@@ -179,13 +207,16 @@ pdata$xmodel <- seq(1, nrow(pdata))
 wholeT1$x <- factor(wholeT1$model, levels=pdata$model)
 
 p <- ggplot()+theme_bw(base_size = 15)+#ggtitle(m)+
-  scale_color_manual(values=pal)+ theme(legend.position="none", axis.title.x=element_blank(), axis.title.y=element_blank())+
+  scale_color_manual(values=pal)+ theme(legend.position="none", axis.title.x=element_blank())+
   geom_point(data=wholeT1, aes(x=x, y=rratio, color=col), stat="identity", size=2, shape=18, position=position_dodge(0.7))+
   geom_segment(data=pdata, aes(x=xmodel-0.2, y=mean,  xend=xmodel+0.2),size=.3) +
   geom_errorbar(data=pdata, aes(ymin=lower, ymax=upper, x=model), size=0.3, width=0.3)+scale_x_discrete(labels=paste0('P', pdata$xmodel))
 #+scale_x_discrete(labels=substr(pdata$model, 0, 7))
 #+
-p+geom_hline(yintercept=1, color='red', linetype='dashed')+ylim(c(0.8, 2))
+
+p <- p+geom_hline(yintercept=1, color='red', linetype='dashed')+ylim(c(0.8, 2))+ylab('SBS8/SBS1 fold change over six months')
+
+ggsave('~/HT_rratio_2.svg', plot=p, width=89, height=89, units="mm")
 
 #### dratio
 ic_clones <- sapply(unique(wholeT1$model), function(x) { confidence_interval(wholeT1[wholeT1$model==x,'dratio'], LEVEL) })
