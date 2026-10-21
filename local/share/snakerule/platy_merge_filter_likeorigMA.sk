@@ -1,0 +1,133 @@
+# /mnt/trcanmed/snaketree/data/MA_cell_lines_MR/to_MA
+## let's reduce ourselves to do a renaming and have separate vcf for each one
+# then we need a perl that considers mutated all 
+#https://docs.google.com/document/d/1rELOv307VWf_76Xy9X9PoqfwYkpc3o4o_Auo5Yude3E/edit?tab=t.0
+#https://docs.google.com/spreadsheets/d/1t8bCeIivvCFyGG_FvpmzsCDA9WMXx-yj/edit?gid=193908250#gid=193908250
+#recall;PASS
+#PASS
+#recall;alleleBias
+
+# naming conventions
+#egrassi@godot:/mnt/trcanmed/snaketree/data/MA_cell_lines_MR$ ls platypus_recall/*WIDR_CLONE* | sed 's/platypus_recall\/GRCh38.d1.vd1__//1; s/\.platypus-recall\.vcf\.gz//1' | tr "\n" "," | sed 's/,/","/g'
+## TOLTO 12H
+WIDR=["WIDR_CLONE_12A_BULK","WIDR_CLONE_12_BULK","WIDR_CLONE_12I_BULK","WIDR_CLONE_2A_BULK","WIDR_CLONE_2_BULK","WIDR_CLONE_2D_BULK","WIDR_CLONE_2E_BULK"]#,"WIDR_CLONE_7B_BULK","WIDR_CLONE_7_BULK","WIDR_CLONE_7D_BULK","WIDR_CLONE_7E_BULK"]
+WIDR_CL=["WIDR-12-1-A","WIDR-12-0","WIDR-12-1-I","WIDR-02-1-A","WIDR-02-0","WIDR-02-1-D","WIDR-02-1-E"]#,"WIDR-07-1-B","WIDR-07-0","WIDR-07-1-D","WIDR-07-1-E"]
+WIDR_map=dict(zip(WIDR_CL, WIDR))
+#DIFI=["DIFI_CLONE_11B_BULK","DIFI_CLONE_11_BULK","DIFI_CLONE_11G_BULK","DIFI_CLONE_11H_BULK","DIFI_CLONE_18_BULK","DIFI_CLONE_8A_BULK","DIFI_CLONE_8_BULK","DIFI_CLONE_8F_BULK","DIFI_CLONE_8H_BULK"]
+#DIFI_CL=["DIFI-11-1-B","DIFI-11-0","DIFI-11-1-G","DIFI-11-1-H","DIFI-18-0","DIFI-08-1-A","DIFI-08-0","DIFI-08-1-F","DIFI-08-1-H"]
+DIFI=["DIFI_CLONE_11B_BULK","DIFI_CLONE_11_BULK","DIFI_CLONE_11G_BULK","DIFI_CLONE_11H_BULK","DIFI_CLONE_8A_BULK","DIFI_CLONE_8_BULK","DIFI_CLONE_8F_BULK","DIFI_CLONE_8H_BULK"]
+DIFI_CL=["DIFI-11-1-B","DIFI-11-0","DIFI-11-1-G","DIFI-11-1-H"]#,"DIFI-08-1-A","DIFI-08-0","DIFI-08-1-F","DIFI-08-1-H"]
+all_map=dict(zip(DIFI_CL, DIFI))
+all_map.update(WIDR_map)
+
+# TODO ASK ci son i bulk in platy? Clone 18? (suoi T1 sono tutti ko)
+#DIFI_BASELINE
+#DIFI_CLONE_18A_BULK
+#DIFI_CLONE_18D_BULK
+#DIFI_CLONE_18G_BULK ??? in teoria mancava del tutto
+#WIDR_CLONE_12H_BULK
+#WIDR_CLONE_7B_BULK
+#WIDR_CLONE_7E_BULK
+#WIDR_CLONE_7_BULK
+
+rule map:
+    output: cmap="clones_map.txt"
+    run:
+        with open(output.cmap, 'w') as outfile:
+            for key, el in all_map.items():
+                outfile.write("{el} {key}\n".format(el=el, key=key))
+
+def map_input(wildcards):
+    return(PLATYPUS_IDIR+"/GRCh38.d1.vd1__"+all_map[wildcards.sample]+".platypus-recall.vcf.gz")
+
+
+RENAMED_DIR='platypus'
+rule all_rename:
+    input: expand(RENAMED_DIR+"/{sample}.platypus-recall.vcf.gz", sample=all_map.keys())
+
+rule rename:
+    input: cmap="clones_map.txt", vcf=map_input
+    output: RENAMED_DIR+"/{sample}.platypus-recall.vcf.gz"
+    shell: 
+        """
+            bcftools reheader -s {input.cmap} -o {output} {input.vcf}
+        """
+
+PLATYPUS_DIR='platypus_recall'
+PLATYPUS_IDIR='../platypus_recall'
+
+LINES=['WIDR', 'DIFI']
+##### pureCN to bed
+PURE_DIR="../PureCN"
+#WIDR_CLONE_12A_BULK/WIDR_CLONE_12A_BULK_dnacopy.seg
+rule all_rename_pure:
+    input: expand(RENAMED_DIR+"/{sample}_seg.bed", sample=all_map.keys())
+def map_pure(wildcards):
+    return(PURE_DIR+ "/" +all_map[wildcards.sample]+"/"+all_map[wildcards.sample]+"_dnacopy.seg")
+rule pure_to_bed:
+    input: map_pure
+    output: RENAMED_DIR+"/{sample}_seg.bed"
+    shell:
+        """
+            sed 1d {input} | bawk 'function ceil(x, y){{y=int(x); return(x>y?y+1:y)}} $2!="chrX" && $2!="chrY" {{print "chr"$2, ceil($3-0.5), int($4), int($7)}}' > {output}
+        """
+
+########### old way, forget about it
+rule header:
+    input: PLATYPUS_IDIR+"/GRCh38.d1.vd1__WIDR_CLONE_12A_BULK.platypus-recall.vcf.gz"
+    output: "header.txt"
+    shell:
+        """
+            bcftools view -h {input} > {output}
+        """
+
+# plug in manually platypus filters info from /scratch/trcanmed/AF_spectra/local/share/data/CRC1307/platypus_filtered.vcf.gz
+
+def find_clones(wildcards):
+    if wildcards.line == 'WIDR':
+        return(expand(PLATYPUS_DIR+"/GRCh38.d1.vd1__{sample}.platypus-recall.vcf.gz", sample=WIDR))
+    else:
+        return(expand(PLATYPUS_DIR+"/GRCh38.d1.vd1__{sample}.platypus-recall.vcf.gz", sample=DIFI))
+
+rule all_filtered:
+    input: expand(PLATYPUS_DIR+"/{line}_platypus_filtered.vcf.gz", line=LINES)
+ 
+rule reheader:
+    input: PLATYPUS_IDIR+"/GRCh38.d1.vd1__{sample}.platypus-recall.vcf.gz"
+    output: PLATYPUS_DIR+"/GRCh38.d1.vd1__{sample}.platypus-recall.vcf.gz"
+    params: lazy="header.txt"
+    shell: 
+        """
+            bcftools reheader -h {params.lazy} {input} > {output}
+            tabix {output}
+        """
+
+#GRCh38.d1.vd1__DIFI_CLONE_11_BULK.platypus-recall.vcf.gz
+rule merge_vcf:
+    input: find_clones
+    output: PLATYPUS_DIR+"/{line}_merged.vcf.gz"
+    shell:
+        """
+            bcftools merge --force-samples --missing-to-ref -o {output} -O z {input};
+            tabix {output};
+        """
+
+rule pass_platypus:
+    output: PLATYPUS_DIR+"/pass"
+    shell:
+        """
+            echo -en "recall;PASS\\nPASS\\nrecall;alleleBias\\n" | tr "," "\\n" > {output}
+        """
+
+rule filter_platypus:
+    input: vcf=PLATYPUS_DIR+"/{line}_merged.vcf.gz", keep=PLATYPUS_DIR+"/pass"
+    output: PLATYPUS_DIR+"/{line}_platypus_filtered.vcf.gz"
+    shell:
+        """
+            zcat {input.vcf} | grep -v "^#"| filter_1col 7 {input.keep} | grep -v '\./\.' > {output}.tmp;
+            cat <(zcat {input.vcf} | grep "^#") {output}.tmp | bgzip > {output};
+            tabix {output};
+            rm {output}.tmp;
+        """
+
+# bcftools reheader -N file -o    file is old_name !space! new_name
