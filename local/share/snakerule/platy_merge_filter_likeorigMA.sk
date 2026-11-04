@@ -72,6 +72,69 @@ rule pure_to_bed:
             sed 1d {input} | bawk 'function ceil(x, y){{y=int(x); return(x>y?y+1:y)}} $2!="chrX" && $2!="chrY" {{print "chr"$2, ceil($3-0.5), int($4), int($7)}}' > {output}
         """
 
+
+# DEPTH
+ALIGN_DIR="../align"
+def map_input_align(wildcards):
+    return([ALIGN_DIR+"/realigned_"+all_map[wildcards.sample]+".sorted.cram", ALIGN_DIR+"/realigned_"+all_map[wildcards.sample]+".sorted.cram.crai"])
+
+CORES=6
+ALIGN_ODOCKER="d9582704189c"
+
+rule all_coverage:
+    input: map_input_align, ref='/mnt/trcanmed/snaketree/task/annotations/dataset/gnomad/GRCh38.d1.vd1.fa'
+    output: "depth/{sample}.quantized.bed.gz"
+    params: prefix="depth/{sample}", thread=CORES
+    docker: ALIGN_ODOCKER
+    shell:
+        """
+            mkdir -p depth;
+            mosdepth -f {input.ref} -t {params.thread} -n --quantize 1: -Q 20 {params.prefix} {input[0]};
+            rm {params.prefix}.mosdepth.global.dist.txt;
+        """
+
+# default skip 1796
+#     read unmapped (0x4)
+#         not primary alignment (0x100)
+#             read fails platform/vendor quality checks (0x200)
+#                 read is PCR or optical duplicate (0x400)
+#(snakemake) [egrassi@occam CRC1307_clones]>zcat depth/CRC1307-08-1-D.quantized.bed.gz | cut -f 4 | sort | uniq 
+#1:inf
+rule all_int:
+    input: expand("depth/{line}_callable_1x_20q.bed.gz", line=LINES)
+
+def find_quantized(wildcards):
+    if wildcards.line == 'WIDR':
+        print(expand("depth/{sample}.quantized.bed.gz", sample=WIDR_CL))
+        return(expand("depth/{sample}.quantized.bed.gz", sample=WIDR_CL))
+    else:
+        print(expand("depth/{sample}.quantized.bed.gz", sample=DIFI_CL))
+        return(expand("depth/{sample}.quantized.bed.gz", sample=DIFI_CL))
+
+def find_n_quantized(wildcards):
+    if wildcards.line == 'WIDR':
+        return(len(expand("depth/{sample}.quantized.bed.gz", sample=WIDR_CL)))
+    else:
+        return(len(expand("depth/{sample}.quantized.bed.gz", sample=DIFI_CL)))
+
+rule intersect_1x:
+    input: find_quantized
+    output: "depth/{line}_callable_1x_20q.bed.gz"
+    params: nsamples=find_n_quantized
+    shell:
+        """
+            bedtools multiinter -i {input} | awk -F'\\t' -v OFS='\\t' '$4=={params.nsamples}' | gzip > {output}
+        """
+
+CALLABLE_BED='TODO'
+rule intersect_callable:
+    input: callable=CALLABLE_BED, covered="depth/callable_1x_20q.bed.gz"
+    output: "depth/callable_covered.bed.gz"
+    shell:
+        """
+            bedtools intersect -a {input.callable} -b {input.covered} | gzip > {output}
+        """
+    
 ########### old way, forget about it
 rule header:
     input: PLATYPUS_IDIR+"/GRCh38.d1.vd1__WIDR_CLONE_12A_BULK.platypus-recall.vcf.gz"
