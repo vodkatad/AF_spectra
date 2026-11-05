@@ -1,0 +1,55 @@
+import os
+def find_prj_root(path=os.getcwd()):
+    if os.path.isfile(os.path.join(path,".PRJ_ROOT")):
+        return path
+    else:
+        if path:
+            return find_prj_root(os.path.dirname(path))
+        else:
+            raise Exception("Can not find the PRJ_ROOT directory")
+
+PRJ_ROOT=find_prj_root()
+BIOINFO_ROOT = os.getenv('BIOINFO_ROOT')
+SNAKE_ROOT=os.getenv('SNAKE_ROOT')
+ANNOVAR=SNAKE_ROOT+"/task/variant_annotations/dataset/annovar/hg38/humandb/"
+HROOT='/home/egrassi'
+BIN_DIR=PRJ_ROOT+"/local/bin"
+SRC_DIR=PRJ_ROOT+"/local/src"
+
+###################################################################
+KIND="SNV" # | indel
+MULTI="nomulti"
+### sample variable portion #############################################
+DATA=PRJ_ROOT+"/local/share/data/WIDR_clones"
+SDATA=DATA
+SAMPLES=["WIDR-12-1-A","WIDR-12-0","WIDR-12-1-I","WIDR-02-1-A","WIDR-02-0","WIDR-02-1-D","WIDR-02-1-E","WIDR-07-1-B","WIDR-07-0","WIDR-07-1-D","WIDR-07-1-E"]
+import re
+CLONE12=[x for x in SAMPLES if re.search('12', x)]
+CLONE02=[x for x in SAMPLES if re.search('02', x)]
+CLONE07=[x for x in SAMPLES if re.search('07', x)]
+CLONES=[CLONE12, CLONE02, CLONE07]
+
+SAMPLES_HIGH=["WIDR-12","WIDR-02","WIDR-07"]
+SAMPLES_ZERO=[x+'-0' for x in SAMPLES_HIGH]
+BULKNAME=""
+SHIPMENT=""
+NORMAL=""
+CNLEN=""
+CNLEN2=BIN_DIR+"/no_cn_len_plot_2"
+CALLABLE=DATA+"/WIDR_callable_covered.bed.gz"
+##############################################################
+
+DBSNP=BIOINFO_ROOT+"/task/annotations/dataset/gnomad/chr_All_20180418.vcf.bgz"
+
+DNDSCV_RDA=DATA+"/../RefCDS_human_GRCh38.p12.rda"
+
+ALL_SAMPLES=SAMPLES
+SAMPLE =  "wildcards" #"^1740D" for biodiversa calls #"{wildcards.sample}" for mutect # "TUMOR" for varscan
+WANTED_CN = "tutti"
+
+wildcard_constraints:
+    sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"   
+wildcard_constraints:
+    t1sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
+wildcard_constraints:
+    t0sample="[a-zA-Z0-9]+-[0-9]+-[A-Z0-9]+-?[A-Z0-9]?"
