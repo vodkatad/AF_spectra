@@ -9,17 +9,78 @@
 
 # naming conventions
 #egrassi@godot:/mnt/trcanmed/snaketree/data/MA_cell_lines_MR$ ls platypus_recall/*WIDR_CLONE* | sed 's/platypus_recall\/GRCh38.d1.vd1__//1; s/\.platypus-recall\.vcf\.gz//1' | tr "\n" "," | sed 's/,/","/g'
-## TOLTO 12H
-WIDR=["WIDR_CLONE_12A_BULK","WIDR_CLONE_12_BULK","WIDR_CLONE_12I_BULK","WIDR_CLONE_2A_BULK","WIDR_CLONE_2_BULK","WIDR_CLONE_2D_BULK","WIDR_CLONE_2E_BULK"]#,"WIDR_CLONE_7B_BULK","WIDR_CLONE_7_BULK","WIDR_CLONE_7D_BULK","WIDR_CLONE_7E_BULK"]
-WIDR_CL=["WIDR-12-1-A","WIDR-12-0","WIDR-12-1-I","WIDR-02-1-A","WIDR-02-0","WIDR-02-1-D","WIDR-02-1-E"]#,"WIDR-07-1-B","WIDR-07-0","WIDR-07-1-D","WIDR-07-1-E"]
+## TOLTO 12H  perchè?? perchè era fail CN
+WIDR=["WIDR_CLONE_12A_BULK","WIDR_CLONE_12_BULK","WIDR_CLONE_12H_BULK", "WIDR_CLONE_12I_BULK","WIDR_CLONE_2A_BULK","WIDR_CLONE_2_BULK","WIDR_CLONE_2D_BULK","WIDR_CLONE_2E_BULK","WIDR_CLONE_7B_BULK","WIDR_CLONE_7_BULK","WIDR_CLONE_7D_BULK","WIDR_CLONE_7E_BULK"]
+WIDR_CL=["WIDR-12-1-A","WIDR-12-0","WIDR-12-1-H", "WIDR-12-1-I","WIDR-02-1-A","WIDR-02-0","WIDR-02-1-D","WIDR-02-1-E","WIDR-07-1-B","WIDR-07-0","WIDR-07-1-D","WIDR-07-1-E"]
 WIDR_map=dict(zip(WIDR_CL, WIDR))
 #DIFI=["DIFI_CLONE_11B_BULK","DIFI_CLONE_11_BULK","DIFI_CLONE_11G_BULK","DIFI_CLONE_11H_BULK","DIFI_CLONE_18_BULK","DIFI_CLONE_8A_BULK","DIFI_CLONE_8_BULK","DIFI_CLONE_8F_BULK","DIFI_CLONE_8H_BULK"]
 #DIFI_CL=["DIFI-11-1-B","DIFI-11-0","DIFI-11-1-G","DIFI-11-1-H","DIFI-18-0","DIFI-08-1-A","DIFI-08-0","DIFI-08-1-F","DIFI-08-1-H"]
-DIFI=["DIFI_CLONE_11B_BULK","DIFI_CLONE_11_BULK","DIFI_CLONE_11G_BULK","DIFI_CLONE_11H_BULK","DIFI_CLONE_8A_BULK","DIFI_CLONE_8_BULK","DIFI_CLONE_8F_BULK","DIFI_CLONE_8H_BULK"]
-DIFI_CL=["DIFI-11-1-B","DIFI-11-0","DIFI-11-1-G","DIFI-11-1-H"]#,"DIFI-08-1-A","DIFI-08-0","DIFI-08-1-F","DIFI-08-1-H"]
+DIFI=["DIFI_CLONE_18_BULK", "DIFI_CLONE_11B_BULK","DIFI_CLONE_11_BULK","DIFI_CLONE_11G_BULK","DIFI_CLONE_11H_BULK","DIFI_CLONE_8A_BULK","DIFI_CLONE_8_BULK","DIFI_CLONE_8F_BULK","DIFI_CLONE_8H_BULK"]
+DIFI_CL=["DIFI-18-0", "DIFI-11-1-B","DIFI-11-0","DIFI-11-1-G","DIFI-11-1-H","DIFI-08-1-A","DIFI-08-0","DIFI-08-1-F","DIFI-08-1-H"]
 all_map=dict(zip(DIFI_CL, DIFI))
 all_map.update(WIDR_map)
 
+AWIDR=WIDR+['WIDR_BASELINE']
+ADIFI=DIFI+['DIFI_BASELINE']
+DEPMAP='../OmicsSomaticMutations.csv'
+### depmap overlap
+U_VCF_DIR='/mnt/trcanmed/snaketree/data/MA_cell_lines_MR/mutect_unmatched'
+# DIFI WIDR
+DLINES=['ACH-002233', 'ACH-000552']
+def find_depmap_id(wildcards):
+    if wildcards.sample in ADIFI:
+        return(DLINES[0])
+    elif wildcards.sample in AWIDR:
+        return(DLINES[1])
+
+rule depmap_overlap:
+    input: depmap=DEPMAP, vcf=U_VCF_DIR+"/GRCh38.d1.vd1__{sample}.pass.vcf.gz"
+    output: "{sample}.overlap.tsv"
+    params: did=find_depmap_id
+    shell:
+        """ 
+            sed 1d {input.depmap} | tr "," "\\t" | bawk -v s={params.did} '$3==s {{print $7,$8-1,$8,$9,$10}}' > {output}.bed
+            bedtools intersect -wa -a {output}.bed -b {input.vcf} > {output}.ovbed
+            n1=$(cat {output}.bed | wc -l); n2=$(cat {output}.ovbed | wc -l); n3=$(zgrep -v "^#" {input.vcf} | grep -c PASS); \\
+            echo -en "{wildcards.sample}\\t$n1\\t$n2\\t$n3\\n" > {output}
+        """
+
+rule all_depmap_overlap:
+    input: expand("{sample}.overlap.tsv", sample=AWIDR), expand("{sample}.overlap.tsv", sample=ADIFI)
+    output: "depmap_overlap.tsv"
+    shell: 
+        """
+            echo -en "sample\\tn_depmap\\tn_overlap\\tn_pass\\n" > {output}
+            cat {input} >> {output}
+        """
+
+# RKO ACH-000943
+def find_wrong_depmap_id(wildcards):
+    if wildcards.sample in ADIFI:
+        return(DLINES[1])
+    elif wildcards.sample in AWIDR:
+        return(DLINES[0])
+
+rule depmap_woverlap:
+    input: depmap=DEPMAP, vcf=U_VCF_DIR+"/GRCh38.d1.vd1__{sample}.pass.vcf.gz"
+    output: "{sample}.woverlap.tsv"
+    params: did=find_wrong_depmap_id
+    shell:
+        """ 
+            sed 1d {input.depmap} | tr "," "\\t" | bawk -v s={params.did} '$3==s {{print $7,$8-1,$8,$9,$10}}' > {output}.bed
+            bedtools intersect -wa -a {output}.bed -b {input.vcf} > {output}.ovbed
+            n1=$(cat {output}.bed | wc -l); n2=$(cat {output}.ovbed | wc -l); n3=$(zgrep -v "^#" {input.vcf} | grep -c PASS); \\
+            echo -en "{wildcards.sample}\\t$n1\\t$n2\\t$n3\\n" > {output}
+        """
+
+rule all_depmap_woverlap:
+    input: expand("{sample}.woverlap.tsv", sample=AWIDR), expand("{sample}.woverlap.tsv", sample=ADIFI)
+    output: "depmap_woverlap.tsv"
+    shell: 
+        """
+            echo -en "sample\\tn_depmap\\tn_overlap\\tn_pass\\n" > {output}
+            cat {input} >> {output}
+        """
 # TODO ASK ci son i bulk in platy? Clone 18? (suoi T1 sono tutti ko)
 #DIFI_BASELINE
 #DIFI_CLONE_18A_BULK
@@ -85,7 +146,7 @@ rule all_coverage:
     input: map_input_align, ref='/mnt/trcanmed/snaketree/task/annotations/dataset/gnomad/GRCh38.d1.vd1.fa'
     output: "depth/{sample}.quantized.bed.gz"
     params: prefix="depth/{sample}", thread=CORES
-    docker: ALIGN_ODOCKER
+    #docker: ALIGN_ODOCKER
     shell:
         """
             mkdir -p depth;
@@ -126,10 +187,10 @@ rule intersect_1x:
             bedtools multiinter -i {input} | awk -F'\\t' -v OFS='\\t' '$4=={params.nsamples}' | gzip > {output}
         """
 
-CALLABLE_BED='TODO'
+CALLABLE_BED='/mnt/trcanmed/snaketree/task/annotations/dataset/gnomad/wgs_calling_regions.hg38.bed.gz'
 rule intersect_callable:
-    input: callable=CALLABLE_BED, covered="depth/callable_1x_20q.bed.gz"
-    output: "depth/callable_covered.bed.gz"
+    input: callable=CALLABLE_BED, covered="depth/{line}_callable_1x_20q.bed.gz"
+    output: "depth/{line}_callable_covered.bed.gz"
     shell:
         """
             bedtools intersect -a {input.callable} -b {input.covered} | gzip > {output}
